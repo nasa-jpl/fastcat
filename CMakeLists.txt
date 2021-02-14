@@ -53,8 +53,8 @@ find_package(YamlCpp REQUIRED 0.6.3)
 
 include(FetchContent)
 FetchContent_Declare(jsd
-    GIT_REPOSITORY git@fornat1.jpl.nasa.gov:ethercat/jsd.git
-    GIT_TAG kwehage-refactor
+    GIT_REPOSITORY git@github.com:nasa-jpl/jsd.git
+    GIT_TAG apb-public-migration
     )
 FetchContent_MakeAvailable(jsd)
 
