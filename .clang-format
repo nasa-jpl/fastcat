@@ -1,0 +1,17 @@
+---
+BasedOnStyle:  Google
+Language:        Cpp
+TabWidth:        2
+ContinuationIndentWidth: 4
+UseTab:          Never
+ColumnLimit:     80
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+#AlignAfterOpenBracket: DontAlign
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+#BreakStringLiterals: false
+BreakBeforeBraces: Linux
+...
+

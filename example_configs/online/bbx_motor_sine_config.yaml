@@ -1,0 +1,160 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:  
+  - type: jsd_bus
+    ifname: enp0s25
+    enable_autorecovery: False
+
+    devices:
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+      
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE #M1
+    - device_class: IGNORE #M2
+
+    - device_class: Egd
+      name: egd_3
+      drive_cmd_mode:                  CS
+      cs_cmd_freq_hz:                  50
+      max_motor_speed:                 30000
+      max_profile_accel:               30000
+      max_profile_decel:               30000
+      velocity_tracking_error:         10000000
+      position_tracking_error:         10000000
+      peak_current_limit:              0.5 #1.71
+      peak_current_time:               1.0
+      continuous_current_limit:        0.25 #1.0
+      torque_slope:                    0.1
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             3.0
+      over_speed_threshold:            70000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               5
+      brake_disengage_msec:            5
+      crc:                             711680826
+      drive_max_current_limit:         5
+
+    - device_class: IGNORE #M4
+
+    - device_class: Egd
+      name: egd_5
+      drive_cmd_mode:                  PROFILED
+      cs_cmd_freq_hz:                  100
+      max_motor_speed:                 30000
+      max_profile_accel:               30000
+      max_profile_decel:               30000
+      velocity_tracking_error:         10000000
+      position_tracking_error:         10000000
+      peak_current_limit:              0.5 #1.71
+      peak_current_time:               1.0
+      continuous_current_limit:        0.25 #1.0
+      torque_slope:                    0.1
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             3.0
+      over_speed_threshold:            70000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               5
+      brake_disengage_msec:            5
+      crc:                             711680826
+      drive_max_current_limit:         5
+
+    - device_class: IGNORE #M6
+
+  - type: fastcat_bus
+    ifname: fcat_bus_1
+    devices:
+    - device_class: SignalGenerator
+      name: sig_gen_1
+      signal_generator_type: SINE_WAVE
+      angular_frequency: 1.5708
+      phase: 0
+      amplitude: 5000 
+      offset: 0
+
+
+    - device_class: Commander
+      name: commander_3
+      start_enabled: True
+      skip_n_loops:   1 
+      device_cmd_name: egd_3
+      device_cmd_type: EGD_CSP_CMD
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name:  output
+        cmd_field_name:       target_position 
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       position_offset
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       velocity_offset
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       torque_offset_amps
+
+
+    - device_class: Commander
+      name: commander_5
+      start_enabled: True
+      skip_n_loops:   1  
+      device_cmd_name: egd_5
+      device_cmd_type: EGD_PROF_POS_CMD
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name:  output
+        cmd_field_name:       target_position 
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          30000
+        cmd_field_name:       profile_velocity
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       end_velocity
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          30000
+        cmd_field_name:       profile_accel
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          30000
+        cmd_field_name:       profile_decel
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       relative

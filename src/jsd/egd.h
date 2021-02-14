@@ -1,0 +1,43 @@
+#ifndef FASTCAT_EGW_H_
+#define FASTCAT_EGW_H_
+
+// Include related header (for cc files)
+
+// Include c then c++ libraries
+
+// Include external then project includes
+#include "fastcat/device_base.h"
+#include "jsd/jsd_egd_pub.h"
+
+namespace fastcat
+{
+class Egd : public DeviceBase
+{
+ public:
+  Egd();
+  bool      ConfigFromYaml(YAML::Node node) override;
+  bool      Read() override;
+  FaultType Process() override;
+  bool      Write(DeviceCmd& cmd) override;
+  void      Fault() override;
+  void      Reset() override;
+
+ protected:
+  bool ConfigFromYamlCommon(YAML::Node node);
+  bool DriveCmdModeFromString(std::string               dcm_string,
+                              jsd_egd_drive_cmd_mode_t& dcm);
+
+  std::string        drive_cmd_mode_string_;
+  jsd_slave_config_t jsd_slave_config_ = {0};
+  jsd_egd_state_t    jsd_egd_state_    = {0};
+
+  double cs_cmd_freq_hz_;
+
+ private:
+  bool WriteProfiledMode(DeviceCmd& cmd);
+  bool WriteCSMode(DeviceCmd& cmd);
+};
+
+}  // namespace fastcat
+
+#endif

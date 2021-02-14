@@ -1,0 +1,93 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:  
+  - type: offline_bus
+    ifname: eth0
+    enable_autorecovery: True
+
+    devices:
+    - device_class: Egd
+      name: m1
+      drive_cmd_mode:                  CS
+      max_motor_speed:                 70000
+      torque_slope:                    0.1
+      max_profile_accel:               70000
+      max_profile_decel:               70000
+      velocity_tracking_error:         30000
+      position_tracking_error:         5000
+      peak_current_limit:              1.4
+      peak_current_time:               3.0
+      continuous_current_limit:        1.0
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             3.0
+      over_speed_threshold:            80000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               10
+      brake_disengage_msec:            10
+      drive_max_current_limit:         5
+      crc:                             -1838881983
+
+    - device_class: El2124
+      name: el2124_1
+
+    - device_class: El3602
+      name: el3602_1
+      range_ch1: 10V
+      range_ch2: 75MV
+
+    - device_class: El3208
+      name: el3208_1
+      element:         [PT100, NI100, PT100, PT100, PT100, PT100, OHMS1024, NOT_CONNECTED]
+      connection:      [2WIRE, 2WIRE, 3WIRE, 2WIRE, 4WIRE, 2WIRE, 2WIRE,    NOT_CONNECTED]
+      wire_resistance: [0,     0,     0,     0,     0,     0,     0,        0            ]
+      low_threshold:   [-100,  -100,  -100,  -100,  -100,  1, -100,      1            ]
+      high_threshold:  [100,   100,   100,   100,   100,   -1,   100,      -1           ]
+
+  - type: fastcat_bus
+    ifname: fcat_bus_1
+    devices:
+    - device_class: SignalGenerator
+      name: sig_gen_1
+      signal_generator_type: SINE_WAVE
+      angular_frequency: 3.14159
+      phase: 0
+      amplitude: 5000 
+      offset: 0
+
+    - device_class: Function
+      name: fun_ain_1
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [1000, 0]
+      signals:
+      - observed_device_name: el3602_1
+        request_signal_name: voltage_ch1
+
+    - device_class: Commander
+      name: commander_1
+      start_enabled: False
+      skip_n_loops:    0
+      device_cmd_name: m1
+      device_cmd_type: EGD_CSP_CMD
+      signals:
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       position_offset
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       velocity_offset
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       torque_offset_amps
+
+      - observed_device_name: sig_gen_1
+        request_signal_name:  output
+        cmd_field_name:       target_position 

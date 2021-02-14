@@ -1,0 +1,16 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:  
+  - type: offline_bus
+    ifname: eth0
+    enable_autorecovery: True
+
+    devices:
+    - device_class: El3602
+      name: el3602_1
+      range_ch1: 10V
+      range_ch2: 5V

@@ -1,0 +1,7 @@
+device_class: SchmittTrigger
+name: st3
+low_threshold: 1000
+high_threshold: 4000
+signals:
+- observed_device_name: FIXED_VALUE
+  fixed_value: 2000

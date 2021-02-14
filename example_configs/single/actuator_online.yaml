@@ -1,0 +1,106 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:
+  - type: jsd_bus
+    ifname: enp0s25
+    enable_autorecovery: True
+
+    devices:
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE # M1
+    - device_class: IGNORE # M2
+
+    - device_class: Actuator
+      name: act_3
+      actuator_type:                 revolute # eu = radians
+      gear_ratio:                    102.514286
+      counts_per_rev:                500
+      max_speed_eu_per_sec:          0.174533
+      max_accel_eu_per_sec2:         0.174533
+      over_speed_multiplier:         2.0
+      vel_tracking_error_eu_per_sec: 0.5
+      pos_tracking_error_eu:         0.174533
+      peak_current_limit_amps:       3.0
+      peak_current_time_sec:         1.0
+      continuous_current_limit_amps: 1.71
+      torque_slope_amps_per_sec:     0.1   # amps/sec
+      low_pos_cal_limit_eu:          -1.75
+      low_pos_cmd_limit_eu:          -1.57
+      high_pos_cmd_limit_eu:          1.57
+      high_pos_cal_limit_eu:          1.75
+      holding_duration_sec:          3.0
+      egd_brake_engage_msec:         5
+      egd_brake_disengage_msec:      5
+      egd_crc:                       711680826
+      egd_drive_max_current_limit:   5
+      smooth_factor:                 5
+
+    - device_class: IGNORE # M4
+    - device_class: IGNORE # M5
+    - device_class: IGNORE # M6
+
+
+  - type: fastcat_bus
+    ifname: fcat_bus_1
+    devices:
+    - device_class: SignalGenerator
+      name: sig_gen_1
+      signal_generator_type: SINE_WAVE
+      angular_frequency: 0.314
+      phase: 0
+      amplitude: 5
+      offset: 0
+
+
+    - device_class: Commander
+      name: commander_3
+      start_enabled: False
+      skip_n_loops:   0 
+      device_cmd_name: act_3
+      device_cmd_type: ACTUATOR_CSP_CMD
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name:  output
+        cmd_field_name:       target_position 
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       position_offset
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       velocity_offset
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       torque_offset_amps

@@ -1,0 +1,35 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:  
+  - type: offline_bus
+    ifname: eth0
+    enable_autorecovery: True
+
+    devices:
+    - device_class: Egd
+      name: egd_1
+      cs_cmd_freq_hz:                  100
+      drive_cmd_mode:                  PROFILED
+      max_motor_speed:                 50000
+      torque_slope:                    0.25
+      max_profile_accel:               50000
+      max_profile_decel:               50000
+      velocity_tracking_error:         10000000
+      position_tracking_error:         100000000
+      peak_current_limit:              1.5
+      peak_current_time:               0.5
+      continuous_current_limit:        1.0
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             1.0
+      over_speed_threshold:            100000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               0
+      brake_disengage_msec:            0
+      crc:                             0
+      drive_max_current_limit:         5

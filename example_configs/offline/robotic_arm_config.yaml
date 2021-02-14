@@ -1,0 +1,213 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:
+  - type: offline_bus
+    ifname: offline0
+    enable_autorecovery: False
+
+    devices:
+    - device_class: Actuator
+      name: stars_arm0_revolute
+      gear_reduction:                  103867.33631298575
+      max_speed_eu:                    1.0   # rad/sec
+      over_speed_threshold_eu:         2.0   # rad/sec
+      max_accel_eu:                    1.0   # rad/sec/sec
+      max_decel_eu:                    1.0   # rad/sec/sec
+      velocity_tracking_error_eu:      0.034 # rad/sec
+      position_tracking_error_eu:      0.017 # rad
+      peak_current_limit:              0.5   # 1.4 actual
+      peak_current_time:               1.0
+      continuous_current_limit:        0.25  # 1.0 actual
+      torque_slope:                    0.1   # amps/sec
+      low_position_limit_eu:           6.29  # rad
+      high_position_limit_eu:          -6.29 # rad
+      egd_brake_engage_msec:           5
+      egd_brake_disengage_msec:        5
+      egd_crc:                         1321429733
+      egd_drive_max_current_limit:     5
+
+    - device_class: Actuator
+      name: stars_arm0_revolute
+      drive_cmd_mode:                  PROFILED
+      max_motor_speed:                 60000
+      torque_slope:                    0.5
+      max_profile_accel:               2
+      max_profile_decel:               2
+      polarity:                        0
+      drive_startup_position:          0
+      velocity_tracking_error:         30000
+      position_tracking_error:         5000
+      peak_current_limit:              1.71
+      peak_current_time:               3.0
+      continuous_current_limit:        1.0
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             3.0
+      over_speed_threshold:            70000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               5
+      brake_disengage_msec:            10
+      crc:                             711680826
+      drive_max_current_limit:         5
+      gear_ratio:                      0.005
+
+    - device_class: Actuator
+      name: stars_arm1_revolute
+      drive_cmd_mode:                  PROFILED
+      max_motor_speed:                 60000
+      torque_slope:                    0.5
+      max_profile_accel:               2
+      max_profile_decel:               2
+      polarity:                        0
+      drive_startup_position:          0
+      velocity_tracking_error:         30000
+      position_tracking_error:         5000
+      peak_current_limit:              1.71
+      peak_current_time:               3.0
+      continuous_current_limit:        1.0
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             3.0
+      over_speed_threshold:            70000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               5
+      brake_disengage_msec:            10
+      crc:                             711680826
+      drive_max_current_limit:         5
+      gear_ratio:                      0.005
+
+    - device_class: Actuator
+      name: stars_arm2_revolute
+      drive_cmd_mode:                  PROFILED
+      max_motor_speed:                 60000
+      torque_slope:                    0.5
+      max_profile_accel:               2
+      max_profile_decel:               2
+      polarity:                        0
+      drive_startup_position:          0
+      velocity_tracking_error:         30000
+      position_tracking_error:         5000
+      peak_current_limit:              1.71
+      peak_current_time:               3.0
+      continuous_current_limit:        1.0
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             3.0
+      over_speed_threshold:            70000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               5
+      brake_disengage_msec:            10
+      crc:                             711680826
+      drive_max_current_limit:         5
+      gear_ratio:                      0.005
+
+    - device_class: Actuator
+      name: stars_arm3_revolute
+      drive_cmd_mode:                  PROFILED
+      max_motor_speed:                 60000
+      torque_slope:                    0.5
+      max_profile_accel:               2
+      max_profile_decel:               2
+      polarity:                        0
+      drive_startup_position:          0
+      velocity_tracking_error:         30000
+      position_tracking_error:         5000
+      peak_current_limit:              1.71
+      peak_current_time:               3.0
+      continuous_current_limit:        1.0
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             3.0
+      over_speed_threshold:            70000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               5
+      brake_disengage_msec:            10
+      crc:                             711680826
+      drive_max_current_limit:         5
+      gear_ratio:                      0.005
+
+    - device_class: Actuator
+      name: stars_arm4_revolute
+      drive_cmd_mode:                  PROFILED
+      max_motor_speed:                 60000
+      torque_slope:                    0.5
+      max_profile_accel:               2
+      max_profile_decel:               2
+      polarity:                        0
+      drive_startup_position:          0
+      velocity_tracking_error:         30000
+      position_tracking_error:         5000
+      peak_current_limit:              1.71
+      peak_current_time:               3.0
+      continuous_current_limit:        1.0
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             3.0
+      over_speed_threshold:            70000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               5
+      brake_disengage_msec:            10
+      crc:                             711680826
+      drive_max_current_limit:         5
+      gear_ratio:                      0.005
+
+    - device_class: Actuator
+      name: stars_arm5_revolute
+      drive_cmd_mode:                  PROFILED
+      max_motor_speed:                 60000
+      torque_slope:                    0.5
+      max_profile_accel:               2
+      max_profile_decel:               2
+      polarity:                        0
+      drive_startup_position:          0
+      velocity_tracking_error:         30000
+      position_tracking_error:         5000
+      peak_current_limit:              1.71
+      peak_current_time:               3.0
+      continuous_current_limit:        1.0
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             3.0
+      over_speed_threshold:            70000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               5
+      brake_disengage_msec:            10
+      crc:                             711680826
+      drive_max_current_limit:         5
+      gear_ratio:                      0.005
+
+    - device_class: Actuator
+      name: stars_arm6_revolute
+      drive_cmd_mode:                  PROFILED
+      max_motor_speed:                 60000
+      torque_slope:                    0.5
+      max_profile_accel:               2
+      max_profile_decel:               2
+      polarity:                        0
+      drive_startup_position:          0
+      velocity_tracking_error:         30000
+      position_tracking_error:         5000
+      peak_current_limit:              1.71
+      peak_current_time:               3.0
+      continuous_current_limit:        1.0
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             3.0
+      over_speed_threshold:            70000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               5
+      brake_disengage_msec:            10
+      crc:                             711680826
+      drive_max_current_limit:         5
+      gear_ratio:                      0.005

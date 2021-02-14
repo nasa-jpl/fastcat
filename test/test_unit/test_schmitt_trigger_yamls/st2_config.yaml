@@ -1,0 +1,7 @@
+device_class: SchmittTrigger
+name: st2
+low_threshold: 1000
+high_threshold: 4000
+signals:
+- observed_device_name: sig_gen_1
+  request_signal_name: output

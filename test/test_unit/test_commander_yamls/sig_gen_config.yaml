@@ -1,0 +1,7 @@
+device_class: SignalGenerator
+name: sig_gen_1
+signal_generator_type: SINE_WAVE
+angular_frequency: 3.14159
+phase: 0
+amplitude: 5000 
+offset: 0

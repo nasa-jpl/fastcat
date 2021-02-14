@@ -1,0 +1,502 @@
+# use snake_case for all variable and device names
+states:
+  - name: commander
+    fields:
+    - name: enable
+      type: bool
+      comment: if true, commander will emit fastcat commands
+
+  - name: signal_generator
+    fields:
+    - name: output
+      type: double
+
+  - name: function
+    fields:
+    - name: output
+      type: double
+
+  - name: conditional
+    fields:
+    - name: output
+      type: bool
+
+  - name: schmitt_trigger
+    fields:
+    - name: output
+      type: bool
+  
+  - name: saturation
+    fields:
+    - name: output
+      type: double
+
+  - name: filter
+    fields:
+    - name: output
+      type: double
+
+  - name: pid
+    fields:
+    - name: active
+      type: bool
+    - name: output
+      type: double
+    - name: kp_term
+      type: double
+    - name: ki_term
+      type: double
+    - name: kd_term
+      type: double
+
+  - name: fts
+    fields:
+    - name: raw_fx
+      type: double
+    - name: raw_fy
+      type: double
+    - name: raw_fz
+      type: double
+    - name: raw_tx
+      type: double
+    - name: raw_ty
+      type: double
+    - name: raw_tz
+      type: double
+    - name: tared_fx
+      type: double
+    - name: tared_fy
+      type: double
+    - name: tared_fz
+      type: double
+    - name: tared_tx
+      type: double
+    - name: tared_ty
+      type: double
+    - name: tared_tz
+      type: double
+
+  - name: actuator
+    fields:
+    - name: actual_position
+      type: double
+    - name: actual_velocity
+      type: double
+    - name: actual_current
+      type: double
+    - name: faulted
+      type: bool
+    - name: cmd_position
+      type: double
+    - name: cmd_velocity
+      type: double
+    - name: cmd_current
+      type: double
+    - name: cmd_max_current
+      type: double
+    - name: egd_state_machine_state
+      type: uint8_t
+    - name: egd_mode_of_operation
+      type: uint8_t
+    - name: sto_engaged
+      type: uint8_t
+    - name: hall_state
+      type: uint8_t
+    - name: target_reached
+      type: uint8_t
+    - name: motor_on
+      type: uint8_t
+    - name: fault_code
+      type: uint8_t
+    - name: bus_voltage
+      type: double
+    - name: drive_temperature
+      type: uint32_t
+    - name: egd_actual_position
+      type: int32_t
+    - name: egd_cmd_position
+      type: int32_t
+    - name: actuator_state_machine_state
+      type: uint8_t
+
+  - name: faulter
+    fields:
+    - name: enable
+      type: bool
+      comment: if true, the faulter is monitoring the fastcat signal for faults 
+    - name: fault_active
+      type: bool
+      comment: "if true, the conditions for faulting are met - 
+        on rising edge, the faulter will trigger all devices to fault."
+
+  - name: egd
+    fields:
+    - name: actual_position
+      type: int32_t
+    - name: actual_velocity
+      type: int32_t
+    - name: actual_current
+      type: double
+    - name: faulted
+      type: bool
+    - name: cmd_position
+      type: int32_t
+    - name: cmd_velocity
+      type: int32_t
+    - name: cmd_current
+      type: double
+    - name: cmd_max_current
+      type: double
+    - name: cmd_ff_position
+      type: int32_t
+    - name: cmd_ff_velocity
+      type: int32_t
+    - name: cmd_ff_current
+      type: double
+    - name: actual_state_machine_state
+      type: uint8_t
+    - name: actual_mode_of_operation
+      type: uint8_t
+    - name: async_sdo_in_prog
+      type: bool
+    - name: sto_engaged
+      type: uint8_t
+    - name: hall_state
+      type: uint8_t
+    - name: in_motion
+      type: uint8_t
+    - name: warning
+      type: uint8_t
+    - name: target_reached
+      type: uint8_t
+    - name: motor_on
+      type: uint8_t
+    - name: fault_code
+      type: uint8_t
+    - name: bus_voltage
+      type: double
+    - name: analog_input_voltage
+      type: double
+    - name: digital_input_ch1
+      type: uint8_t
+    - name: digital_input_ch2
+      type: uint8_t
+    - name: digital_input_ch3
+      type: uint8_t
+    - name: digital_input_ch4
+      type: uint8_t
+    - name: digital_input_ch5
+      type: uint8_t
+    - name: digital_input_ch6
+      type: uint8_t
+    - name: digital_output_cmd_ch1
+      type: uint8_t
+    - name: digital_output_cmd_ch2
+      type: uint8_t
+    - name: digital_output_cmd_ch3
+      type: uint8_t
+    - name: digital_output_cmd_ch4
+      type: uint8_t
+    - name: digital_output_cmd_ch5
+      type: uint8_t
+    - name: digital_output_cmd_ch6
+      type: uint8_t
+    - name: drive_temperature
+      type: uint32_t
+
+  - name: el3602
+    fields:
+    - name: voltage_ch1
+      type: double
+    - name: adc_value_ch1
+      type: int32_t
+    - name: voltage_ch2
+      type: double
+    - name: adc_value_ch2
+      type: int32_t
+
+  - name: el2124
+    fields:
+    - name: level_ch1
+      type: uint8_t
+    - name: level_ch2
+      type: uint8_t
+    - name: level_ch3
+      type: uint8_t
+    - name: level_ch4
+      type: uint8_t
+
+  - name: el3208
+    fields:
+    - name: output_ch1
+      type: double
+    - name: adc_value_ch1
+      type: int16_t
+    - name: output_ch2
+      type: double
+    - name: adc_value_ch2
+      type: int16_t
+    - name: output_ch3
+      type: double
+    - name: adc_value_ch3
+      type: int16_t
+    - name: output_ch4
+      type: double
+    - name: adc_value_ch4
+      type: int16_t
+    - name: output_ch5
+      type: double
+    - name: adc_value_ch5
+      type: int16_t
+    - name: output_ch6
+      type: double
+    - name: adc_value_ch6
+      type: int16_t
+    - name: output_ch7
+      type: double
+    - name: adc_value_ch7
+      type: int16_t
+    - name: output_ch8
+      type: double
+    - name: adc_value_ch8
+      type: int16_t
+
+  - name: jed
+    fields:
+    - name: status 
+      type: uint16_t
+    - name: cmd
+      type: uint16_t
+    - name: w_raw
+      type: uint32_t
+    - name: x_raw
+      type: uint32_t
+    - name: y_raw
+      type: uint32_t
+    - name: z_raw
+      type: uint32_t
+    - name: w
+      type: double
+    - name: x
+      type: double
+    - name: y
+      type: double
+    - name: z
+      type: double
+
+
+commands:
+  - name: commander_enable
+    fields:
+    - name: duration
+      type: double
+      comment: duration in seconds, duration <= 0 indefinite
+
+  - name: commander_disable
+    fields:
+    - name: dummy
+      type: bool
+
+  - name: egd_csp
+    fields: 
+    - name: target_position
+      type: int32_t
+    - name: position_offset
+      type: int32_t
+    - name: velocity_offset
+      type: int32_t
+    - name: torque_offset_amps
+      type: double
+
+  - name: egd_csv
+    fields: 
+    - name: target_velocity
+      type: int32_t
+    - name: velocity_offset
+      type: int32_t
+    - name: torque_offset_amps
+      type: double
+
+  - name: egd_cst
+    fields: 
+    - name: target_torque_amps
+      type: int32_t
+    - name: torque_offset_amps
+      type: double
+
+  - name: egd_prof_pos
+    fields: 
+    - name: target_position
+      type: int32_t
+    - name: profile_velocity
+      type: uint32_t
+    - name: end_velocity
+      type: uint32_t
+    - name: profile_accel
+      type: uint32_t
+    - name: profile_decel
+      type: uint32_t
+    - name: relative
+      type: uint8_t
+
+  - name: egd_prof_vel
+    fields:
+    - name: target_velocity
+      type: int32_t
+    - name: profile_accel
+      type: uint32_t
+    - name: profile_decel
+      type: uint32_t
+
+  - name: egd_prof_torque
+    fields:
+    - name: target_torque_amps
+      type: double
+
+  - name: egd_reset
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: egd_halt
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: egd_sdo_set_drive_pos
+    fields:
+    - name: drive_position
+      type: int32_t
+
+  - name: egd_sdo_set_unit_mode
+    fields:
+    - name: unit_mode
+      type: int32_t
+
+  - name: fts_tare
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: el2124_write_channel
+    fields:
+    - name: channel
+      type: uint8_t
+    - name: level
+      type: uint8_t
+
+  - name: el2124_write_all_channels
+    fields:
+    - name: channel_ch1
+      type: uint8_t
+    - name: channel_ch2
+      type: uint8_t
+    - name: channel_ch3
+      type: uint8_t
+    - name: channel_ch4
+      type: uint8_t
+
+  - name: actuator_csp
+    fields: 
+    - name: target_position
+      type: double
+    - name: position_offset
+      type: double
+    - name: velocity_offset
+      type: double
+    - name: torque_offset_amps
+      type: double
+
+  - name: actuator_csv
+    fields: 
+    - name: target_velocity
+      type: double
+    - name: velocity_offset
+      type: double
+    - name: torque_offset_amps
+      type: double
+
+  - name: actuator_cst
+    fields: 
+    - name: target_torque_amps
+      type: double
+    - name: torque_offset_amps
+      type: double
+
+  - name: actuator_prof_pos
+    fields: 
+    - name: target_position
+      type: double
+    - name: profile_velocity
+      type: double
+    - name: profile_accel
+      type: double
+    - name: relative
+      type: uint8_t
+
+  - name: actuator_prof_vel
+    fields:
+    - name: target_velocity
+      type: double
+    - name: profile_accel
+      type: double
+    - name: max_duration
+      type: double
+
+  - name: actuator_prof_torque
+    fields:
+    - name: target_torque_amps
+      type: double
+    - name: max_duration
+      type: double
+
+  - name: actuator_reset
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: actuator_halt
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: actuator_set_output_position
+    fields:
+    - name: position
+      type: double
+
+  - name: actuator_calibrate
+    fields:
+    - name: velocity
+      type: double
+    - name: accel
+      type: double
+    - name: max_current
+      type: double
+
+  - name: faulter_enable
+    fields:
+    - name: enable
+      type: bool
+      comment: if true, faulter will trigger a fault when the specified signal is received.
+
+  - name: jed_set_cmd_value
+    fields:
+    - name: cmd
+      type: uint16_t
+
+  - name: pid_activate
+    fields: 
+    - name: setpoint
+      type: double
+    - name: deadband
+      type: double
+    - name: persistence_duration
+      type: double 
+    - name: max_duration
+      type: double

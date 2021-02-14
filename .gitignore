@@ -1,0 +1,17 @@
+# Ignore Mac system files
+.DS_store
+
+# swap files
+*.swp
+*.swo
+
+
+# Ignore folders
+build
+externals
+bin
+.vscode
+
+# doxygen
+/doxygen_html
+.doxyfile

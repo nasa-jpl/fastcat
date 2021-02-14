@@ -1,0 +1,20 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:  
+  - type: offline_bus
+    ifname: eth0
+    enable_autorecovery: True
+
+    devices:
+    - device_class: El3208
+      name: el3208_1
+      element:         [PT100, NI100, PT100, PT100, PT100, PT100, OHMS1024, NOT_CONNECTED]
+      connection:      [2WIRE, 2WIRE, 3WIRE, 2WIRE, 4WIRE, 2WIRE, 2WIRE,    NOT_CONNECTED]
+      wire_resistance: [0,     0,     0,     0,     0,     0,     0,        0            ]
+      low_threshold:   [-100,  -100,  -100,  -100,  1,     -100,  -100,     1            ]
+      high_threshold:  [100,   100,   100,   100,   -1,    100,   100,      -1            ]
+

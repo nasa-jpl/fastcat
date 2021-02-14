@@ -1,0 +1,150 @@
+fastcat:
+  target_loop_rate_hz: 100
+  zero_latency_required: true
+  actuator_position_directory: /cal
+  actuator_fault_on_missing_pos_file: True
+
+buses:  
+  - type: jsd_bus
+    ifname: eth_tb
+    enable_autorecovery: False
+
+    devices:
+    - device_class: IGNORE # 1  EK1100
+    - device_class: IGNORE # 2  EL9510
+    - device_class: El3602 # 3  EL3602
+      name: el3602_sg_1
+      range_ch1: 10V
+      range_ch2: 10V
+
+    - device_class: Actuator # 4  EGD (M1)
+      name:                          act_grip
+      actuator_type:                 revolute # eu = radians
+      gear_ratio:                    761.76 
+      counts_per_rev:                24
+      max_speed_eu_per_sec:          0.174533
+      max_accel_eu_per_sec2:         0.174533
+      over_speed_multiplier:         2.0
+      vel_tracking_error_eu_per_sec: 0.174533
+      pos_tracking_error_eu:         0.174533
+      peak_current_limit_amps:       1.74
+      peak_current_time_sec:         1.0
+      continuous_current_limit_amps: 0.5
+      torque_slope_amps_per_sec:     0.1   # amps/sec
+      low_pos_cal_limit_eu:          -626.573
+      low_pos_cmd_limit_eu:          -626.5732
+      high_pos_cmd_limit_eu:         626.5732
+      high_pos_cal_limit_eu:         628.3185
+      holding_duration_sec:          3.0
+      egd_brake_engage_msec:         1
+      egd_brake_disengage_msec:      1
+      egd_crc:                       -973231511
+      egd_drive_max_current_limit:   5
+
+    - device_class: IGNORE # 5  EGD (M2)
+    - device_class: IGNORE # 6  EGD (M3)
+    - device_class: IGNORE # 7  EGD (M4)
+    - device_class: IGNORE # 8  EGD (M5)
+    - device_class: IGNORE # 9  EGD (M6)
+
+  - type: fastcat_bus
+    ifname: fcat_bus_1
+    devices:
+
+    - device_class: Function
+      name: fun_sg1_newtons
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [-757.2755, 4.0]
+      signals:
+      - observed_device_name: el3602_sg_1
+        request_signal_name:  voltage_ch1
+    - device_class: Function
+      name: fun_sg2_newtons
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [-693.2839, 1.5]
+      signals:
+      - observed_device_name: el3602_sg_1
+        request_signal_name:  voltage_ch2
+
+    - device_class: Filter
+      name: filt_sg1_newtons
+      filter_type: MOVING_AVERAGE
+      buffer_size : 10
+      signals:
+      - observed_device_name: fun_sg1_newtons
+        request_signal_name:  output
+    - device_class: Filter
+      name: filt_sg2_newtons
+      filter_type: MOVING_AVERAGE
+      buffer_size : 10
+      signals:
+      - observed_device_name: fun_sg2_newtons
+        request_signal_name:  output
+
+    - device_class: Conditional
+      name: cond_force_lim_sg1
+      conditional_type: ">"
+      compare_rhs_value: 120
+      signals:
+      - observed_device_name: filt_sg1_newtons
+        request_signal_name: output
+    - device_class: Conditional
+      name: cond_force_lim_sg2
+      conditional_type: ">"
+      compare_rhs_value: 120
+      signals:
+      - observed_device_name: filt_sg2_newtons
+        request_signal_name: output
+
+
+    - device_class: Faulter
+      name: fault_high_force_sg1
+      start_enabled: True
+      signals:
+      - observed_device_name: cond_force_lim_sg1
+        request_signal_name: output
+    - device_class: Faulter
+      name: fault_high_force_sg2
+      start_enabled: True
+      signals:
+      - observed_device_name: cond_force_lim_sg2
+        request_signal_name: output
+
+    - device_class: Pid
+      name: pid_grip_1
+      kp: 0.05
+      ki: 0
+      kd: 0.01
+      windup_limit: 0
+      signals:
+      - observed_device_name: filt_sg1_newtons
+        request_signal_name:  output
+
+    - device_class: Saturation
+      name: sat_cmd_vel_1
+      lower_limit: -0.05
+      upper_limit: 0.05
+      signals:
+      - observed_device_name: pid_grip_1
+        request_signal_name:  output
+
+    - device_class: Commander
+      name: cmd_grip_load_1
+      start_enabled:  False
+      skip_n_loops:   0  
+      device_cmd_name: act_grip
+      device_cmd_type: ACTUATOR_CSV_CMD
+      signals:
+      - observed_device_name: sat_cmd_vel_1
+        request_signal_name:  output
+        cmd_field_name:       target_velocity
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       velocity_offset
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       torque_offset_amps

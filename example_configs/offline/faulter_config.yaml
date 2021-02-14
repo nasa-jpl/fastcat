@@ -1,0 +1,34 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:  
+  - type: fastcat_bus
+    ifname: eth0
+    enable_autorecovery: True
+
+    devices:
+    - device_class: SignalGenerator
+      name: sig_gen_1
+      signal_generator_type: SINE_WAVE
+      angular_frequency: 0.3141593
+      phase: 0
+      amplitude: 10
+      offset: 0
+
+    - device_class: Conditional
+      name: cond_1
+      conditional_type: ">"
+      compare_rhs_value: 9.5
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+
+    - device_class: Faulter
+      name: faulter_high_sine_value
+      start_enabled: True
+      signals:
+      - observed_device_name: cond_1
+        request_signal_name: output

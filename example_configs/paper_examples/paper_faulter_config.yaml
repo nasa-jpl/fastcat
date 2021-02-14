@@ -1,0 +1,43 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:  
+  - type: offline_bus
+    ifname: offline_1
+    devices:
+    - device_class: El3602
+      name: el3602_1
+      range_ch1:   10V
+      range_ch2:   10V
+
+  - type: fastcat_bus
+    ifname: eth0
+    enable_autorecovery: True
+
+    devices:
+    - device_class: Function
+      name: fun_force_1
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [1, 0]
+      signals:
+      - observed_device_name: el3602_1
+        request_signal_name:  voltage_ch1
+
+    - device_class: Conditional
+      name: cond_force_limit_1
+      conditional_type: ">"
+      compare_rhs_value: 9.5
+      signals:
+      - observed_device_name: fun_force_1
+        request_signal_name: output
+
+    - device_class: Faulter
+      name: faulter_high_force_value
+      start_enabled: True
+      signals:
+      - observed_device_name: cond_force_limit_1
+        request_signal_name: output

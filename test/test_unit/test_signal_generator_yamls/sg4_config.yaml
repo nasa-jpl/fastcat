@@ -1,0 +1,6 @@
+device_class: SignalGenerator
+name: sg4
+signal_generator_type: SAW_TOOTH
+max: 1
+min: 0
+slope: 1

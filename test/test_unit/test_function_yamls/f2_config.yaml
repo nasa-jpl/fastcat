@@ -1,0 +1,8 @@
+device_class: Function
+name: f2
+function_type: POLYNOMIAL
+order: 2
+coefficients: [1, 3, 5]
+signals:
+- observed_device_name: sig_gen_1
+  request_signal_name: output

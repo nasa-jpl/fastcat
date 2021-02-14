@@ -1,0 +1,56 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:  
+  - type: fastcat_bus
+    ifname: fastcat
+    devices:
+    - device_class: SignalGenerator
+      name: sig_gen_1
+      signal_generator_type: SINE_WAVE
+      angular_frequency: 0.3141593
+      phase: 0
+      amplitude: 5000 
+      offset: 0
+
+    - device_class: Fts
+      name: fts_1
+      calibration_matrix: [1,0,0, 0,0,0,  0,1,0, 0,0,0,  0,0,1, 0,0,0,  0,0,0, 1,0,0,  0,0,0, 0,1,0,  0,0,0, 0,0,1]
+      max_force: 4900
+      max_torque: 10000
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name:  output
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+
+    - device_class: VirtualFts
+      name: virtual_fts_1
+      position: [1, 0, 1]
+      quaternion: [0.7071, 0.35355, 0, 0.35355]
+      max_force: 4900
+      max_torque: 10000
+      signals:
+      - observed_device_name: fts_1
+        request_signal_name: raw_fx
+      - observed_device_name: fts_1
+        request_signal_name: raw_fy
+      - observed_device_name: fts_1
+        request_signal_name: raw_fz
+      - observed_device_name: fts_1
+        request_signal_name: raw_tx
+      - observed_device_name: fts_1
+        request_signal_name: raw_ty
+      - observed_device_name: fts_1
+        request_signal_name: raw_tz

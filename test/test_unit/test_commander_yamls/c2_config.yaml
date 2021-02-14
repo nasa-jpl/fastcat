@@ -1,0 +1,22 @@
+device_class: Commander
+name: c2 
+start_enabled: true
+device_cmd_name: m1
+device_cmd_type: EGD_CSP_CMD
+signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name:  output
+    cmd_field_name:       target_position
+    
+  - observed_device_name: FIXED_VALUE
+    fixed_value:          0
+    cmd_field_name:       position_offset
+
+  - observed_device_name: FIXED_VALUE
+    fixed_value:          0
+    cmd_field_name:       velocity_offset
+
+  - observed_device_name: FIXED_VALUE
+    fixed_value:          0
+    cmd_field_name:       torque_offset_amps
+

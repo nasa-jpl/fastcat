@@ -1,0 +1,65 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:
+  - type:   offline_bus
+    ifname: eth0
+    enable_autorecovery: False
+    devices:
+    - device_class: El2124
+      name:         el2124_1
+
+  - type: fastcat_bus
+    ifname: fcat_bus_1
+    devices:
+    - device_class:    Commander
+      name:            commander_1
+      start_enabled:   true
+      skip_n_loops:    0
+      device_cmd_name: el2124_1
+      device_cmd_type: EL2124_WRITE_CHANNEL_CMD
+      signals:
+      - observed_device_name: schmitt_1
+        request_signal_name:  output
+        cmd_field_name:       level
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          1
+        cmd_field_name:       channel
+
+    - device_class:   SchmittTrigger
+      name:           schmitt_1
+      low_threshold:  -0.75
+      high_threshold:  0.75
+      signals:
+      - observed_device_name: fun_2
+        request_signal_name:  output
+
+    - device_class: Function
+      name: fun_2
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [1, 0]
+      signals:
+      - observed_device_name: fun_1
+        request_signal_name: output
+
+    - device_class: Function
+      name: fun_1
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [1, 0]
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+      
+    - device_class: SignalGenerator
+      name: sig_gen_1
+      signal_generator_type: SINE_WAVE
+      angular_frequency: 0.3141593
+      phase: 0
+      amplitude: 1
+      offset: 0

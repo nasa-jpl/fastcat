@@ -1,0 +1,103 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:  
+  - type: fastcat_bus
+    ifname: fcat_bus_1
+    devices:
+    - device_class: SignalGenerator
+      name: sig_gen_1
+      signal_generator_type: SINE_WAVE
+      angular_frequency: 3.14159
+      phase: 0
+      amplitude: 5000 
+      offset: 0
+
+    - device_class: SchmittTrigger
+      name: st_1
+      low_threshold: 1000
+      high_threshold: 4000
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+
+    - device_class: SignalGenerator
+      name: sig_gen_2
+      signal_generator_type: SAW_TOOTH
+      max: 1
+      min: 0
+      slope: 1
+      #signal_generator_type: SINE_WAVE
+      #angular_frequency: 62.832
+      #phase: 0
+      #amplitude: 1
+      #offset: 1
+
+    - device_class: Function
+      name: fun_1
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [1, 100]
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+
+    - device_class: Function
+      name: fun_2
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [1000, 0]
+      signals:
+      - observed_device_name: sig_gen_2
+        request_signal_name: output
+
+    - device_class: Conditional
+      name: cond_1
+      conditional_type: ">"
+      compare_rhs_value: 4990
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+
+    - device_class: Function
+      name: fun_3
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [10, 0]
+      signals:
+      - observed_device_name: cond_1
+        request_signal_name: output
+
+    - device_class: Filter
+      name: filt_ma_1
+      filter_type: MOVING_AVERAGE
+      buffer_size : 10
+      signals:
+      - observed_device_name: fun_2 
+        request_signal_name:  output
+
+    - device_class: Filter
+      name: filt_lowpass_1
+      filter_type: DIGITAL_AB
+      # 2nd order Butterworth, Wn=0.05 - smooth
+      #A: [1.0, -1.778631, 0.800803]
+      #B: [0.005542717, 0.0110854434, 0.0055427172]
+
+      # 2nd order Butterworth, Wn=0.5 - aggressive
+      A: [1.0, 0.0, 0.1715729]
+      B: [0.2928932, 0.5857864, 0.2928932]
+      signals:
+      - observed_device_name: fun_2
+        request_signal_name:  output
+
+    - device_class: Filter
+      name: filt_digital_ma_1
+      filter_type: DIGITAL_AB
+      A: [0]
+      B: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+      signals:
+      - observed_device_name: fun_2
+        request_signal_name:  output

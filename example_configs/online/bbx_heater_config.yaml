@@ -1,0 +1,167 @@
+fastcat:
+  target_loop_rate_hz:   100
+  zero_latency_required: True
+
+buses:  
+  - type: jsd_bus
+    ifname: enp0s25
+    enable_autorecovery: True
+
+    devices:
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE
+    - device_class: El3602
+      name: el3602_1
+      range_ch1:   10V
+      range_ch2:   10V
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: El2124
+      name: el2124_1
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+    - device_class: IGNORE # M1
+    - device_class: IGNORE # M2
+
+    - device_class: Egd
+      name: egd_3
+      drive_cmd_mode:                  CS
+      cs_cmd_freq_hz:                  50
+      max_motor_speed:                 30000
+      max_profile_accel:               30000
+      max_profile_decel:               30000
+      velocity_tracking_error:         10000000
+      position_tracking_error:         10000000
+      peak_current_limit:              0.5 #1.71
+      peak_current_time:               1.0
+      continuous_current_limit:        0.25 #1.0
+      torque_slope:                    0.1
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             3.0
+      over_speed_threshold:            70000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               5
+      brake_disengage_msec:            5
+      crc:                             711680826
+      drive_max_current_limit:         5
+
+    - device_class: IGNORE
+    - device_class: IGNORE
+    - device_class: IGNORE
+
+
+  - type: fastcat_bus
+    ifname: fcat_bus_1
+    devices:
+    - device_class: Commander
+      name: commander_3
+      start_enabled: true
+      skip_n_loops:   0  
+      device_cmd_name: egd_3 
+      device_cmd_type: EGD_CSP_CMD
+      signals:
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       position_offset
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       velocity_offset
+
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+        cmd_field_name:       torque_offset_amps
+
+      - observed_device_name: fun_1
+        request_signal_name:  output
+        cmd_field_name:       target_position 
+
+
+    - device_class: Function
+      name: el2124_scaled_1
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [2.388, 0]
+      signals:
+      - observed_device_name: el2124_1
+        request_signal_name:  level_ch1
+
+    - device_class: Filter
+      name: filt_lowpass_1
+      filter_type: DIGITAL_AB
+      # Attempt to match the LP circuit sampled by the el3602
+      A: [1.000000000000000, -0.995467544119459]
+      B: [0.002266227940270, 0.002266227940270]
+      signals:
+      - observed_device_name: el2124_scaled_1
+        request_signal_name:  output
+
+    - device_class: Filter
+      name: filt_ma_1
+      filter_type: MOVING_AVERAGE
+      buffer_size : 25
+      signals:
+      - observed_device_name: el2124_scaled_1
+        request_signal_name:  output
+
+    - device_class: Function
+      name: fun_1
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [5000, 0]
+      signals:
+      - observed_device_name: el3602_1
+        request_signal_name: voltage_ch1
+
+    - device_class: SchmittTrigger
+      name: schmitt_1
+      low_threshold:  0.5
+      high_threshold: 2.0
+      signals:
+      - observed_device_name: el3602_1
+        request_signal_name: voltage_ch1
+
+    - device_class: Function
+      name: fun_invert_schmitt_1
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [-1, 1]
+      signals:
+      - observed_device_name: schmitt_1
+        request_signal_name: output
+
+    - device_class: Commander
+      name: el2124_commander 
+      start_enabled: true
+      skip_n_loops:   0  
+      device_cmd_name: el2124_1
+      device_cmd_type: EL2124_WRITE_CHANNEL_CMD
+      signals:
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          1
+        cmd_field_name:       channel
+
+      - observed_device_name: fun_invert_schmitt_1
+        request_signal_name:  output
+        cmd_field_name:       level

@@ -1,0 +1,7 @@
+device_class: Conditional
+name: c2
+conditional_type: "<="
+compare_rhs_value: 100
+signals:
+- observed_device_name: sig_gen_1
+  request_signal_name: output
