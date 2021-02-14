@@ -76,6 +76,8 @@ bool fastcat::ConfigSignalsFromYaml(YAML::Node node,
        signal_node != signals_node.end(); ++signal_node) {
 
     Signal signal;
+    signal.data_type = DATA_TYPE_UNINITIALIZED;
+    signal.value = 0;
 
     if (!ParseVal(*signal_node, "observed_device_name",
                   signal.observed_device_name)) {
