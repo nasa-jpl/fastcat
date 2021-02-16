@@ -1,0 +1,206 @@
+fastcat:
+  target_loop_rate_hz:                1000
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:  
+  - type: offline_bus
+    ifname: eth0
+    enable_autorecovery: False
+
+    devices:
+    - device_class:                    Egd
+      name:                            egd_1
+      cs_cmd_freq_hz:                  100
+      drive_cmd_mode:                  PROFILED
+      max_motor_speed:                 50000
+      torque_slope:                    0.25
+      max_profile_accel:               50000
+      max_profile_decel:               50000
+      velocity_tracking_error:         10000000
+      position_tracking_error:         100000000
+      peak_current_limit:              1.5
+      peak_current_time:               0.5
+      continuous_current_limit:        1.0
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             1.0
+      over_speed_threshold:            100000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               0
+      brake_disengage_msec:            0
+      crc:                             0
+      drive_max_current_limit:         5
+
+    - device_class:                    Actuator
+      name:                            act_1
+      actuator_type:                   revolute # revolute: eu = radians
+      gear_ratio:                      100 
+      counts_per_rev:                  500
+      max_speed_eu_per_sec:            10  #rad/sec
+      max_accel_eu_per_sec2:           30  #rad/sec/sec 
+      over_speed_multiplier:           2 
+      vel_tracking_error_eu_per_sec:   1000 # chosen arbitrarily
+      pos_tracking_error_eu:           1000 # chosen arbitrarily
+      peak_current_limit_amps:         10
+      peak_current_time_sec:           3.0 # chosen arbitrarily
+      continuous_current_limit_amps:   5
+      torque_slope_amps_per_sec:       0.5 # amps/sec; chosen arbitrarily
+      low_pos_cal_limit_eu:            -3.2
+      low_pos_cmd_limit_eu:            -3.14159
+      high_pos_cmd_limit_eu:            3.14159
+      high_pos_cal_limit_eu:            3.2 
+      holding_duration_sec:            3.0 # chosen arbitrarily
+      egd_brake_engage_msec:           5
+      egd_brake_disengage_msec:        10
+      egd_crc:                         12345
+      egd_drive_max_current_limit:     10 # amps
+      smooth_factor:                   0 # default value is 0
+
+    - device_class: El2124
+      name: el2124_1
+
+    - device_class: El3208
+      name: el3208_1
+      element:         [PT100, NI100, PT100, PT100, PT100, PT100, OHMS1024, NOT_CONNECTED]
+      connection:      [2WIRE, 2WIRE, 3WIRE, 2WIRE, 4WIRE, 2WIRE, 2WIRE,    NOT_CONNECTED]
+      wire_resistance: [0,     0,     0,     0,     0,     0,     0,        0            ]
+      low_threshold:   [-100,  -100,  -100,  -100,  -1,     -100,  -100,     1           ]
+      high_threshold:  [100,   100,   100,   100,   1,    100,   100,      -1            ]
+
+    - device_class: El3602
+      name: el3602_1
+      range_ch1: 10V
+      range_ch2: 5V
+
+    - device_class: Jed
+      name: jed_1
+      initial_cmd: 42
+
+  - type: fastcat_bus
+    ifname: fastcat
+    devices:
+
+    - device_class: SignalGenerator
+      name: sig_gen_1
+      signal_generator_type: SINE_WAVE
+      angular_frequency: 0.3141593
+      phase: 0
+      amplitude: 10
+      offset: 0
+
+    - device_class: Conditional
+      name: cond_1
+      conditional_type: ">"
+      compare_rhs_value: 9.5
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+
+    - device_class: Faulter
+      name: faulter_high_sine_value
+      start_enabled: False
+      signals:
+      - observed_device_name: cond_1
+        request_signal_name: output
+
+    - device_class: Fts
+      name: fts_1
+      calibration_matrix: [1,0,0, 0,0,0,  0,1,0, 0,0,0,  0,0,1, 0,0,0,  0,0,0, 1,0,0,  0,0,0, 0,1,0,  0,0,0, 0,0,1]
+      max_force: 4900
+      max_torque: 10000
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name:  output
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          0
+
+    - device_class: VirtualFts
+      name: virtual_fts_1
+      position: [1, 0, 1]
+      quaternion: [0.7071, 0.35355, 0, 0.35355]
+      max_force: 4900
+      max_torque: 10000
+      signals:
+      - observed_device_name: fts_1
+        request_signal_name: raw_fx
+      - observed_device_name: fts_1
+        request_signal_name: raw_fy
+      - observed_device_name: fts_1
+        request_signal_name: raw_fz
+      - observed_device_name: fts_1
+        request_signal_name: raw_tx
+      - observed_device_name: fts_1
+        request_signal_name: raw_ty
+      - observed_device_name: fts_1
+        request_signal_name: raw_tz
+
+    - device_class: SchmittTrigger
+      name: st_1
+      low_threshold: 1000
+      high_threshold: 4000
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+
+    - device_class: Function
+      name: fun_1
+      function_type: POLYNOMIAL
+      order: 1
+      coefficients: [1, 100]
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+
+    - device_class: Filter
+      name: filt_lowpass_1
+      filter_type: DIGITAL_AB
+      # 2nd order Butterworth, Wn=0.5 - aggressive
+      A: [1.0, 0.0, 0.1715729]
+      B: [0.2928932, 0.5857864, 0.2928932]
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name:  output
+
+    - device_class: Commander
+      name: el2124_commander 
+      start_enabled: False
+      skip_n_loops:   0  
+      device_cmd_name: el2124_1
+      device_cmd_type: EL2124_WRITE_CHANNEL_CMD
+      signals:
+      - observed_device_name: FIXED_VALUE
+        fixed_value:          1
+        cmd_field_name:       channel
+
+      - observed_device_name: st_1
+        request_signal_name:  output
+        cmd_field_name:       level
+
+    - device_class: Pid
+      name: pid_1
+      kp: 0.05
+      ki: 0
+      kd: 0.01
+      windup_limit: 0
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name:  output
+
+    - device_class: Saturation
+      name: sat_1
+      lower_limit: -0.05
+      upper_limit: 0.05
+      signals:
+      - observed_device_name: pid_1
+        request_signal_name:  output

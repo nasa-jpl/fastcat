@@ -8,9 +8,9 @@ To learn more about fastcat, checkout the following documents:
 
 - [Fastcat Primer](docs/fastcat_primer.md)
 - [Complete list of Fastcat Device Configuration YAML Parameters](doc/fastcat_device_config_parameters.md)
-- 2021 Aeroconf paper submission`Fastcat: An Open-Source Library for Composable
+- 2021 Aeroconf paper submission `Fastcat: An Open-Source Library for Composable
   EtherCAT Control Systems`
-- README (for build details)
+- README for build details
 - The API documentation (build locally using doxygen - Github hosting still a work-in-progress)
 
 ### Prerequisites
@@ -69,10 +69,10 @@ FetchContent_Declare(fastcat
     GIT_REPOSITORY git@github.com:nasa-jpl/fastcat.git
     GIT_TAG v0.4.3
     )
-FetchContent_MakeAvailable(fastcat) 14.04, 16.04, and 18.04 
+FetchContent_MakeAvailable(fastcat)
 ```
 
-It is always recommend you specify your dependency to a tagged release (`GIT_TAG v0.4.3`) so updates to master cannot break your build (NOT `GIT_TAG master`). 
+It is always recommend you specify your dependency to a tagged reldroppingease (`GIT_TAG v0.4.3`) so updates to master cannot break your build (NOT `GIT_TAG master`). 
 
 ### Semantic Versioning
 

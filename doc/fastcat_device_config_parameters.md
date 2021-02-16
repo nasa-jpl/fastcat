@@ -4,12 +4,13 @@
 
 For every `JSD Device` there is an `Offline Device` to emulate the behavior of the hardware.
 
-| Name   | Manufacturer | Description                              |
-| ------ | ------------ | ---------------------------------------- |
-| El2124 | Beckhoff     | 4-channel 5v Digital Output              |
-| El3208 | Beckhoff     | 8-channel RTD Input                      |
-| El3602 | Beckhoff     | 2-channel +/-10v Diff. Analog Input      |
-| Egd    | Elmo         | Elmo Gold Drive - DS402 motor controller |
+| Name     | Manufacturer | Description                         |
+| -------- | ------------ | ----------------------------------- |
+| Actuator | Elmo         | EGD with extra features             |
+| Egd      | Elmo         | Elmo Gold Drive line of controllers |
+| El3208   | Beckhoff     | 8-channel RTD Input                 |
+| El3602   | Beckhoff     | 2-channel +/-10v Diff. Analog Input |
+| El2124   | Beckhoff     | 4-channel 5v Digital Output         |
 
 **Fastcat Devices**
 
@@ -84,13 +85,13 @@ fastcat:
 
 Fastcat can support multiple buses of each type
 
-| Parameter Name              | Description                                                  | Type   | Permitted Value                           |
-| --------------------------- | ------------------------------------------------------------ | ------ | ----------------------------------------- |
-| `buses/type`                | Specifies which devices are on this bus                      | string | {`offline_bus`, `jsd_bus`, `fastcat_bus`} |
-| `buses/ifname`              | The interface name only used by JSD bus to indicate which NIC is used for the EtherCAT Master | string |                                           |
-| `buses/enable_autorecovery` | `jsd_bus`only. Enables a feature that may attempt to recover the bus if the working counter changes | Bool   |                                           |
+| Parameter Name            | Description                                                  |
+| ------------------------- | ------------------------------------------------------------ |
+| `bus/type`                | Specifies which devices are on this bus {`offline_bus`, `jsd_bus`, `fastcat_bus`} |
+| `bus/ifname`              | The interface name only used by JSD bus to indicate which NIC is used for the EtherCAT Master |
+| `bus/enable_autorecovery` | `jsd_bus`only. Enables a feature that may attempt to recover the bus if the working counter changes |
 
-#### type
+#### bus/type
 
 Only 3 special strings are permitted to define the bus types. All devices within a bus are handled by the same context manager so you cannot specify `JSD Devices` on the same bus as `Fastcat Devices` for example.
 
@@ -98,13 +99,13 @@ Each `jsd_bus` denotes a unique EtherCAT Master.
 
 Multiple buses of any time can be supported.
 
-#### ifname
+#### bus/ifname
 
 Functionally only used by the `jsd_bus` to specific which Network Interface Controller (NIC) is being used for that EtherCAT Master instance. 
 
 Tip: use `ip a` or `ifconfig` to check your list of interfaces on Debian/Ubuntu
 
-#### enable_autorecovery
+#### bus/enable_autorecovery
 
 This feature aims to recover the EtherCAT Master if a change in working counter (WKC) is detected. This can occur if a slave is not responding properly, the physical bus topology has been changed, or some intermittent power/communication issue is present. 
 
@@ -135,59 +136,182 @@ buses:
 
 ---
 
+# Device Parameters
+
+All devices configurations are contained in a `devices` YAML sequence within a bus. 
+
+Every device has a `device_class` that matches the fastcat API class name. A special device class called `IGNORE` is used on `jsd_bus` to tell the EtherCAT master to ignore certain slaves when initializing slaves and exchanging PDOs. The following snippet shows how to use the `IGNORE` device class to ignore the EK1100 passive EtherCAT Bus Coupler.
+
+``` yaml 
+buses:
+  - type: jsd_bus
+    ... 
+    devices:
+    - device_class: IGNORE # EK1100 Coupler
+    - device_class: ... 
+```
+
+Every device has a `name` parameter that must be unique for all devices on the bus. The `name` parameter is important because this is how commands are marshaled from the Manager command queue to each unique device.
+
+These two parameters, `device_class` and `name`, are not explicitly covered in the following device configuration parameter descriptions but must be specified for each and every device. 
+
 ## JSD and Offline Device Parameters
 
-**egd**
+## Actuator
 
-| Parameter                | Description |
-| ------------------------ | ----------- |
-| name                     | device name |
-| motor_rated_current_amps |             |
-| max_current_amps         |             |
-| max_motor_speed          |             |
+Engineering Units (EU) are radians for revolute actuators and meters for linear actuators.
 
-**el3208**
+| Parameter                       | Description                                                  |
+| ------------------------------- | ------------------------------------------------------------ |
+| `actuator_type`                 | Either `revolute` or `linear`. This dictates the EU          |
+| `gear_ratio`                    | The gear ratio relating motor speed to actuator output (e.g. input/output) |
+| `counts_per_rev`                | The number of sensor counts per motor revolution             |
+| `max_speed_eu_per_sec`          | Maximum actuator Output speed this drive may be commanded    |
+| `max_accel_eu_per_sec2`         | Max actuator output accel this drive may be commanded        |
+| `over_speed_multiplier`         | Multiplicative factor over `max_speed_eu_per_sec` that triggers a fault |
+| `vel_tracking_error_eu_per_sec` | Fault if tracking error `fabs(Actual Vel - Cmd Vel)` exceeds this parameter |
+| `pos_tracking_error_eu_per_sec` | Fault if tracking error `fabs(Actual Pos - Cmd Pos)` exceeds this parameter |
+| `peak_current_limit_amps`       | Peak instantaneous current permitted to actuator             |
+| `peak_current_time_sec`         | Max apply duration of Peak current before dropping down to Max Continuous current |
+| `continuous_current_limit_amps` | Max current permitted to actuator                            |
+| `torque_slope_amps_per_sec`     | Rate to apply torque in certain profiled torque command modes |
+| `low_pos_cal_limit_eu`          | Lower Position Limit typically corresponding to a hardstop. Used for Calibration Command |
+| `low_pos_cmd_limit_eu`          | Lowest allowable command position value                      |
+| `high_pos_cal_limit_eu`         | Upper Position Limit typically corresponding to a hardstop. Used for Calibration Command |
+| `high_pos_cmd_limit_eu`         | Highest allowable command position value                     |
+| `holding_duration_sec`          | Duration to hold position after reset or after a motion command before re-engaging brakes |
+| `egd_brake_engage_msec`         | How long it takes to re-engage the brakes                    |
+| `egd_brake_disengage_msec`      | How long it takes to disengaged the brakes                   |
+| `egd_crc`                       | CRC of the flashed Elmo parameter set                        |
+| `egd_drive_max_current_limit`   | The Maximum drive current for the Elmo Gold Drive            |
+| `smooth_factor`                 | Affects controller smoothing, defaults to `0`                |
 
-| Parameter       | Description                                        |
-| --------------- | -------------------------------------------------- |
-| name            | device name                                        |
-| element         | type of hardware element connected to each channel |
-| connection      | number of wires in each channel's connection       |
-| wire resistance | resistance of wires in Ohms                        |
+### Implementation Notes
 
-**el3602**
+* The Actuator device Class is based of the JSD Elmo Gold Drive (Egd) device
+* Wherever possible, the responsibility to check faults is delegated down to the EtherCAT Slave (rather than keep that logic at the Application layer) to promote the fastest fault-checking possible
+  * Position and Velocity Tracking faults are delegated to the Egd slave
+  * Overspeed faults are delegated to the Egd slave
+* The Egd must be tuned prior to use within Fastcat. 
+  * Some parameters like `max_speed_eu_per_sec` are checked against these internal parameters and cannot be exceeded with flashing the drive. 
+  * Modifying any of the GPRM parameters and calling `SV` will change the `egd_crc`
+  * The Elmo CRC value is checked to make sure the YAML parameters align with the drive parameters
 
-| Parameter | Description |
-| --------- | ----------- |
-| name      | device name |
+### Example
 
-**el2124** egd**
+``` yaml
+    - device_class:                  Actuator
+      name:                          tool
+      actuator_type:                 revolute # eu = radians
+      gear_ratio:                    19
+      counts_per_rev:                6
+      max_speed_eu_per_sec:          100
+      max_accel_eu_per_sec2:         10
+      over_speed_multiplier:         3.0
+      vel_tracking_error_eu_per_sec: 0.157
+      pos_tracking_error_eu:         0.157
+      peak_current_limit_amps:       25.46
+      peak_current_time_sec:         1.0
+      continuous_current_limit_amps: 7.5
+      torque_slope_amps_per_sec:     2.0
+      low_pos_cal_limit_eu:          -1e15
+      low_pos_cmd_limit_eu:          -1e15
+      high_pos_cmd_limit_eu:         1e15
+      high_pos_cal_limit_eu:         1e15
+      holding_duration_sec:          5.0
+      egd_brake_engage_msec:         10 
+      egd_brake_disengage_msec:      10
+      egd_crc:                       -3260
+      egd_drive_max_current_limit:   10
+      smooth_factor:                 0
+```
 
-| Parameter                | Description |
-| ------------------------ | ----------- |
-| name                     | device name |
-| motor_rated_current_amps |             |
-| max_current_amps         |             |
-| max_motor_speed          |             |
 
-**el3208**
 
-| Parameter       | Description                                        |
-| --------------- | -------------------------------------------------- |
-| name            | device name                                        |
-| element         | type of hardware element connected to each channel |
-| connection      | number of wires in each channel's connection       |
-| wire resistance | resistance of wires in Ohms                        |
+## Egd (Elmo Gold Drive) TODO
 
-**el3602**
 
-| Parameter | Description |
-| --------- | ----------- |
-| name      | device name |
 
-**el2124** 
+## El3208 (8-channel RTD Input)
+
+| Parameter         | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| `element`         | type of hardware element connected to each channel           |
+| `connection`      | number of wires in each channel's connection {`2WIRE`, `3WIRE`, `4WIRE`, `NOT_CONNECTED`} |
+| `wire_resistance` | resistance of wires in Ohms, used to improve the temperature estimate if line resistance is known |
+| `low_threshold`   | Fault issued if temperature drops below this threshold (deg C.) |
+| `high_threshold`  | Fault issued if temperature exceeds this threshold (deg C.)  |
+
+Allowable `element` values (See the EL3208 Beckhoff Manual `0x80n0:19` Data Object)
+
+* `PT100`
+* `NI100`
+* `PT1000`
+* `PT500`
+* `PT200`
+* `NI1000`
+* `NI1000_TK1500`
+* `NI120`
+* `OHMS4096` - Outputs resistance instead of temp. Senses up to 4096 Ohms (1/16 Ohm resolution)
+* `OHMS1024` - Outputs resistance instead of temp. Senses up to 1024 Ohms (1/64 Ohm resolution)
+* `KT100_ET_AL`
+* `NOT_CONNECTED`
+
+#### Example
+
+```yaml
+- device_class: El3208
+  name: el3208_1
+  element:         [PT100, NI100, PT100, PT100, PT100, PT100, OHMS1024, NOT_CONNECTED]
+  connection:      [2WIRE, 2WIRE, 3WIRE, 2WIRE, 4WIRE, 2WIRE, 2WIRE,    NOT_CONNECTED]
+  wire_resistance: [0,     0,     0,     0,     0,     0,     0,        0            ]
+  low_threshold:   [-100,  -100,  -100,  -100,  -1,     -100,  -100,     1           ]
+  high_threshold:  [100,   100,   100,   100,   1,    100,   100,      -1            ]
+```
+
+
+## El3602 (2-channel +/-10v Diff. Analog Input)
+
+| Parameter   | Description                 |
+| ----------- | --------------------------- |
+| `range_ch1` | Voltage Range for Channel 1 |
+| `range_ch2` | Voltage Range for Channel 2 |
+
+The permitted range values are:
+
+* `10V` - +/- 10 volts
+* `5V` - +/- 5 volts
+* `2_5V` - Corresponding to +/- 2.5 volts
+* `75MV` - Corresponding to +/- 75 **milliVolts**
+* `200MV` - Corresponding to +/- 200 **millivolts**
+
+#### Example
+
+``` yaml
+- device_class: El3602
+  name: el3602_1
+  range_ch1: 10V
+  range_ch2: 5V
+```
+
+## El2124 (4-channel 5v Digital Output)
+
+**The El2124 device has no configuration parameters**
+
+#### Example
+
+``` yaml
+- device_class: El2124
+  name: el2124_1
+```
+
+
 
 ## Fastcat Device Parameters
+
+**@TODO**
+
+
 
 **commander**
 

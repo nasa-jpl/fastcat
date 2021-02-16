@@ -4,7 +4,7 @@ This primer aims to provide a overview of the fastcat library to help users and 
 
 ## Library Interactions
 
-Instead of implementing in one large library, we chose to break our system into 2 distinct libraries to help maximize flexibility. Those 2 libraries are [Just SOEM Driver](https://github.com/nasa-jpl/jsd) (JSD) and fastcat. 
+Instead of implementing in one large library, we chose to break our system into 2 distinct libraries to help maximize flexibility. Those 2 libraries are [Just SOEM Driver](https://github.com/nasa-jpl/jsd) (JSD) and fastcat. !
 
 #### JSD 
 
@@ -26,7 +26,7 @@ The `fastcat::manager` class is the primary context that applications will use t
 
 * Parsing global YAML parameters and delegating device parameter parsing to device classes
 * Memory management and structure of devices
-* Manages central Command queue (that all application commands must go through)
+* Manages central Command queue (that all application commands must go through)!
 * Provide device states to the application
 
 The public API is contained in the `src/manager.h` class definition
@@ -89,7 +89,7 @@ The following diagram shows the `fcviz` output for a simple bus configuration.
 This example can be recreated with the following command:
 
 ``` bash
-$ cd </path/to/fastcat>
+!$ cd </path/to/fastcat>
 $ python3 fcviz/fcviz.py example_configs/paper_examples/paper_faulter_config.yaml
 ```
 
