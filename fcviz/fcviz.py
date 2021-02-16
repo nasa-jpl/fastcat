@@ -40,7 +40,7 @@ print("Attempting to open %s" % sys.argv[1])
 data = yaml.load(open(sys.argv[1], 'r'), Loader=yaml.Loader)
 
 
-type_data = yaml.load(open('fcgen/fastcat_types.yaml', 'r'), Loader=yaml.Loader)
+type_data = yaml.load(open('src/fcgen/fastcat_types.yaml', 'r'), Loader=yaml.Loader)
 
 bus_data = data['buses']
 
