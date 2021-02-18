@@ -1,4 +1,4 @@
-# Fastcat Device List
+### Fastcat Device List
 
 **JSD and Offline Devices**
 
@@ -163,7 +163,7 @@ Engineering Units (EU) are radians for revolute actuators and meters for linear 
 
 | Parameter                       | Description                                                  |
 | ------------------------------- | ------------------------------------------------------------ |
-| `actuator_type`                 | Either `revolute` or `linear`. This dictates the EU          |
+| `actuator_type`                 | Either `revolute` or `linear`. This dictates EU of `radians` or `meters` respectively. |
 | `gear_ratio`                    | The gear ratio relating motor speed to actuator output (e.g. input/output) |
 | `counts_per_rev`                | The number of sensor counts per motor revolution             |
 | `max_speed_eu_per_sec`          | Maximum actuator Output speed this drive may be commanded    |
@@ -309,11 +309,65 @@ The permitted range values are:
 
 ## Fastcat Device Parameters
 
-**@TODO**
+Recall only `Fastcat Devices` can use `Signals` to acquire state data from other modules.
+
+## Signal Specification
+
+`Signals` are defined in a way such that they can be parse the same regardless of which device use them. The only exception to this rule is for `Commander` devices, which have an additional parameter called `cmd_field_name` This is covered in the `Commander` section below.
+
+There are 2 types of `Signals` that devices may observe: `Device Signals` and `Fixed-value Signals`. 
+
+* `Device Signals` are updated every process loop by the device's `Read()` method 
+
+* `Fixed-value Signals` are specified constant values that do not ever change
+
+Both types have their usefulness within fastcat systems.
+
+If the `observed_device_name` does not exist, the manager will display a warning and fault during initialization. 
+
+If the `request_signal_name` does not match a valid field of the observed device class, the then manager will display a warning and fault during initialization.
+
+#### Examples
+
+A device signal that observes the output of a `SignalGenerator` device named `sig_gen_1`:
+
+``` yaml
+signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name:  output
+  # ... more signals here if applicable
+```
+
+A fixed-value signal that causes the `Fastcat Device` to always observe a value of `1`: 
+
+``` yaml
+signals:
+  - observed_device_name: FIXED_VALUE
+    fixed_value:          1
+  # ... more signals here if applicable
+```
+
+Example output for a invalid `observed_device_name` called `my_bad_dev_1`:
+
+``` bash
+[ ERROR ](/tmp/fastcat/src/manager.cc:644) Device st_1 signal observed_device_name: my_bad_dev_1 does not exist!
+[ ERROR ](/tmp/fastcat/test/test_cli.cc:405) Could not configure Fastcat Manager
+```
+
+Example output for invalid `reset_signal_name` called `my_bad_field`:
+
+``` bash
+[ ERROR ](/tmp/fastcat/build/fastcat/autogen/signal_handling.cc:139) SIGNAL_GENERATOR invalid signal: my_bad_field
+[ ERROR ](/tmp/fastcat/src/manager.cc:170) Could not configure Signals
+[ ERROR ](/tmp/fastcat/test/test_cli.cc:405) Could not configure Fastcat Manager
+
+```
 
 
 
-**commander**
+## Commander
+
+The commander device observes multiple signals and emit a specified command. The number of signals must match the number of arguments in the command. 
 
 | Parameter            | Description                              |
 | -------------------- | ---------------------------------------- |
@@ -322,6 +376,26 @@ The permitted range values are:
 | device_cmd_type      | type of device controlled by commander   |
 | observed_device_name | name of device from which signal is read |
 | request_signal_name  | signal to be read from specified device  |
+
+#### Example
+
+``` yaml
+- device_class: Commander
+  name: el2124_commander 
+  start_enabled: False
+  skip_n_loops:   0  
+  device_cmd_name: el2124_1
+  device_cmd_type: EL2124_WRITE_CHANNEL_CMD
+  signals:
+  - observed_device_name: FIXED_VALUE
+    fixed_value:          1
+    cmd_field_name:       channel
+  - observed_device_name: st_1
+    request_signal_name:  output
+    cmd_field_name:       level
+```
+
+
 
 **signal_generator (sine wave)**
 
