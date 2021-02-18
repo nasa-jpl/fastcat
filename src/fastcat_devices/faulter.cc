@@ -48,7 +48,7 @@ bool fastcat::Faulter::Read()
     ERROR("Could not extract signal");
     return false;
   }
-  state_->faulter_state.fault_active = (signals_[0].value > 0);
+  state_->faulter_state.fault_active = (fabs(signals_[0].value) > 0);
 
   return true;
 }
