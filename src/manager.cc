@@ -596,7 +596,7 @@ bool fastcat::Manager::ConfigSignals()
       auto observed_state = find_pair->second->GetState();
 
       if (!ConfigSignalByteIndexing(observed_state.get(), *signal)) {
-        std::cout << "Could not configure the Signal Byte Indexing\n";
+        ERROR("Could not configure the Signal Byte Indexing");
         return false;
       }
     }
@@ -609,6 +609,7 @@ bool fastcat::Manager::SortFastcatDevice(
     std::vector<std::shared_ptr<DeviceBase>>& sorted_devices,
     std::vector<std::string>                  parents)
 {
+
   std::string dev_name = device->GetName();
   MSG_DEBUG("Checking %s", dev_name.c_str());
 
@@ -635,7 +636,17 @@ bool fastcat::Manager::SortFastcatDevice(
                 dev_name.c_str(), child.c_str());
           }
         } else {
-          if (!SortFastcatDevice(device_map_.find(child)->second,
+
+          auto device_ptr = device_map_.find(child);
+
+          // Check if device exists
+          if(device_ptr == device_map_.end()){
+            ERROR("Device %s signal observed_device_name: %s does not exist!", 
+                dev_name.c_str(), child.c_str());
+            return false;
+          }
+
+          if (!SortFastcatDevice(device_ptr->second,
                                  sorted_devices, parents)) {
             return false;
           }
