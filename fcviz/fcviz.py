@@ -85,17 +85,22 @@ for bus in bus_data:
       dot.edge(dev['name'], dev['device_cmd_name'], label=dev['device_cmd_type'])
     
     if('signals' in dev):
+      n_sig = 0
       for sig in dev['signals']:
+        n_sig = n_sig+1
 
         if sig['observed_device_name'] == 'FIXED_VALUE':
           cmder = dev['name']
-          field = sig['cmd_field_name']
+          if 'cmd_field_name' in sig:
+            field = sig['cmd_field_name']
+          else:
+            field = str(n_sig)
           val = str(sig['fixed_value'])
           from_node_str = cmder+'_'+field
           dot.node(from_node_str, label=val)
           #label_str = from_node_str + " = " + val
           label_str = ''
-          to_node_str = dev['name'] + ':' + sig['cmd_field_name']
+          to_node_str = dev['name'] + ':' + field
         elif dev['device_class'] == 'Commander':
           from_node_str = sig['observed_device_name'] + ':' + sig['request_signal_name']
           label_str = sig['request_signal_name']
