@@ -6,7 +6,7 @@ C++ EtherCAT Device Command & Control Library
 
 To learn more about fastcat, checkout the following documents:
 
-- [Fastcat Primer](docs/fastcat_primer.md)
+- [Fastcat Primer](doc/fastcat_primer.md)
 - [Complete list of Fastcat Device Configuration YAML Parameters](doc/fastcat_device_config_parameters.md)
 - 2021 Aeroconf paper submission `Fastcat: An Open-Source Library for Composable
   EtherCAT Control Systems`
