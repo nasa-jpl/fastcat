@@ -319,7 +319,7 @@ There are 2 types of `Signals` that devices may observe: `Device Signals` and `F
 
 * `Device Signals` are updated every process loop by the device's `Read()` method 
 
-* `Fixed-value Signals` are specified constant values that do not ever change
+* `Fixed-value Signals` are specified constant values
 
 Both types have their usefulness within fastcat systems.
 
@@ -347,37 +347,40 @@ signals:
   # ... more signals here if applicable
 ```
 
-Example output for a invalid `observed_device_name` called `my_bad_dev_1`:
-
-``` bash
-[ ERROR ](/tmp/fastcat/src/manager.cc:644) Device st_1 signal observed_device_name: my_bad_dev_1 does not exist!
-[ ERROR ](/tmp/fastcat/test/test_cli.cc:405) Could not configure Fastcat Manager
-```
-
-Example output for invalid `reset_signal_name` called `my_bad_field`:
-
-``` bash
-[ ERROR ](/tmp/fastcat/build/fastcat/autogen/signal_handling.cc:139) SIGNAL_GENERATOR invalid signal: my_bad_field
-[ ERROR ](/tmp/fastcat/src/manager.cc:170) Could not configure Signals
-[ ERROR ](/tmp/fastcat/test/test_cli.cc:405) Could not configure Fastcat Manager
-
-```
-
-
-
 ## Commander
 
 The commander device observes multiple signals and emit a specified command. The number of signals must match the number of arguments in the command. 
 
-| Parameter            | Description                              |
-| -------------------- | ---------------------------------------- |
-| name                 | device name                              |
-| device_cmd_name      | name of device controlled by commander   |
-| device_cmd_type      | type of device controlled by commander   |
-| observed_device_name | name of device from which signal is read |
-| request_signal_name  | signal to be read from specified device  |
+| Parameter         | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| `start_enabled`   | If true, the commander start issuing the command after initialization. Otherwise, it needs to be enabled first by application command. |
+| `skip_n_loops`    | If enabled, the commander will skip this number of process loops before issuing the next command. Set `skip_n_loops: 0` for the commander to issue the command every process loop. |
+| `device_cmd_name` | The name of device to which commander sends its command      |
+| `device_cmd_type` | Specifies which command to issue in ALL_CAPS e.g. `EL2124_WRITE_CHANNEL_CMD` |
+
+The list of commands is defined in `src/fcgen/fastcat_types.yaml` . The number of signals MUST match the number of arguments in the command, else the manager will fail to initialize. 
+
+The additional `Signal` parameter `cmd_field_name` is used to specific which signal maps to which argument. This parameter was need in order to no rely on signal ordering to index into command arguments. 
 
 #### Example
+
+The following example illustrates a simple bang-bang heater controller using a SchmittTrigger, Commander, and EL2124 (digital output) devices. Say we have a heater circuit attached to the Channel 1 output of the EL2124 device and want to use the `EL2124_WRITE_CHANNEL_CMD` to turn a heater on or off depending on some sensed temperature. 
+
+First, we need to understand the command arguments defined in `src/fcgen/fastcat_types.yaml` shown below:
+
+``` yaml
+commands:
+  # ... 
+  - name: el2124_write_channel
+    fields:
+    - name: channel
+      type: uint8_t
+    - name: level
+      type: uint8_t
+  # ... 
+```
+
+In the following YAML snippet, the commander observes a SchmittTrigger boolean signal and passes it along to the `level` argument of the command. The `channel` argument is fixed to `1` by the `FIXED_VALUE` signal.  Notice the use of `cmd_field_name` to ensure that the order of `level` or `channel` signals do not matter. 
 
 ``` yaml
 - device_class: Commander
@@ -395,143 +398,359 @@ The commander device observes multiple signals and emit a specified command. The
     cmd_field_name:       level
 ```
 
+This YAML generates the following fcviz graph:
 
 
-**signal_generator (sine wave)**
 
-| Parameter             | Description                    |
-| --------------------- | ------------------------------ |
-| name                  | device name                    |
-| signal_generator_type | type of signal to be generated |
-| angular_frequency     |                                |
-| phase                 |                                |
-| amplitude             |                                |
-| offset                |                                |
+<img src="img/commander_example.png" style="zoom: 50%;" />
 
-**signal_generator (sawtooth)**
+## Conditional
 
-| Parameter             | Description                    |
-| --------------------- | ------------------------------ |
-| name                  | device name                    |
-| signal_generator_type | type of signal to be generated |
-| slope                 |                                |
-| max                   |                                |
-| min                   |                                |
-| range                 |                                |
-| modulo                |                                |
+| Parameter         | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| conditional_type  | Comparison operator. Valid types: {`<`, `<=`, `>`, `>=`, `==`, `!=`} |
+| compare_rhs_value | Value on the "Right-hand Side" of the operator               |
 
-**function**
+The `Signal` is always on the left-hand side of the logical test, like so:
 
-| Parameter            | Description                              |
-| -------------------- | ---------------------------------------- |
-| name                 | device name                              |
-| function_type        | type of function to be applied           |
-| order                | order of function                        |
-| coefficients         | coefficients of function                 |
-| observed_device_name | name of device from which signal is read |
-| request_signal_name  | signal to be read from specified device  |
+``` c
+bool output = (double)signal_value > (double)compare_rhs_value;
+```
 
-**conditional**
+Note: The comparison types are double so be careful when using `==` and `!=`
 
-| Parameter            | Description                              |
-| -------------------- | ---------------------------------------- |
-| name                 | device name                              |
-| conditional_type     |                                          |
-| compare_rhs_value    |                                          |
-| observed_device_name | name of device from which signal is read |
-| request_signal_name  | signal to be read from specified device  |
+#### Example
 
-**schmitt_trigger**
+This Example checks if the observed signal is greater than `9.5`
 
-| Parameter            | Description                              |
-| -------------------- | ---------------------------------------- |
-| name                 | device name                              |
-| low_threshold        |                                          |
-| high_threshold       |                                          |
-| observed_device_name | name of device from which signal is read |
-| request_signal_name  | signal to be read from specified device  |
+``` yaml
+- device_class: Conditional
+  name: cond_1
+  conditional_type: ">"
+  compare_rhs_value: 9.5
+  signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name: output
+```
 
-**filter**
+## Faulter
 
-| Parameter            | Description                              |
-| -------------------- | ---------------------------------------- |
-| name                 | device name                              |
-| filter_type          | type of filter to be applied to signal   |
-| buffer_size          |                                          |
-| observed_device_name | name of device from which signal is read |
-| request_signal_name  | signal to be read from specified device  |
+| Parameter       | Description                                                  |
+| --------------- | ------------------------------------------------------------ |
+| `start_enabled` | If True, starts monitoring the input signal immediately after initialization |
 
-****commander**
+The Faulter device observes the input signal and will emit a global fault if the signal value is non-zero.
 
-| Parameter            | Description                              |
-| -------------------- | ---------------------------------------- |
-| name                 | device name                              |
-| device_cmd_name      | name of device controlled by commander   |
-| device_cmd_type      | type of device controlled by commander   |
-| observed_device_name | name of device from which signal is read |
-| request_signal_name  | signal to be read from specified device  |
+Tip: Give your Faulter devices a descriptive name that will help you diagnose which fault condition was tripped.
 
-**signal_generator (sine wave)**
+#### Example
 
-| Parameter             | Description                    |
-| --------------------- | ------------------------------ |
-| name                  | device name                    |
-| signal_generator_type | type of signal to be generated |
-| angular_frequency     |                                |
-| phase                 |                                |
-| amplitude             |                                |
-| offset                |                                |
+``` yaml
+- device_class: Faulter
+  name: faulter_high_sine_value
+  start_enabled: False
+  signals:
+  - observed_device_name: cond_1
+    request_signal_name: output
+```
 
-**signal_generator (sawtooth)**
+## Filter
 
-| Parameter             | Description                    |
-| --------------------- | ------------------------------ |
-| name                  | device name                    |
-| signal_generator_type | type of signal to be generated |
-| slope                 |                                |
-| max                   |                                |
-| min                   |                                |
-| range                 |                                |
-| modulo                |                                |
+| Parameter     | Description                                                  |
+| ------------- | ------------------------------------------------------------ |
+| `filter_type` | The type of filter {`DIGITAL_AB`, `MOVING_AVERAGE`}          |
+| `A`           | `DIGITAL_AB` only. The variable-sized A coefficients array   |
+| `B`           | `DIGITAL_AB` only. the variable-sized B coefficients array   |
+| `buffer_size` | `MOVING_AVERAGE` only. The number of samples to compute the moving-average over. |
 
-**function**
+Digital AB filters take the form: 
 
-| Parameter            | Description                              |
-| -------------------- | ---------------------------------------- |
-| name                 | device name                              |
-| function_type        | type of function to be applied           |
-| order                | order of function                        |
-| coefficients         | coefficients of function                 |
-| observed_device_name | name of device from which signal is read |
-| request_signal_name  | signal to be read from specified device  |
+<img src="img/digital_ab_equation.png" style="zoom:75%;" />
 
-**conditional**
+* `n` is the current sample iteration
+* `M` is the length of `A`
+* `N` is the length of `B`
+* `Y` is the response, saved in the state data of the `filter` device.
 
-| Parameter            | Description                              |
-| -------------------- | ---------------------------------------- |
-| name                 | device name                              |
-| conditional_type     |                                          |
-| compare_rhs_value    |                                          |
-| observed_device_name | name of device from which signal is read |
-| request_signal_name  | signal to be read from specified device  |
+#### Example
 
-**schmitt_trigger**
+Digital AB Filter Example:
 
-| Parameter            | Description                              |
-| -------------------- | ---------------------------------------- |
-| name                 | device name                              |
-| low_threshold        |                                          |
-| high_threshold       |                                          |
-| observed_device_name | name of device from which signal is read |
-| request_signal_name  | signal to be read from specified device  |
+``` yaml
+- device_class: Filter
+  name: filt_lowpass_1
+  filter_type: DIGITAL_AB
+  # 2nd order Butterworth, Wn=0.5 - aggressive
+  A: [1.0, 0.0, 0.1715729]
+  B: [0.2928932, 0.5857864, 0.2928932]
+  signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name:  output
+```
 
-**filter**
+Simple Moving Average Example:
 
-| Parameter            | Description                              |
-| -------------------- | ---------------------------------------- |
-| name                 | device name                              |
-| filter_type          | type of filter to be applied to signal   |
-| buffer_size          |                                          |
-| observed_device_name | name of device from which signal is read |
-| request_signal_name  | signal to be read from specified device  |
+``` yaml
+- device_class: Filter
+  name: filt_ma_1
+  filter_type: MOVING_AVERAGE
+  buffer_size : 10
+  signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name:  output
+```
+
+## Fts
+
+| Parameter            | Description                                                  |
+| -------------------- | ------------------------------------------------------------ |
+| `calibration_matrix` | the 6x6 calibration matrix. Converts 6 input signals to wrench. |
+| `max_force`          | If the norm of the forces exceed this value, emit a fault    |
+| `max_torque`         | if the norm of the torque exceed this value, emit a fault    |
+
+````
+wrench[6x1] = calibration_matrix[6x6] * signals[6x1]
+````
+
+The `max_force` and `max_torque` conditions are evalated like so:
+
+``` 
+if (sqrt(fx^2 + fy^2 + fz^2) > max_force) then fault
+```
+
+Note: Exactly 6 signals must be specified in the signals list.
+
+#### Example
+
+``` yaml
+- device_class: Fts
+  name: fts_1
+  calibration_matrix: [1,0,0, 0,0,0,  
+                       0,1,0, 0,0,0, 
+                       0,0,1, 0,0,0, 
+                       0,0,0, 1,0,0,  
+                       0,0,0, 0,1,0,  
+                       0,0,0, 0,0,1]
+  max_force: 4900
+  max_torque: 10000
+  signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name:  output
+  - observed_device_name: FIXED_VALUE
+    fixed_value:          0
+  - observed_device_name: FIXED_VALUE
+    fixed_value:          0
+  - observed_device_name: FIXED_VALUE
+    fixed_value:          0
+  - observed_device_name: FIXED_VALUE
+    fixed_value:          0
+  - observed_device_name: FIXED_VALUE
+    fixed_value:          0
+```
+
+
+
+## Function
+
+| Parameter       | Description                                                  |
+| --------------- | ------------------------------------------------------------ |
+| `function_type` | type of function {`POLYNOMINAL`}                             |
+| `order`         | `POLYNOMINAL` only. Order of polynominal function            |
+| `coefficients`  | `POLYNOMINAL` only. The coefficients, length must be equal to `order + 1` . Starts with highest-power term. |
+
+Currently, only an N-order Polynomial function is implemented. Other function types could include logistic, expoentials, sigmoid, etc. Open an issue (or pull request) if you would like to see more functions added.
+
+The `coefficients`(here `coeff`) are specified in the following order (`N`)
+
+```
+y = coeff[0] * x^(N) + coeff[1] * x^(N-1) + ... + coeff[N-1] * x^(1) + coeff[N] * x^(0);
+```
+
+Note: The function device only accepts a single signal. Multi-variate functions are not supported  currently - if they are implemented, a new device type should be created.
+
+#### Example
+
+Implement the function `y = 1*x + 100`
+
+``` yaml
+- device_class: Function
+  name: fun_1
+  function_type: POLYNOMIAL
+  order: 1
+  coefficients: [1, 100]
+  signals:
+  - observed_device_name: sig_gen_1signal
+    request_signal_name: output
+```
+
+## Pid
+
+| Parameter      | Description                                                  |
+| -------------- | ------------------------------------------------------------ |
+| `kp`           | Proportional Gain                                            |
+| `ki`           | Integral Gain                                                |
+| `kd`           | Derivative Gain                                              |
+| `windup_limit` | The max contribution of the integral term (e.g. `ki * error`) |
+
+A basic PID controller. The feedback comes from the observed signal and the controller response is recorded as a Pid device state variable. In order to apply a PID control loop within fastcat, a Commander device must observe the Pid response state variable and route it to the proper command argument. 
+
+#### Example
+
+``` yaml
+- device_class: Pid
+  name: pid_1
+  kp: 0.05
+  ki: 0
+  kd: 0.01
+  windup_limit: 0
+  signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name:  output
+```
+
+## Saturation
+
+| Parameter     | Description                                        |
+| ------------- | -------------------------------------------------- |
+| `lower_limit` | The lower value that the signal will be clipped at |
+| `upper_limit` | The upper value the signal will be clipped at      |
+
+Saturates an input signal
+
+#### Example
+
+``` yaml
+- device_class: Saturation
+  name: sat_1
+  lower_limit: -0.05
+  upper_limit: 0.05
+  signals:
+  - observed_device_name: pid_1
+    request_signal_name:  output
+```
+
+## SchmittTrigger
+
+| Parameter        | Description                |
+| ---------------- | -------------------------- |
+| `low_threshold`  | The low threshold setting  |
+| `high_threshold` | The high threshold setting |
+
+A Schmitt Trigger is a simple debounce software trigger. The following is pseudo code for implementing it:
+
+``` 
+if signal is rising
+	if signal > high_threshold -> Disable Trigger, set falling
+if signal is falling
+	if signal < low_threshold -> Enable trigger, set rising
+```
+
+#### Example
+
+``` yaml
+- device_class: SchmittTrigger
+  name: st_1
+  low_threshold: 1000
+  high_threshold: 4000
+  signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name: output
+```
+
+
+
+## SignalGenerator
+
+| Parameter               | Description                                               |
+| ----------------------- | --------------------------------------------------------- |
+| `signal_generator_type` | The type of signal to generate {`SINE_WAVE`, `SAW_TOOTH`} |
+|                         |                                                           |
+| for `SINE_WAVE`,        |                                                           |
+| `angular_frequency`     | obvious                                                   |
+| `phase`                 | obvious                                                   |
+| `amplitude`             | obvious                                                   |
+| `offset`                | obvious                                                   |
+|                         |                                                           |
+| for `SAW_TOOTH`,        |                                                           |
+| `max`                   | max value of the sawtooth wave                            |
+| `min`                   | min value of the sawtooth wave                            |
+| `slope`                 | The rate of change in EU/sec. May be positive or negative |
+
+The `SINE_WAVE` signal generator output is computed as:
+
+```
+output = amplitude * sin(angular_frequency * t + phase) + offset
+```
+
+The `SAW_TOOTH` signal generator output is computed as:
+
+* Start at 'lower' limit (`min` if slope > 0, `max` if slope < 0)
+* Loop
+  * apply slope each process update
+  * when the 'upper' limit is reached, reset the output 'lower' limit
+
+#### Example
+
+``` yaml
+- device_class: SignalGenerator
+  name: sig_gen_1
+  signal_generator_type: SINE_WAVE
+  angular_frequency: 0.3141593Repeat 
+  phase: 0
+  amplitude: 10
+  offset: 0
+```
+
+``` yaml
+- device_class: SignalGenerator
+  name: sig_gen_2signal
+  signal_generator_type: SAW_TOOTH
+  max: 1
+  min: 0
+  slope: 1
+```
+
+
+
+## VirtualFtsRepeat 
+
+| Parameter    | Description                                                  |
+| ------------ | ------------------------------------------------------------ |
+| `position`   | The translation component of transformation                  |
+| `quaternion` | the rotation component of transformation as {u, x, y, z} , Option 1 |
+| `euler`      | the rotation component of transformat as Euler angles {roll, pitch, yaw}, Option 2 |
+| `max_force`  | If the norm of the forces exceed this value, emit a fault    |
+| `max_torque` | If the norm of the torques exceed this value, emit a fault   |
+
+The VirtualFts transforms a wrench as if it were sensed at the pose of the specified coordinate frame using the adjoint wrench transformation.
+
+The `max_force` and `max_torque` parameters are the same as the `Fts` device
+
+Only one of `quaternion` or `euler` parameters need to be specified
+
+Note: The Euler angles are specified in [Roll, Pitch, Yaw] order but are actually computed in Z-Y-X order
+
+#### Example
+
+``` yaml
+signal- device_class: VirtualFts
+  name: virtual_fts_1
+  position: [1, 0, 1]
+  quaternion: [0.7071, 0.35355, 0, 0.35355]
+  max_force: 4900
+  max_torque: 10000
+  signals:
+  - observed_device_name: fts_1
+    request_signal_name: raw_fx
+  - observed_device_name: fts_1
+    request_signal_name: raw_fy
+  - observed_device_name: fts_1
+    request_signal_name: raw_fz
+  - observed_device_name: fts_1
+    request_signal_name: raw_tx
+  - observed_device_name: fts_1
+    request_signal_name: raw_ty
+  - observed_device_name: fts_1
+    request_signal_name: raw_tz
+```
 
