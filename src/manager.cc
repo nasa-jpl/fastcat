@@ -27,6 +27,8 @@
 #include "fastcat/fastcat_devices/virtual_fts.h"
 #include "fastcat/jsd/actuator.h"
 #include "fastcat/jsd/actuator_offline.h"
+#include "fastcat/jsd/ati_fts.h"
+#include "fastcat/jsd/ati_fts_offline.h"
 #include "fastcat/jsd/egd.h"
 #include "fastcat/jsd/egd_offline.h"
 #include "fastcat/jsd/el2124.h"
@@ -268,7 +270,8 @@ std::vector<fastcat::DeviceState> fastcat::Manager::GetDeviceStates()
   return states_;
 }
 
-std::vector<std::shared_ptr<const fastcat::DeviceState>> fastcat::Manager::GetDeviceStatePointers()
+std::vector<std::shared_ptr<const fastcat::DeviceState>>
+fastcat::Manager::GetDeviceStatePointers()
 {
   std::vector<std::shared_ptr<const DeviceState>> state_ptrs;
   state_ptrs.resize(device_map_.size());
@@ -354,6 +357,9 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("Jed")) {
       device = std::make_shared<Jed>();
+
+    } else if (0 == device_class.compare("AtiFts")) {
+      device = std::make_shared<AtiFts>();
 
     } else {
       ERROR("Unknown device_class: %s", device_class.c_str());
@@ -515,6 +521,9 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("Jed")) {
       device = std::make_shared<JedOffline>();
 
+    } else if (0 == device_class.compare("AtiFts")) {
+      device = std::make_shared<AtiFtsOffline>();
+
     } else {
       ERROR("Unknown device_class: %s", device_class.c_str());
       return false;
@@ -609,7 +618,6 @@ bool fastcat::Manager::SortFastcatDevice(
     std::vector<std::shared_ptr<DeviceBase>>& sorted_devices,
     std::vector<std::string>                  parents)
 {
-
   std::string dev_name = device->GetName();
   MSG_DEBUG("Checking %s", dev_name.c_str());
 
@@ -636,18 +644,16 @@ bool fastcat::Manager::SortFastcatDevice(
                 dev_name.c_str(), child.c_str());
           }
         } else {
-
           auto device_ptr = device_map_.find(child);
 
           // Check if device exists
-          if(device_ptr == device_map_.end()){
-            ERROR("Device %s signal observed_device_name: %s does not exist!", 
-                dev_name.c_str(), child.c_str());
+          if (device_ptr == device_map_.end()) {
+            ERROR("Device %s signal observed_device_name: %s does not exist!",
+                  dev_name.c_str(), child.c_str());
             return false;
           }
 
-          if (!SortFastcatDevice(device_ptr->second,
-                                 sorted_devices, parents)) {
+          if (!SortFastcatDevice(device_ptr->second, sorted_devices, parents)) {
             return false;
           }
         }

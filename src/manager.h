@@ -31,10 +31,10 @@ class Manager
   bool Process();
   void QueueCommand(DeviceCmd& cmd);
 
-  std::vector<DeviceState> GetDeviceStates();
+  std::vector<DeviceState>                        GetDeviceStates();
   std::vector<std::shared_ptr<const DeviceState>> GetDeviceStatePointers();
-  double                   GetTargetLoopRate();
-  bool                     IsFaulted();
+  double                                          GetTargetLoopRate();
+  bool                                            IsFaulted();
 
   bool RecoverBus(std::string ifname);
   bool ExecuteDeviceReset(std::string device_name);
