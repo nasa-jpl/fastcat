@@ -38,7 +38,7 @@
 #include "fastcat/jsd/jed.h"
 #include "fastcat/jsd/jed_offline.h"
 #include "fastcat/jsd/ati_fts.h"
-//#include "fastcat/jsd/ati_fts_offline.h"
+#include "fastcat/jsd/ati_fts_offline.h"
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd_print.h"
@@ -519,6 +519,9 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("Jed")) {
       device = std::make_shared<JedOffline>();
+
+    } else if (0 == device_class.compare("AtiFts")) {
+      device = std::make_shared<AtiFtsOffline>();
 
     } else {
       ERROR("Unknown device_class: %s", device_class.c_str());

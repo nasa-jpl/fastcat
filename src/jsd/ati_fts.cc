@@ -16,8 +16,7 @@ fastcat::AtiFts::AtiFts()
   state_->time = std::chrono::steady_clock::now();
 }
 
-bool fastcat::AtiFts::ConfigFromYaml(YAML::Node node) 
-{
+bool fastcat::AtiFts::ConfigFromYamlCommon(YAML::Node node){
 
   if (!ParseVal(node, "name", name_)) {
     return false;
@@ -42,9 +41,14 @@ bool fastcat::AtiFts::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
-
   return true;
+}
+
+bool fastcat::AtiFts::ConfigFromYaml(YAML::Node node) 
+{
+  bool retval = ConfigFromYamlCommon(node);
+  jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
+  return retval;
 }
 
 bool fastcat::AtiFts::Read()
