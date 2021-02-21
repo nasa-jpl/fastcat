@@ -4,26 +4,15 @@ message("Building tests, disable with BUILD_TESTS CMake option")
 ## Simple C Test Programs ##
 ############################
 
-# @TODO(kwehage) embed jpl_timer code in jsd, and remove this external
-# dependency
-FetchContent_Declare(jpl_timer
-    GIT_REPOSITORY git@fornat1.jpl.nasa.gov:casah/libs/jpl_timer.git
-    GIT_TAG kwehage-build-refactor
-    )
-FetchContent_MakeAvailable(jpl_timer)
-
-find_package(readline REQUIRED)
-
 include_directories(
     ${READLINE_INCLUDE_DIRS}
     ${CMAKE_BINARY_DIR}/include
     )
 
 set(fastcat_test_libs
-    jpl_timer
     fastcat
     m
-    ${READLINE_LIBRARIES}
+    -lreadline
     )
 
 add_executable(test_config test_config.cc)

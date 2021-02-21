@@ -6,7 +6,7 @@
 #include <sys/types.h>
 
 #include "fastcat/fastcat.h"
-#include "jpl_timer/jpl_timer.h"
+#include "jsd/jsd_timer.h"
 
 pthread_mutex_t                       fastcat_mutex = PTHREAD_MUTEX_INITIALIZER;
 fastcat::Manager                      manager;
@@ -410,8 +410,8 @@ int main(int argc, char* argv[])
   int       retval;
   double    loop_rate = manager.GetTargetLoopRate();
 
-  jpl_timer_t* timer = jpl_timer_alloc();
-  jpl_timer_init_ex(timer, 1e9 / loop_rate, JPL_TIMER_ANY_CPU, false, false);
+  jsd_timer_t* timer = jsd_timer_alloc();
+  jsd_timer_init_ex(timer, 1e9 / loop_rate, JSD_TIMER_ANY_CPU, false, false);
   cli_start_time = std::chrono::steady_clock::now();
 
   std::vector<fastcat::DeviceState> states;
@@ -428,7 +428,7 @@ int main(int argc, char* argv[])
   print_header(states);
 
   while (!quit) {
-    jpl_timer_process(timer);
+    jsd_timer_process(timer);
 
     pthread_mutex_lock(&fastcat_mutex);
     manager.Process();
