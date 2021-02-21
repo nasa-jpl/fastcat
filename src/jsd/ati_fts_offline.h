@@ -10,11 +10,11 @@
 
 namespace fastcat
 {
-class AtiFtsOffline: public AtiFts
+class AtiFtsOffline : public AtiFts
 {
  public:
-  bool ConfigFromYaml(YAML::Node node) override;
-  bool Read() override;
+  bool      ConfigFromYaml(YAML::Node node) override;
+  bool      Read() override;
   FaultType Process() override;
 };
 

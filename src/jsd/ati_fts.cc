@@ -11,13 +11,13 @@ fastcat::AtiFts::AtiFts()
 {
   MSG_DEBUG("Constructed AtiFts");
 
-  state_ = std::make_shared<DeviceState>();
+  state_       = std::make_shared<DeviceState>();
   state_->type = FTS_STATE;
   state_->time = std::chrono::steady_clock::now();
 }
 
-bool fastcat::AtiFts::ConfigFromYamlCommon(YAML::Node node){
-
+bool fastcat::AtiFts::ConfigFromYamlCommon(YAML::Node node)
+{
   if (!ParseVal(node, "name", name_)) {
     return false;
   }
@@ -44,7 +44,7 @@ bool fastcat::AtiFts::ConfigFromYamlCommon(YAML::Node node){
   return true;
 }
 
-bool fastcat::AtiFts::ConfigFromYaml(YAML::Node node) 
+bool fastcat::AtiFts::ConfigFromYaml(YAML::Node node)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
@@ -57,7 +57,7 @@ bool fastcat::AtiFts::Read()
 
   state_->time = std::chrono::steady_clock::now();
 
-  const jsd_ati_fts_state_t* ati_fts_state; 
+  const jsd_ati_fts_state_t* ati_fts_state;
   ati_fts_state = jsd_ati_fts_get_state((jsd_t*)context_, slave_id_);
 
   state_->fts_state.raw_fx = ati_fts_state->fx;
@@ -74,7 +74,7 @@ bool fastcat::AtiFts::Read()
   state_->fts_state.tared_ty = ati_fts_state->ty + bias_[4];
   state_->fts_state.tared_tz = ati_fts_state->tz + bias_[5];
 
-  ati_error_ = ati_fts_state->active_error;
+  ati_error_       = ati_fts_state->active_error;
   ati_status_code_ = ati_fts_state->status_code;
 
   return true;
@@ -85,9 +85,9 @@ fastcat::FaultType fastcat::AtiFts::Process()
   jsd_ati_fts_process((jsd_t*)context_, slave_id_);
 
   if (!device_fault_active_) {
-
-    if(ati_error_){
-      ERROR("ATI FTS reports internal error: Status Code = %u", ati_status_code_);
+    if (ati_error_) {
+      ERROR("ATI FTS reports internal error: Status Code = %u",
+            ati_status_code_);
       return ALL_DEVICE_FAULT;
     }
 

@@ -5,15 +5,15 @@
 
 // Include external then project includes
 
-bool fastcat::AtiFtsOffline::ConfigFromYaml(YAML::Node node){
+bool fastcat::AtiFtsOffline::ConfigFromYaml(YAML::Node node)
+{
   return ConfigFromYamlCommon(node);
 }
 
-bool fastcat::AtiFtsOffline::Read(){
+bool fastcat::AtiFtsOffline::Read()
+{
   state_->time = std::chrono::steady_clock::now();
   return true;
 }
 
-fastcat::FaultType fastcat::AtiFtsOffline::Process(){
-  return NO_FAULT;
-}
+fastcat::FaultType fastcat::AtiFtsOffline::Process() { return NO_FAULT; }
