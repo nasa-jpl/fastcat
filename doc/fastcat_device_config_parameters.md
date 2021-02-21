@@ -11,6 +11,7 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | El3208   | Beckhoff     | 8-channel RTD Input                 |
 | El3602   | Beckhoff     | 2-channel +/-10v Diff. Analog Input |
 | El2124   | Beckhoff     | 4-channel 5v Digital Output         |
+| AtiFts   | ATI          | Force-Torque Sensor                 |
 
 **Fastcat Devices**
 
@@ -305,6 +306,61 @@ The permitted range values are:
   name: el2124_1
 ```
 
+## AtiFts (Force Torque Sensor)
+
+| Parameter     | Description                                                  |
+| ------------- | ------------------------------------------------------------ |
+| `calibration` | Integer value corresponding to as-quoted calibration entries |
+| `max_force`   | If the norm of the forces exceed this value, emit a fault    |
+| `max_torque`  | if the norm of the torque exceed this value, emit a fault    |
+
+The `calibration` value by default is `0` if additional calibrations were ordered from ATI, the can be accessed by increasing this index value. It's not possible to look up which calibration integer maps to which calibration, but fastcat will report the calibration name and relevant units.
+
+The `max_force` and `max_torque` fault checks are evaluated like so:
+
+``` 
+if (sqrt(fx^2 + fy^2 + fz^2) > max_force) then fault
+```
+
+#### Example
+
+``` yaml
+- device_class: AtiFts
+  name:         ati_fts_1
+  calibration:  0
+  max_force:    25
+  max_torque:   2
+```
+
+This `calibration: 0` yields `SI-580-20` with units of Newtons and Newton-Meters. 
+
+``` bash
+[SUCCESS](/tmp/fastcat/build/_deps/jsd-src/src/jsd.c:420)   slave[1] ATI EtherCAT F/T Sensor - Configured
+[ INFO  ](/tmp/fastcat/build/_deps/jsd-src/src/jsd_ati_fts.c:103) Configuring slave no: 1,  SII inferred name: ATI EtherCAT F/T Sensor
+[ INFO  ](/tmp/fastcat/build/_deps/jsd-src/src/jsd_ati_fts.c:105)    Configured name: ati_fts_1
+...
+[ INFO  ](/tmp/fastcat/build/_deps/jsd-src/src/jsd_ati_fts.c:139)    ATI Firmware version: 1.0.17
+...
+[ INFO  ](/tmp/fastcat/build/_deps/jsd-src/src/jsd_ati_fts.c:153)    ATI Serial Number: FT33228
+[ INFO  ](/tmp/fastcat/build/_deps/jsd-src/src/jsd_ati_fts.c:154)    ATI Calibration Integer (0) maps to: SI-580-20
+[ INFO  ](/tmp/fastcat/build/_deps/jsd-src/src/jsd_ati_fts.c:156)    ATI Calibration Family: ECat
+[ INFO  ](/tmp/fastcat/build/_deps/jsd-src/src/jsd_ati_fts.c:157)    ATI Calibration Date: 2021-01-15 05:00:00Z
+[ INFO  ](/tmp/fastcat/build/_deps/jsd-src/src/jsd_ati_fts.c:158)    ATI force units: N (2)
+[ INFO  ](/tmp/fastcat/build/_deps/jsd-src/src/jsd_ati_fts.c:159)    ATI torque units: N-m (3)
+[ INFO  ](/tmp/fastcat/build/_deps/jsd-src/src/jsd_ati_fts.c:160)    ATI counts_per_force: 1000000
+[ INFO  ](/tmp/fastcat/build/_deps/jsd-src/src/jsd_ati_fts.c:161)    ATI counts_per_torque: 1000000
+
+```
+
+If `calibration: 1` is specified, the results `SI-290-10` 
+
+``` bash
+[ INFO  ](/tmp/fastcat/build/_deps/jsd-src/src/jsd_ati_fts.c:154)    ATI Calibration Integer (1) maps to: SI-290-10
+
+```
+
+
+
 
 
 ## Fastcat Device Parameters
@@ -399,8 +455,6 @@ In the following YAML snippet, the commander observes a SchmittTrigger boolean s
 ```
 
 This YAML generates the following fcviz graph:
-
-
 
 <img src="img/commander_example.png" style="zoom: 50%;" />
 
@@ -512,7 +566,7 @@ Simple Moving Average Example:
 wrench[6x1] = calibration_matrix[6x6] * signals[6x1]
 ````
 
-The `max_force` and `max_torque` conditions are evalated like so:
+The `max_force` and `max_torque` conditions are evaluated like so:
 
 ``` 
 if (sqrt(fx^2 + fy^2 + fz^2) > max_force) then fault
