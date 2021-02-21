@@ -37,6 +37,8 @@
 #include "fastcat/jsd/el3602_offline.h"
 #include "fastcat/jsd/jed.h"
 #include "fastcat/jsd/jed_offline.h"
+#include "fastcat/jsd/ati_fts.h"
+//#include "fastcat/jsd/ati_fts_offline.h"
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd_print.h"
@@ -354,6 +356,9 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("Jed")) {
       device = std::make_shared<Jed>();
+
+    } else if (0 == device_class.compare("AtiFts")) {
+      device = std::make_shared<AtiFts>();
 
     } else {
       ERROR("Unknown device_class: %s", device_class.c_str());

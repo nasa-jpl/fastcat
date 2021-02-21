@@ -1,0 +1,17 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /tmp/
+  actuator_fault_on_missing_pos_file: False
+
+buses:
+  - type: jsd_bus
+    ifname: enp0s25
+    enable_autorecovery: False
+
+    devices:
+    - device_class: AtiFts
+      name:         ati_fts_1
+      calibration:  0
+      max_force:    25
+      max_torque:   2
