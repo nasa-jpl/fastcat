@@ -12,6 +12,8 @@
 fastcat::ActuatorOffline::ActuatorOffline()
 {
   MSG_DEBUG("Constructed ActuatorOffline");
+
+  memset(&jsd_egd_state_, 0, sizeof(jsd_egd_state_t));
 }
 
 void fastcat::ActuatorOffline::EgdRead()

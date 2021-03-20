@@ -93,7 +93,7 @@ bool fastcat::Actuator::HandleNewCSPCmd(DeviceCmd& cmd)
 
   jsd_egd_motion_command_csp_t jsd_cmd;
   jsd_cmd.target_position = PosEuToCnts(cmd.actuator_csp_cmd.target_position);
-  jsd_cmd.position_offset = PosEuToCnts(cmd.actuator_csp_cmd.position_offset);
+  jsd_cmd.position_offset = EuToCnts(cmd.actuator_csp_cmd.position_offset);
   jsd_cmd.velocity_offset = EuToCnts(cmd.actuator_csp_cmd.velocity_offset);
   jsd_cmd.torque_offset_amps = cmd.actuator_csp_cmd.torque_offset_amps;
 
