@@ -171,7 +171,7 @@ Engineering Units (EU) are radians for revolute actuators and meters for linear 
 | `max_accel_eu_per_sec2`         | Max actuator output accel this drive may be commanded        |
 | `over_speed_multiplier`         | Multiplicative factor over `max_speed_eu_per_sec` that triggers a fault |
 | `vel_tracking_error_eu_per_sec` | Fault if tracking error `fabs(Actual Vel - Cmd Vel)` exceeds this parameter |
-| `pos_tracking_error_eu_per_sec` | Fault if tracking error `fabs(Actual Pos - Cmd Pos)` exceeds this parameter |
+| `pos_tracking_error_eu`         | Fault if tracking error `fabs(Actual Pos - Cmd Pos)` exceeds this parameter |
 | `peak_current_limit_amps`       | Peak instantaneous current permitted to actuator             |
 | `peak_current_time_sec`         | Max apply duration of Peak current before dropping down to Max Continuous current |
 | `continuous_current_limit_amps` | Max current permitted to actuator                            |
