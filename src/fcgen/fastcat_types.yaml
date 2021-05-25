@@ -432,6 +432,8 @@ commands:
       type: double
     - name: profile_velocity
       type: double
+    - name: end_velocity
+      type: double
     - name: profile_accel
       type: double
     - name: relative

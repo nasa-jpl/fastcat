@@ -185,6 +185,7 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
   // Validate command arguments
   if (PosExceedsCmdLimits(target_position) ||
       VelExceedsCmdLimits(cmd.actuator_prof_pos_cmd.profile_velocity) ||
+      VelExceedsCmdLimits(cmd.actuator_prof_pos_cmd.end_velocity) ||
       AccExceedsCmdLimits(cmd.actuator_prof_pos_cmd.profile_accel)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing Prof Pos Command");
@@ -199,8 +200,8 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
       state_->actuator_state.actual_position,  // consider cmd position
       target_position,
       state_->actuator_state.actual_velocity,  // consider cmd vel
-      0,  // pt2pt motion always uses terminating traps
-      cmd.actuator_prof_pos_cmd.profile_velocity,
+      cmd.actuator_prof_pos_cmd.end_velocity,
+      cmd.actuator_prof_pos_cmd.profile_velocity, // consider abs()
       cmd.actuator_prof_pos_cmd.profile_accel);
 
   TransitionToState(ACTUATOR_SMS_PROF_POS);
