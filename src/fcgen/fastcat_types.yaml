@@ -291,6 +291,41 @@ states:
       - name: adc_value_ch2
         type: int16_t
 
+  - name: el3318
+    fields:
+      - name: output_eu_ch1
+        type: double
+      - name: adc_value_ch1
+        type: int16_t
+      - name: output_eu_ch2
+        type: double
+      - name: adc_value_ch2
+        type: int16_t
+      - name: output_eu_ch3
+        type: double
+      - name: adc_value_ch3
+        type: int16_t
+      - name: output_eu_ch4
+        type: double
+      - name: adc_value_ch4
+        type: int16_t
+      - name: output_eu_ch5
+        type: double
+      - name: adc_value_ch5
+        type: int16_t
+      - name: output_eu_ch6
+        type: double
+      - name: adc_value_ch6
+        type: int16_t
+      - name: output_eu_ch7
+        type: double
+      - name: adc_value_ch7
+        type: int16_t
+      - name: output_eu_ch8
+        type: double
+      - name: adc_value_ch8
+        type: int16_t
+
   - name: jed
     fields:
     - name: status 
