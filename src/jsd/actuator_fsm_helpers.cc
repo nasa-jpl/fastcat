@@ -47,7 +47,7 @@ bool fastcat::Actuator::CheckStateMachineMotionCmds()
       break;
 
     case ACTUATOR_SMS_HALTED:
-      Reset();  // This will open the brake, then fallthrough
+      EgdReset();  // This will open the brake, then fallthrough
     case ACTUATOR_SMS_HOLDING:
     case ACTUATOR_SMS_PROF_POS:
     case ACTUATOR_SMS_PROF_VEL:
@@ -343,7 +343,7 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
       return false;
 
     case ACTUATOR_SMS_HALTED:
-      Reset();
+      EgdReset();
     case ACTUATOR_SMS_HOLDING:
       break;
     case ACTUATOR_SMS_PROF_POS:
