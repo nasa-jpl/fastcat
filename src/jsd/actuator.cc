@@ -271,7 +271,6 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
 
     case ACTUATOR_RESET_CMD:
       Reset();
-      return false;
       break;
 
     case ACTUATOR_HALT_CMD:
@@ -368,10 +367,8 @@ void fastcat::Actuator::Fault()
 void fastcat::Actuator::Reset()
 {
   WARNING("Resetting Actuator device %s", name_.c_str());
-  if (actuator_sms_ == ACTUATOR_SMS_FAULTED ||
-      actuator_sms_ == ACTUATOR_SMS_HALTED) {
-    TransitionToState(ACTUATOR_SMS_HOLDING);
-    EgdReset();
+  if (actuator_sms_ == ACTUATOR_SMS_FAULTED) {
+    TransitionToState(ACTUATOR_SMS_HALTED);
   }
 }
 

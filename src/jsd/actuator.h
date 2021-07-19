@@ -66,6 +66,7 @@ class Actuator : public DeviceBase
   bool HandleNewProfVelCmd(DeviceCmd& cmd);
   bool HandleNewProfTorqueCmd(DeviceCmd& cmd);
   bool HandleNewHaltCmd();
+  bool HandleNewResetCmd();
   bool HandleNewSetOutputPositionCmd(DeviceCmd& cmd);
   bool HandleNewCalibrationCmd(DeviceCmd& cmd);
 
