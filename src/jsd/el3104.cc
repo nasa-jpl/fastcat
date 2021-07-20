@@ -37,11 +37,6 @@ bool fastcat::El3104::ConfigFromYamlCommon(YAML::Node node)
   jsd_slave_config_.product_code         = JSD_EL3104_PRODUCT_CODE;
   snprintf(jsd_slave_config_.name, JSD_NAME_LEN, "%s", name_.c_str());
 
-  //TODO: Should all config put in fcat_config.yaml??
-  jsd_slave_config_.el3104.filter[0] = JSD_EL3104_FILTER_400HZ;
-  jsd_slave_config_.el3104.filter[1] = JSD_EL3104_FILTER_400HZ;
-  jsd_slave_config_.el3104.filter[2] = JSD_EL3104_FILTER_400HZ;
-  jsd_slave_config_.el3104.filter[3] = JSD_EL3104_FILTER_400HZ;
   return true;
 }
 
