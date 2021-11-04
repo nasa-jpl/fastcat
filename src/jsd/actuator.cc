@@ -154,7 +154,7 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
   snprintf(jsd_slave_config_.name, JSD_NAME_LEN, "%s", name_.c_str());
 
   jsd_slave_config_.egd.drive_cmd_mode    = JSD_EGD_DRIVE_CMD_MODE_CS;
-  jsd_slave_config_.egd.max_motor_speed   = EuToCnts(max_speed_eu_per_sec_);
+  jsd_slave_config_.egd.max_motor_speed   = max_speed_eu_per_sec_ * gear_ratio_ * 60 / (2*M_PI);
   jsd_slave_config_.egd.loop_period_ms    = loop_period_ * 1000.0;
   jsd_slave_config_.egd.torque_slope      = torque_slope_amps_per_sec_;
   jsd_slave_config_.egd.max_profile_accel = EuToCnts(max_accel_eu_per_sec2_);
