@@ -507,6 +507,9 @@ std::string fastcat::Actuator::StateMachineStateToString(
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       str = std::string("CAL_MOVE_TO_SOFTSTOP");
       break;
+    case ACTUATOR_SMS_RESETTING:
+      str = std::string("RESETTING");
+      break;
     default:
       ERROR("Bad Actuator State Machine State: %d", static_cast<int>(sms));
   }
