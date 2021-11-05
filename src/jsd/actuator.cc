@@ -66,7 +66,7 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
   }
 
   if (!ParseValCheckRange(node, "over_speed_multiplier", over_speed_multiplier_,
-                          1.0, 1000.0)) {
+                          0.0, 1000.0)) {
     return false;
   }
 

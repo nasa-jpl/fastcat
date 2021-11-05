@@ -181,22 +181,12 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
   SUCCESS("Configured Signals.");
 
   MSG("Reading initial state of all devices.");
-  for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
-    jsd_read(it->second, 1e9 / target_loop_rate_hz_);
-  }
-
-  for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
-    if (!(*it)->Read()) {
-      WARNING("Bad Process on %s", (*it)->GetName().c_str());
-    }
-  }
-
-  for (auto it = fastcat_device_list_.begin(); it != fastcat_device_list_.end();
-       ++it) {
-    if (!(*it)->Read()) {
-      WARNING("Bad Process on %s", (*it)->GetName().c_str());
-    }
-  }
+  // Empirically observed some EGDs require at least one valid PDO write 
+  //   before reporting valid actual encoder positions after startup. 
+  //   An up-to-date drive position is absolutely essential to setting the 
+  //   Actuator posititions properly from file using incremental encoders.
+  this->Process(); // PDO Read and Write (first PDO Write)
+  this->Process(); // PDO Read and Write (Need to re-read after the first PDO write)
 
   if (!SetActuatorPositions()) {
     return false;
