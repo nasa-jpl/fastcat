@@ -368,6 +368,7 @@ void fastcat::Actuator::Reset()
 {
   WARNING("Resetting Actuator device %s", name_.c_str());
   if (actuator_sms_ == ACTUATOR_SMS_FAULTED) {
+    EgdReset();
     TransitionToState(ACTUATOR_SMS_HALTED);
   }
 }
@@ -531,13 +532,8 @@ void fastcat::Actuator::EgdReset()
 {
   double now = jsd_get_time_sec();
   if ((now - last_egd_reset_time_) > 1.0) {
-    MSG_DEBUG("Resetting EGD through JSD: %s", name_.c_str());
+    MSG("Resetting EGD through JSD: %s", name_.c_str());
     jsd_egd_reset((jsd_t*)context_, slave_id_);
-
-    // Set to zero to give the drive one PDO exchange to 
-    //   reset
-    state_->actuator_state.fault_code = 0;
-
     last_egd_reset_time_ = now;
   }
 }
