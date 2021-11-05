@@ -531,7 +531,13 @@ void fastcat::Actuator::EgdReset()
 {
   double now = jsd_get_time_sec();
   if ((now - last_egd_reset_time_) > 1.0) {
+    DEBUG("Resetting EGD through JSD: %s", name_.c_str());
     jsd_egd_reset((jsd_t*)context_, slave_id_);
+
+    // Set to zero to give the drive one PDO exchange to 
+    //   reset
+    state_->actuator_state.fault_code = 0;
+
     last_egd_reset_time_ = now;
   }
 }
