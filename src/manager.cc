@@ -201,17 +201,29 @@ bool fastcat::Manager::Process()
     jsd_read(it->second, 1e9 / target_loop_rate_hz_);
   }
 
+  // Pass the PDO read time for consistent timestamping before the device Read() 
+  //   method is invoked
+  double read_time = jsd_get_time_sec();
+
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
+
+    (*it)->SetTime(read_time);
+
     if (!(*it)->Read()) {
       WARNING("Bad Process on %s", (*it)->GetName().c_str());
     }
   }
 
+
   for (auto it = fastcat_device_list_.begin(); it != fastcat_device_list_.end();
        ++it) {
+
+    (*it)->SetTime(read_time);
+
     if (!(*it)->Read()) {
       WARNING("Bad Process on %s", (*it)->GetName().c_str());
     }
+
     switch ((*it)->Process()) {
       case WARNING:
         WARNING("Process Warning %s", (*it)->GetName().c_str());

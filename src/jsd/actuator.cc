@@ -19,7 +19,6 @@ fastcat::Actuator::Actuator()
 
   state_                = std::make_shared<DeviceState>();
   state_->type          = ACTUATOR_STATE;
-  state_->time          = std::chrono::steady_clock::now();
   actuator_sms_         = ACTUATOR_SMS_HALTED;
   last_transition_time_ = jsd_get_time_sec();
   last_egd_reset_time_  = jsd_get_time_sec();
@@ -188,7 +187,6 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
 bool fastcat::Actuator::Read()
 {
   EgdRead();
-  state_->time = std::chrono::steady_clock::now();
 
   state_->actuator_state.egd_actual_position = jsd_egd_state_.actual_position;
   state_->actuator_state.egd_cmd_position    = jsd_egd_state_.cmd_position;
@@ -458,7 +456,7 @@ bool fastcat::Actuator::CurrentExceedsCmdLimits(double current)
 void fastcat::Actuator::TransitionToState(ActuatorStateMachineState sms)
 {
   if (actuator_sms_ == sms) {
-    last_transition_time_ = jsd_get_time_sec();
+    last_transition_time_ = state_->time;
     return;
   }
 
@@ -466,7 +464,7 @@ void fastcat::Actuator::TransitionToState(ActuatorStateMachineState sms)
       StateMachineStateToString(actuator_sms_).c_str(),
       StateMachineStateToString(sms).c_str());
 
-  last_transition_time_ = jsd_get_time_sec();
+  last_transition_time_ = state_->time;
   actuator_sms_         = sms;
 }
 
@@ -530,11 +528,10 @@ void fastcat::Actuator::EgdProcess()
 
 void fastcat::Actuator::EgdReset()
 {
-  double now = jsd_get_time_sec();
-  if ((now - last_egd_reset_time_) > 1.0) {
+  if ((state_->time - last_egd_reset_time_) > 1.0) {
     MSG("Resetting EGD through JSD: %s", name_.c_str());
     jsd_egd_reset((jsd_t*)context_, slave_id_);
-    last_egd_reset_time_ = now;
+    last_egd_reset_time_ = state_->time;
 
     // Set to zero to prevent immediate rentry 
     // into faulted state (before next PDO read)

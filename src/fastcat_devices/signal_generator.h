@@ -36,9 +36,9 @@ class SignalGenerator : public DeviceBase
   bool Read() override;
 
  protected:
-  std::string                           signal_generator_type_string_;
-  enum SignalGeneratorType              signal_generator_type_;
-  std::chrono::steady_clock::time_point start_time_;
+  std::string              signal_generator_type_string_;
+  enum SignalGeneratorType signal_generator_type_;
+  double                   start_time_ = 0;
 
   union {
     SineWaveParams sine_wave_;

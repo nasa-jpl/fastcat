@@ -13,7 +13,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "fastcat/device_base.h"
-#include "jsd/jsd_print.h"
+#include "jsd/jsd.h"
 
 namespace fastcat
 {

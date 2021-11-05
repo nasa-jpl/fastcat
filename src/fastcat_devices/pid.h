@@ -25,8 +25,8 @@ class Pid : public DeviceBase
   double kd_;
   double windup_limit_;
 
-  PidActivateCmd                        pid_activate_cmd_ = {0};
-  std::chrono::steady_clock::time_point activation_time_;
+  PidActivateCmd pid_activate_cmd_ = {0};
+  double         activation_time_ = 0;
 
   double  error_               = 0;
   double  prev_error_          = 0;

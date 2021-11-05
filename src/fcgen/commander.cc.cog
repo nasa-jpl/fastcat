@@ -32,8 +32,6 @@ fastcat::Commander::Commander()
   MSG_DEBUG("Constructed Commander");
   state_       = std::make_shared<DeviceState>();
   state_->type = COMMANDER_STATE;
-  state_->time = std::chrono::steady_clock::now();
-  enable_time_ = state_->time; 
   
 }
 
@@ -114,12 +112,9 @@ bool fastcat::Commander::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Commander::Read()
 {
-  
-  state_->time = std::chrono::steady_clock::now();
 
   if(state_->commander_state.enable && enable_duration_ > 0){
-    double on_time = 
-      std::chrono::duration<double>(state_->time - enable_time_).count();
+    double on_time = state_->time - enable_time_;
     if(on_time > enable_duration_){
       MSG("Commander %s reached enable duration of %lf sec, disabling", 
         name_.c_str(), enable_duration_);

@@ -33,6 +33,7 @@ class DeviceBase
   void RegisterCmdQueue(std::shared_ptr<std::queue<DeviceCmd>> cmd_queue);
   std::string                  GetName();
   std::shared_ptr<DeviceState> GetState();
+  void SetTime(double time);
 
   // setters/getters for EtherCat devices
   void     SetSlaveId(uint16_t slave_id);

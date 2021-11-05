@@ -12,7 +12,6 @@ bool fastcat::AtiFtsOffline::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::AtiFtsOffline::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
   return true;
 }
 

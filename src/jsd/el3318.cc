@@ -16,7 +16,6 @@ fastcat::El3318::El3318()
 
   state_       = std::make_shared<DeviceState>();
   state_->type = EL3318_STATE;
-  state_->time = std::chrono::steady_clock::now();
 }
 
 bool fastcat::El3318::ConfigFromYaml(YAML::Node node)
@@ -69,7 +68,6 @@ bool fastcat::El3318::Read()
 {
   jsd_el3318_read((jsd_t*)context_, slave_id_);
 
-  state_->time = std::chrono::steady_clock::now();
   const jsd_el3318_state_t* jsd_state =
       jsd_el3318_get_state((jsd_t*)context_, slave_id_);
 

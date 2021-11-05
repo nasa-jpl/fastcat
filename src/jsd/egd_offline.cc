@@ -18,8 +18,6 @@ bool fastcat::EgdOffline::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::EgdOffline::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
-
   state_->egd_state.faulted = true;
 
   switch (jsd_slave_config_.egd.drive_cmd_mode) {

@@ -13,7 +13,6 @@ fastcat::Faulter::Faulter()
 {
   state_       = std::make_shared<DeviceState>();
   state_->type = FAULTER_STATE;
-  state_->time = std::chrono::steady_clock::now();
 }
 
 bool fastcat::Faulter::ConfigFromYaml(YAML::Node node)
@@ -41,8 +40,6 @@ bool fastcat::Faulter::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Faulter::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
-
   // update input signal
   if (!UpdateSignal(signals_[0])) {
     ERROR("Could not extract signal");

@@ -24,7 +24,7 @@ class Commander : public DeviceBase
   std::string device_cmd_type_string_;
   DeviceCmd   device_cmd_;
 
-  std::chrono::steady_clock::time_point enable_time_;
+  double enable_time_ = 0;
 
   double enable_duration_ = 1.0;
   bool   start_enabled_   = false;

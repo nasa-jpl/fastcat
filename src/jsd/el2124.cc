@@ -16,7 +16,6 @@ fastcat::El2124::El2124()
 
   state_       = std::make_shared<DeviceState>();
   state_->type = EL2124_STATE;
-  state_->time = std::chrono::steady_clock::now();
 }
 
 bool fastcat::El2124::ConfigFromYaml(YAML::Node node)
@@ -42,8 +41,6 @@ bool fastcat::El2124::ConfigFromYamlCommon(YAML::Node node)
 
 bool fastcat::El2124::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
-
   const jsd_el2124_state_t* jsd_state =
       jsd_el2124_get_state((jsd_t*)context_, slave_id_);
 

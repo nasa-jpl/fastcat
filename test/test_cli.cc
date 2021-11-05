@@ -8,10 +8,10 @@
 #include "fastcat/fastcat.h"
 #include "jsd/jsd_timer.h"
 
-pthread_mutex_t                       fastcat_mutex = PTHREAD_MUTEX_INITIALIZER;
-fastcat::Manager                      manager;
-std::chrono::steady_clock::time_point cli_start_time;
-FILE*                                 file;
+pthread_mutex_t   fastcat_mutex = PTHREAD_MUTEX_INITIALIZER;
+fastcat::Manager  manager;
+double            cli_start_time;
+FILE*             file;
 
 void print_header(std::vector<fastcat::DeviceState> states)
 {
@@ -122,9 +122,7 @@ void print_header(std::vector<fastcat::DeviceState> states)
 }
 void print_csv_data(std::vector<fastcat::DeviceState> states)
 {
-  double time =
-      std::chrono::duration<double>(states.begin()->time - cli_start_time)
-          .count();
+  double time = states.begin()->time - cli_start_time;
 
   fprintf(file, "%lf, ", time);
   for (auto state = states.begin(); state != states.end(); ++state) {
@@ -412,7 +410,7 @@ int main(int argc, char* argv[])
 
   jsd_timer_t* timer = jsd_timer_alloc();
   jsd_timer_init_ex(timer, 1e9 / loop_rate, JSD_TIMER_ANY_CPU, false, false);
-  cli_start_time = std::chrono::steady_clock::now();
+  cli_start_time = jsd_get_time_sec();
 
   std::vector<fastcat::DeviceState> states;
 

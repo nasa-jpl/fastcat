@@ -17,7 +17,6 @@ fastcat::El3208::El3208()
 
   state_       = std::make_shared<DeviceState>();
   state_->type = EL3208_STATE;
-  state_->time = std::chrono::steady_clock::now();
 
   outputs_[0] = &state_->el3208_state.output_ch1;
   outputs_[1] = &state_->el3208_state.output_ch2;
@@ -124,7 +123,6 @@ bool fastcat::El3208::Read()
 {
   jsd_el3208_read((jsd_t*)context_, slave_id_);
 
-  state_->time = std::chrono::steady_clock::now();
   const jsd_el3208_state_t* jsd_state =
       jsd_el3208_get_state((jsd_t*)context_, slave_id_);
 

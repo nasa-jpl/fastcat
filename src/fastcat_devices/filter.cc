@@ -99,7 +99,6 @@ fastcat::Filter::Filter()
 {
   state_       = std::make_shared<DeviceState>();
   state_->type = FILTER_STATE;
-  state_->time = std::chrono::steady_clock::now();
 }
 
 bool fastcat::Filter::ConfigFromYaml(YAML::Node node)
@@ -171,8 +170,6 @@ bool fastcat::Filter::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Filter::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
-
   if (!UpdateSignal(signals_[0])) {
     return false;
   }

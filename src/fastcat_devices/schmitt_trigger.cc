@@ -13,7 +13,6 @@ fastcat::SchmittTrigger::SchmittTrigger()
 {
   state_       = std::make_shared<DeviceState>();
   state_->type = SCHMITT_TRIGGER_STATE;
-  state_->time = std::chrono::steady_clock::now();
 }
 
 bool fastcat::SchmittTrigger::ConfigFromYaml(YAML::Node node)
@@ -44,8 +43,6 @@ bool fastcat::SchmittTrigger::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::SchmittTrigger::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
-
   if (!UpdateSignal(signals_[0])) {
     return false;
   }

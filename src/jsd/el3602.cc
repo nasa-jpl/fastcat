@@ -16,7 +16,6 @@ fastcat::El3602::El3602()
 
   state_       = std::make_shared<DeviceState>();
   state_->type = EL3602_STATE;
-  state_->time = std::chrono::steady_clock::now();
 }
 
 bool fastcat::El3602::ConfigFromYaml(YAML::Node node)
@@ -64,7 +63,6 @@ bool fastcat::El3602::Read()
 {
   jsd_el3602_read((jsd_t*)context_, slave_id_);
 
-  state_->time = std::chrono::steady_clock::now();
   const jsd_el3602_state_t* jsd_state =
       jsd_el3602_get_state((jsd_t*)context_, slave_id_);
 
