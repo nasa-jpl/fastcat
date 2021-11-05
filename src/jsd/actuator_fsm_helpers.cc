@@ -9,27 +9,6 @@
 // Include external then project includes
 #include "jsd/jsd.h"
 
-/*
-
-  switch(actuator_sms_){
-    case ACTUATOR_SMS_FAULTED:
-    case ACTUATOR_SMS_HALTED:
-    case ACTUATOR_SMS_HOLDING:
-    case ACTUATOR_SMS_PROF_POS:
-    case ACTUATOR_SMS_PROF_VEL:
-    case ACTUATOR_SMS_PROF_TORQUE:
-    case ACTUATOR_SMS_CS:
-    case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
-    case ACTUATOR_SMS_CAL_AT_HARDSTOP:
-    case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
-    default:
-      ERROR("Act %s: %s: %d", name_.c_str(),
-         "Bad Act State ", actuator_sms_);
-      return false;
-  }
-
-*/
-
 bool fastcat::Actuator::CheckStateMachineMotionCmds()
 {
   // This check is the same for both CS* and PROF* commands.
@@ -650,4 +629,27 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
 fastcat::FaultType fastcat::Actuator::ProcessCalMoveToSoftstop()
 {
   return ProcessProfPos();
+}
+
+fastcat::FaultType fastcat::Actuator::ProcessResetting()
+{
+  // We have waited too long, fault
+  if ((state_->time - last_transition_time_) > 1.0) {
+    ERROR("Act %s: %s: %lf", name_.c_str(),
+          "Waited too long for drive to reset in CAL_AT_HARDSTOP state",
+          (state_->time - last_transition_time_));
+    return ALL_DEVICE_FAULT;
+  }
+
+  if (state_->actuator_state.egd_state_machine_state !=
+          JSD_EGD_STATE_MACHINE_STATE_OPERATION_ENABLED &&
+      state_->actuator_state.fault_code != 0) {
+    // still waiting on the drive to reset...
+    EgdReset();
+  } else {
+
+    TransitionToState(ACTUATOR_SMS_HALTED);
+  }
+
+  return NO_FAULT;
 }

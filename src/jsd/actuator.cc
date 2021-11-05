@@ -19,7 +19,7 @@ fastcat::Actuator::Actuator()
 
   state_                = std::make_shared<DeviceState>();
   state_->type          = ACTUATOR_STATE;
-  actuator_sms_         = ACTUATOR_SMS_HALTED;
+  actuator_sms_         = ACTUATOR_SMS_RESETTING;
   last_transition_time_ = jsd_get_time_sec();
   last_egd_reset_time_  = jsd_get_time_sec();
 }
@@ -367,7 +367,7 @@ void fastcat::Actuator::Reset()
   WARNING("Resetting Actuator device %s", name_.c_str());
   if (actuator_sms_ == ACTUATOR_SMS_FAULTED) {
     EgdReset();
-    TransitionToState(ACTUATOR_SMS_HALTED);
+    TransitionToState(ACTUATOR_SMS_RESETTING);
   }
 }
 
@@ -532,10 +532,6 @@ void fastcat::Actuator::EgdReset()
     MSG("Resetting EGD through JSD: %s", name_.c_str());
     jsd_egd_reset((jsd_t*)context_, slave_id_);
     last_egd_reset_time_ = state_->time;
-
-    // Set to zero to prevent immediate rentry 
-    // into faulted state (before next PDO read)
-    state_->actuator_state.fault_code = 0;
   }
 }
 

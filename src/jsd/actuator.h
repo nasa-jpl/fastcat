@@ -23,6 +23,7 @@ typedef enum {
   ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP,
   ACTUATOR_SMS_CAL_AT_HARDSTOP,
   ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP,
+  ACTUATOR_SMS_RESETTING,
 } ActuatorStateMachineState;
 
 typedef enum {
@@ -82,6 +83,7 @@ class Actuator : public DeviceBase
   FaultType ProcessCalMoveToHardstop();
   FaultType ProcessCalAtHardstop();
   FaultType ProcessCalMoveToSoftstop();
+  FaultType ProcessResetting();
 
   virtual void EgdRead();
   virtual void EgdSetConfig();
