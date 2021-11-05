@@ -524,9 +524,9 @@ fastcat::FaultType fastcat::Actuator::ProcessProfVel()
   jsd_cmd.velocity_offset    = 0;
   jsd_cmd.torque_offset_amps = 0;
 
-  if (!complete) {
-    EgdCSV(jsd_cmd);
-  } else {
+  EgdCSV(jsd_cmd);
+
+  if (complete) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
   }
   return NO_FAULT;
