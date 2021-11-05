@@ -550,9 +550,9 @@ fastcat::FaultType fastcat::Actuator::ProcessProfTorque()
   jsd_cmd.target_torque_amps = current;
   jsd_cmd.torque_offset_amps = 0;
 
-  if (!complete) {
-    EgdCST(jsd_cmd);
-  } else {
+  EgdCST(jsd_cmd);
+
+  if (complete) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
   }
   return NO_FAULT;
@@ -600,9 +600,9 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
   jsd_cmd.velocity_offset    = EuToCnts(vel);
   jsd_cmd.torque_offset_amps = 0;
 
-  if (!complete) {
-    EgdCSP(jsd_cmd);
-  } else {
+  EgdCSP(jsd_cmd);
+
+  if (complete) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(),
           "Moved Full Range and did not encounter hard stop");

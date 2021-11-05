@@ -535,6 +535,10 @@ void fastcat::Actuator::EgdReset()
     MSG("Resetting EGD through JSD: %s", name_.c_str());
     jsd_egd_reset((jsd_t*)context_, slave_id_);
     last_egd_reset_time_ = now;
+
+    // Set to zero to prevent immediate rentry 
+    // into faulted state (before next PDO read)
+    state_->actuator_state.fault_code = 0;
   }
 }
 
