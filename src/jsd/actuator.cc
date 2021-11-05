@@ -344,6 +344,10 @@ fastcat::FaultType fastcat::Actuator::Process()
       retval = ProcessCalMoveToSoftstop();
       break;
 
+    case ACTUATOR_SMS_RESETTING:
+      retval = ProcessResetting();
+      break;
+
     default:
       ERROR("Bad Actuator State Machine State: %d", actuator_sms_);
       retval = ALL_DEVICE_FAULT;
