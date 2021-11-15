@@ -192,6 +192,10 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
+  // After the first valid PDO exchange, reset all devices to 
+  // attempt to start in nominal, post-reset state.
+  this->ExecuteAllDeviceResets();
+
   return true;
 }
 

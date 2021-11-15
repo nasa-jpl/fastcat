@@ -19,7 +19,7 @@ fastcat::Actuator::Actuator()
 
   state_                = std::make_shared<DeviceState>();
   state_->type          = ACTUATOR_STATE;
-  actuator_sms_         = ACTUATOR_SMS_RESETTING;
+  actuator_sms_         = ACTUATOR_SMS_HALTED;
   last_transition_time_ = jsd_get_time_sec();
   last_egd_reset_time_  = jsd_get_time_sec();
 }

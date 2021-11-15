@@ -636,7 +636,7 @@ fastcat::FaultType fastcat::Actuator::ProcessResetting()
   // We have waited too long, fault
   if ((state_->time - last_transition_time_) > 1.0) {
     ERROR("Act %s: %s: %lf", name_.c_str(),
-          "Waited too long for drive to reset in CAL_AT_HARDSTOP state",
+          "Waited too long for drive to reset in RESETTING state",
           (state_->time - last_transition_time_));
     return ALL_DEVICE_FAULT;
   }
