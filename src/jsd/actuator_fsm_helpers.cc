@@ -353,10 +353,24 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
     return false;
   }
 
-  cal_cmd_ = cmd.actuator_calibrate_cmd;
+  double rom = fabs(high_pos_cal_limit_eu_ - low_pos_cal_limit_eu_);
+  double cal_range = rom + pos_tracking_error_eu_;
 
-  double cal_range =
-      (high_pos_cal_limit_eu_ - low_pos_cal_limit_eu_) + pos_tracking_error_eu_;
+  // Since the hardstop calibration feature depends on a position tracking fault,
+  //   sanity check drive settings to prevent unexpected outcomes.
+  //   At the very least, the Range-of-Motion must be > the position tracking fault
+  //   tolerance. (In practice, ROM should be MUCH > than the full tracking tol)
+  if( rom < pos_tracking_error_eu_){
+    TransitionToState(ACTUATOR_SMS_FAULTED);
+    ERROR("Act %s: Calibration cannot succeed when Range-of-motion (%lf) "
+          "< Pos tracking error (%lf). "
+          "Check Drive parameters for excessive pos tracking fault", 
+        name_.c_str(), rom, pos_tracking_error_eu_);
+
+    return false;
+  }
+
+  cal_cmd_ = cmd.actuator_calibrate_cmd;
 
   double target_position;
   if (cmd.actuator_calibrate_cmd.velocity > 0) {
