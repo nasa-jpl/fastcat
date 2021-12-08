@@ -13,7 +13,6 @@ fastcat::VirtualFts::VirtualFts()
 {
   state_       = std::make_shared<DeviceState>();
   state_->type = FTS_STATE;
-  state_->time = std::chrono::steady_clock::now();
 }
 
 bool fastcat::VirtualFts::ConfigFromYaml(YAML::Node node)
@@ -87,8 +86,6 @@ bool fastcat::VirtualFts::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::VirtualFts::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
-
   for (int ii = 0; ii < FC_FTS_N_DIMS; ii++) {
     if (!UpdateSignal(signals_[ii])) {
       ERROR("Could not extract signal");

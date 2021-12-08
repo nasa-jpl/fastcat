@@ -16,7 +16,6 @@ bool fastcat::JedOffline::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::JedOffline::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
   return true;
 }
 

@@ -18,7 +18,6 @@ cog.outl('// Please make modifications to fcgen/types.h.cog')
 #define FASTCAT_TYPES_H_
 
 
-#include <chrono>
 #include <string>
 
 #include "jsd/jsd_types.h"
@@ -114,7 +113,7 @@ for state in data['states']:
 [[[end]]]
 
   };
-  std::chrono::steady_clock::time_point time;
+  double time;
 } DeviceState;
 
 

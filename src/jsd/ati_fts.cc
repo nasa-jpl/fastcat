@@ -13,7 +13,6 @@ fastcat::AtiFts::AtiFts()
 
   state_       = std::make_shared<DeviceState>();
   state_->type = FTS_STATE;
-  state_->time = std::chrono::steady_clock::now();
 }
 
 bool fastcat::AtiFts::ConfigFromYamlCommon(YAML::Node node)
@@ -54,8 +53,6 @@ bool fastcat::AtiFts::ConfigFromYaml(YAML::Node node)
 bool fastcat::AtiFts::Read()
 {
   jsd_ati_fts_read((jsd_t*)context_, slave_id_);
-
-  state_->time = std::chrono::steady_clock::now();
 
   const jsd_ati_fts_state_t* ati_fts_state;
   ati_fts_state = jsd_ati_fts_get_state((jsd_t*)context_, slave_id_);

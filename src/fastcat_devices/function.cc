@@ -13,7 +13,6 @@ fastcat::Function::Function()
 {
   state_       = std::make_shared<DeviceState>();
   state_->type = FUNCTION_STATE;
-  state_->time = std::chrono::steady_clock::now();
 }
 
 bool fastcat::Function::ConfigFromYaml(YAML::Node node)
@@ -81,8 +80,6 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Function::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
-
   // update input signal
   if (!UpdateSignal(signals_[0])) {
     ERROR("Could not extract signal");

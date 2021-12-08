@@ -13,7 +13,6 @@ fastcat::Fts::Fts()
 {
   state_       = std::make_shared<DeviceState>();
   state_->type = FTS_STATE;
-  state_->time = std::chrono::steady_clock::now();
 }
 
 bool fastcat::Fts::ConfigFromYaml(YAML::Node node)
@@ -77,8 +76,6 @@ bool fastcat::Fts::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Fts::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
-
   for (int ii = 0; ii < FC_FTS_N_DIMS; ii++) {
     if (!UpdateSignal(signals_[ii])) {
       ERROR("Could not extract signal");

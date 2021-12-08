@@ -17,7 +17,6 @@ bool fastcat::El2124Offline::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::El2124Offline::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
   return true;
 }
 

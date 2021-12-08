@@ -16,7 +16,6 @@ fastcat::Egd::Egd()
 
   state_       = std::make_shared<DeviceState>();
   state_->type = EGD_STATE;
-  state_->time = std::chrono::steady_clock::now();
 }
 
 bool fastcat::Egd::ConfigFromYaml(YAML::Node node)
@@ -29,8 +28,6 @@ bool fastcat::Egd::ConfigFromYaml(YAML::Node node)
 bool fastcat::Egd::Read()
 {
   jsd_egd_read((jsd_t*)context_, slave_id_);
-
-  state_->time = std::chrono::steady_clock::now();
 
   memcpy(&jsd_egd_state_, jsd_egd_get_state((jsd_t*)context_, slave_id_),
          sizeof(jsd_egd_state_t));

@@ -9,27 +9,6 @@
 // Include external then project includes
 #include "jsd/jsd.h"
 
-/*
-
-  switch(actuator_sms_){
-    case ACTUATOR_SMS_FAULTED:
-    case ACTUATOR_SMS_HALTED:
-    case ACTUATOR_SMS_HOLDING:
-    case ACTUATOR_SMS_PROF_POS:
-    case ACTUATOR_SMS_PROF_VEL:
-    case ACTUATOR_SMS_PROF_TORQUE:
-    case ACTUATOR_SMS_CS:
-    case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
-    case ACTUATOR_SMS_CAL_AT_HARDSTOP:
-    case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
-    default:
-      ERROR("Act %s: %s: %d", name_.c_str(),
-         "Bad Act State ", actuator_sms_);
-      return false;
-  }
-
-*/
-
 bool fastcat::Actuator::CheckStateMachineMotionCmds()
 {
   // This check is the same for both CS* and PROF* commands.
@@ -194,9 +173,8 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
 
   EgdSetPeakCurrent(peak_current_limit_amps_);
 
-  double now = jsd_get_time_sec();
   trap_generate(
-      &trap_, now,
+      &trap_, state_->time,
       state_->actuator_state.actual_position,  // consider cmd position
       target_position,
       state_->actuator_state.actual_velocity,  // consider cmd vel
@@ -226,9 +204,8 @@ bool fastcat::Actuator::HandleNewProfVelCmd(DeviceCmd& cmd)
 
   EgdSetPeakCurrent(peak_current_limit_amps_);
 
-  double now = jsd_get_time_sec();
   trap_generate_vel(
-      &trap_, now,
+      &trap_, state_->time,
       state_->actuator_state.actual_position,  // consider cmd position
       state_->actuator_state.actual_velocity,  // consider cmd velocity
       cmd.actuator_prof_vel_cmd.target_velocity,
@@ -257,9 +234,8 @@ bool fastcat::Actuator::HandleNewProfTorqueCmd(DeviceCmd& cmd)
 
   EgdSetPeakCurrent(peak_current_limit_amps_);
 
-  double now = jsd_get_time_sec();
   trap_generate_vel(
-      &trap_, now, 0, 0, cmd.actuator_prof_torque_cmd.target_torque_amps,
+      &trap_, state_->time, 0, 0, cmd.actuator_prof_torque_cmd.target_torque_amps,
       torque_slope_amps_per_sec_, cmd.actuator_prof_torque_cmd.max_duration);
 
   TransitionToState(ACTUATOR_SMS_PROF_TORQUE);
@@ -377,10 +353,24 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
     return false;
   }
 
-  cal_cmd_ = cmd.actuator_calibrate_cmd;
+  double rom = fabs(high_pos_cal_limit_eu_ - low_pos_cal_limit_eu_);
+  double cal_range = rom + pos_tracking_error_eu_;
 
-  double cal_range =
-      (high_pos_cal_limit_eu_ - low_pos_cal_limit_eu_) + pos_tracking_error_eu_;
+  // Since the hardstop calibration feature depends on a position tracking fault,
+  //   sanity check drive settings to prevent unexpected outcomes.
+  //   At the very least, the Range-of-Motion must be > the position tracking fault
+  //   tolerance. (In practice, ROM should be MUCH > than the full tracking tol)
+  if( rom < pos_tracking_error_eu_){
+    TransitionToState(ACTUATOR_SMS_FAULTED);
+    ERROR("Act %s: Calibration cannot succeed when Range-of-motion (%lf) "
+          "< Pos tracking error (%lf). "
+          "Check Drive parameters for excessive pos tracking fault", 
+        name_.c_str(), rom, pos_tracking_error_eu_);
+
+    return false;
+  }
+
+  cal_cmd_ = cmd.actuator_calibrate_cmd;
 
   double target_position;
   if (cmd.actuator_calibrate_cmd.velocity > 0) {
@@ -391,9 +381,8 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
 
   EgdSetPeakCurrent(cal_cmd_.max_current);
 
-  double now = jsd_get_time_sec();
   trap_generate(
-      &trap_, now,
+      &trap_, state_->time,
       state_->actuator_state.actual_position,  // consider cmd position
       target_position,
       state_->actuator_state.actual_velocity,  // consider cmd velocity
@@ -472,8 +461,7 @@ fastcat::FaultType fastcat::Actuator::ProcessHolding()
     return ALL_DEVICE_FAULT;
   }
 
-  double now = jsd_get_time_sec();
-  if ((now - last_transition_time_) > holding_duration_sec_) {
+  if ((state_->time - last_transition_time_) > holding_duration_sec_) {
     EgdHalt();
     TransitionToState(ACTUATOR_SMS_HALTED);
   }
@@ -488,10 +476,9 @@ fastcat::FaultType fastcat::Actuator::ProcessProfPos()
   }
 
   jsd_egd_motion_command_csp_t jsd_cmd;
-  double                       now = jsd_get_time_sec();
 
   double pos_eu, vel;
-  int    complete = trap_update(&trap_, now, &pos_eu, &vel);
+  int    complete = trap_update(&trap_, state_->time, &pos_eu, &vel);
 
   jsd_cmd.target_position    = PosEuToCnts(pos_eu);
   jsd_cmd.position_offset    = 0;
@@ -515,10 +502,9 @@ fastcat::FaultType fastcat::Actuator::ProcessProfVel()
   }
 
   jsd_egd_motion_command_csv_t jsd_cmd;
-  double                       now = jsd_get_time_sec();
 
   double pos_eu, vel;
-  int    complete = trap_update_vel(&trap_, now, &pos_eu, &vel);
+  int    complete = trap_update_vel(&trap_, state_->time, &pos_eu, &vel);
 
   jsd_cmd.target_velocity    = EuToCnts(vel);
   jsd_cmd.velocity_offset    = 0;
@@ -527,6 +513,8 @@ fastcat::FaultType fastcat::Actuator::ProcessProfVel()
   if (!complete) {
     EgdCSV(jsd_cmd);
   } else {
+    jsd_cmd.target_velocity = 0;
+    EgdCSV(jsd_cmd);
     TransitionToState(ACTUATOR_SMS_HOLDING);
   }
   return NO_FAULT;
@@ -540,17 +528,16 @@ fastcat::FaultType fastcat::Actuator::ProcessProfTorque()
   }
 
   jsd_egd_motion_command_cst_t jsd_cmd;
-  double                       now = jsd_get_time_sec();
 
   double dummy_pos_eu, current;
-  int    complete = trap_update_vel(&trap_, now, &dummy_pos_eu, &current);
+  int    complete = trap_update_vel(&trap_, state_->time, &dummy_pos_eu, &current);
 
   jsd_cmd.target_torque_amps = current;
   jsd_cmd.torque_offset_amps = 0;
 
-  if (!complete) {
-    EgdCST(jsd_cmd);
-  } else {
+  EgdCST(jsd_cmd);
+
+  if (complete) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
   }
   return NO_FAULT;
@@ -563,8 +550,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
     return ALL_DEVICE_FAULT;
   }
 
-  double now = jsd_get_time_sec();
-  if ((now - last_transition_time_) > 5 * loop_period_) {
+  if ((state_->time - last_transition_time_) > 5 * loop_period_) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
   }
 
@@ -588,19 +574,18 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
   }
 
   jsd_egd_motion_command_csp_t jsd_cmd;
-  double                       now = jsd_get_time_sec();
 
   double pos_eu, vel;
-  int    complete = trap_update(&trap_, now, &pos_eu, &vel);
+  int    complete = trap_update(&trap_, state_->time, &pos_eu, &vel);
 
   jsd_cmd.target_position    = PosEuToCnts(pos_eu);
   jsd_cmd.position_offset    = 0;
   jsd_cmd.velocity_offset    = EuToCnts(vel);
   jsd_cmd.torque_offset_amps = 0;
 
-  if (!complete) {
-    EgdCSP(jsd_cmd);
-  } else {
+  EgdCSP(jsd_cmd);
+
+  if (complete) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(),
           "Moved Full Range and did not encounter hard stop");
@@ -616,15 +601,14 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
   // And clear the EGD fault that is generated from contacting the hardstop
   // Loop here until the drive is no longer faulted
 
-  double now = jsd_get_time_sec();
   if (state_->actuator_state.egd_state_machine_state !=
           JSD_EGD_STATE_MACHINE_STATE_OPERATION_ENABLED &&
       state_->actuator_state.fault_code != 0) {
     // We have waited too long, fault
-    if ((now - last_transition_time_) > 5.0) {
+    if ((state_->time - last_transition_time_) > 5.0) {
       ERROR("Act %s: %s: %lf", name_.c_str(),
             "Waited too long for drive to reset in CAL_AT_HARDSTOP state",
-            (now - last_transition_time_));
+            (state_->time - last_transition_time_));
       return ALL_DEVICE_FAULT;
     }
 
@@ -647,7 +631,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
   // Restore Current to nominal value
   EgdSetPeakCurrent(peak_current_limit_amps_);
 
-  trap_generate(&trap_, now, cal_position, backoff_position, 0,
+  trap_generate(&trap_, state_->time, cal_position, backoff_position, 0,
                 0,  // pt2pt motion always uses terminating traps
                 fabs(cal_cmd_.velocity), cal_cmd_.accel);
 
@@ -659,4 +643,27 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
 fastcat::FaultType fastcat::Actuator::ProcessCalMoveToSoftstop()
 {
   return ProcessProfPos();
+}
+
+fastcat::FaultType fastcat::Actuator::ProcessResetting()
+{
+  // We have waited too long, fault
+  if ((state_->time - last_transition_time_) > 1.0) {
+    ERROR("Act %s: %s: %lf", name_.c_str(),
+          "Waited too long for drive to reset in RESETTING state",
+          (state_->time - last_transition_time_));
+    return ALL_DEVICE_FAULT;
+  }
+
+  if (state_->actuator_state.egd_state_machine_state !=
+          JSD_EGD_STATE_MACHINE_STATE_OPERATION_ENABLED &&
+      state_->actuator_state.fault_code != 0) {
+    // still waiting on the drive to reset...
+    EgdReset();
+  } else {
+
+    TransitionToState(ACTUATOR_SMS_HALTED);
+  }
+
+  return NO_FAULT;
 }

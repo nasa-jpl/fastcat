@@ -17,8 +17,6 @@ bool fastcat::El3208Offline::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::El3208Offline::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
-
   memset(&state_->el3208_state, 0, sizeof(El3208State));
 
   return true;

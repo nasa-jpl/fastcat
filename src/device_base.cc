@@ -31,6 +31,10 @@ void     fastcat::DeviceBase::SetLoopPeriod(double loop_period)
   loop_period_ = loop_period;
 }
 
+void fastcat::DeviceBase::SetTime(double time){
+  state_->time = time;
+}
+
 bool fastcat::DeviceBase::Write(fastcat::DeviceCmd& /* cmd */)
 {
   ERROR("Commands are not supported by device %s", name_.c_str());
@@ -56,3 +60,4 @@ bool fastcat::DeviceBase::SetOutputPosition(double /* position */)
   ERROR("SetOutputPosition not defined for Device: %s", name_.c_str());
   return false;
 }
+

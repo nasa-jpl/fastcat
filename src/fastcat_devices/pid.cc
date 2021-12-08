@@ -13,7 +13,6 @@ fastcat::Pid::Pid()
 {
   state_       = std::make_shared<DeviceState>();
   state_->type = PID_STATE;
-  state_->time = std::chrono::steady_clock::now();
 }
 
 bool fastcat::Pid::ConfigFromYaml(YAML::Node node)
@@ -52,16 +51,13 @@ bool fastcat::Pid::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Pid::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
-
   if (!UpdateSignal(signals_[0])) {
     ERROR("Could not extract signal");
     return false;
   }
 
   if (state_->pid_state.active) {
-    double active_time =
-        std::chrono::duration<double>(state_->time - activation_time_).count();
+    double active_time = state_->time - activation_time_;
     if (active_time > pid_activate_cmd_.max_duration) {
       MSG("PID controller reached max duration %lf sec, deactivating "
           "controller",

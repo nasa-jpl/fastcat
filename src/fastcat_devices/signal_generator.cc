@@ -14,8 +14,6 @@ fastcat::SignalGenerator::SignalGenerator()
 
   state_       = std::make_shared<DeviceState>();
   state_->type = SIGNAL_GENERATOR_STATE;
-  start_time_  = std::chrono::steady_clock::now();
-  state_->time = start_time_;
 }
 
 bool fastcat::SignalGenerator::ConfigFromYaml(YAML::Node node)
@@ -97,40 +95,37 @@ bool fastcat::SignalGenerator::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::SignalGenerator::Read()
 {
-  state_->time = std::chrono::steady_clock::now();
-  double time =
-      std::chrono::duration<double>(state_->time - start_time_).count();
 
   if (signal_generator_type_ == SINE_WAVE) {
     state_->signal_generator_state.output =
         sine_wave_.offset +
         sine_wave_.amplitude *
-            sin(sine_wave_.angular_frequency * time + sine_wave_.phase);
+            sin(sine_wave_.angular_frequency * state_->time + sine_wave_.phase);
   } else if (signal_generator_type_ == SAW_TOOTH) {
     // positive slopes
     if (saw_tooth_.slope >= 0) {
       state_->signal_generator_state.output =
-          saw_tooth_.min + saw_tooth_.slope * time -
+          saw_tooth_.min + saw_tooth_.slope * state_->time -
           saw_tooth_.range * saw_tooth_.modulo;
 
       if (state_->signal_generator_state.output > saw_tooth_.max) {
         saw_tooth_.modulo += 1.0;
 
         state_->signal_generator_state.output =
-            saw_tooth_.min + saw_tooth_.slope * time -
+            saw_tooth_.min + saw_tooth_.slope * state_->time -
             saw_tooth_.range * saw_tooth_.modulo;
       }
       // negative slopes
     } else {
       state_->signal_generator_state.output =
-          saw_tooth_.max + saw_tooth_.slope * time +
+          saw_tooth_.max + saw_tooth_.slope * state_->time +
           saw_tooth_.range * saw_tooth_.modulo;
 
       if (state_->signal_generator_state.output < saw_tooth_.min) {
         saw_tooth_.modulo += 1.0;
 
         state_->signal_generator_state.output =
-            saw_tooth_.max + saw_tooth_.slope * time +
+            saw_tooth_.max + saw_tooth_.slope * state_->time +
             saw_tooth_.range * saw_tooth_.modulo;
       }
     }
