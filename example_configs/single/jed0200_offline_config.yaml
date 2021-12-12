@@ -10,6 +10,6 @@ buses:
     enable_autorecovery: True
 
     devices:
-    - device_class: Jed
+    - device_class: Jed0200
       name: jed_1
       initial_cmd: 42
