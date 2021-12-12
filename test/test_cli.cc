@@ -212,13 +212,13 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
       case fastcat::JED0200_STATE:
         fprintf(file, "%u, ", state->jed0200_state.status);
         fprintf(file, "%u, ", state->jed0200_state.ticks);
-        fprintf(file, "%u, ", state->jed0200_state.voltage_hv);
-        fprintf(file, "%u, ", state->jed0200_state.voltage_lv);
-        fprintf(file, "%u, ", state->jed0200_state.voltage_12v);
-        fprintf(file, "%u, ", state->jed0200_state.temp_ambient);
-        fprintf(file, "%u, ", state->jed0200_state.temp_actuator);
-        fprintf(file, "%u, ", state->jed0200_state.humidity);
-        fprintf(file, "%u, ", state->jed0200_state.pressure);
+        fprintf(file, "%f, ", state->jed0200_state.voltage_hv);
+        fprintf(file, "%f, ", state->jed0200_state.voltage_lv);
+        fprintf(file, "%f, ", state->jed0200_state.voltage_12v);
+        fprintf(file, "%f, ", state->jed0200_state.temp_ambient);
+        fprintf(file, "%f, ", state->jed0200_state.temp_actuator);
+        fprintf(file, "%f, ", state->jed0200_state.humidity);
+        fprintf(file, "%f, ", state->jed0200_state.pressure);
         fprintf(file, "%u, ", state->jed0200_state.brake_current);
         fprintf(file, "%u, ", state->jed0200_state.brake_cc_val);
         fprintf(file, "%u, ", state->jed0200_state.cmd);
