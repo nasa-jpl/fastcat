@@ -45,6 +45,8 @@
 #include "fastcat/jsd/el3318_offline.h"
 #include "fastcat/jsd/jed0101.h"
 #include "fastcat/jsd/jed0101_offline.h"
+#include "fastcat/jsd/jed0200.h"
+#include "fastcat/jsd/jed0200_offline.h"
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd_print.h"
@@ -379,6 +381,9 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("Jed0101")) {
       device = std::make_shared<Jed0101>();
 
+    } else if (0 == device_class.compare("Jed0200")) {
+      device = std::make_shared<Jed0200>();
+
     } else if (0 == device_class.compare("AtiFts")) {
       device = std::make_shared<AtiFts>();
 
@@ -550,6 +555,9 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("Jed0101")) {
       device = std::make_shared<Jed0101Offline>();
+
+    } else if (0 == device_class.compare("Jed0200")) {
+      device = std::make_shared<Jed0200Offline>();
 
     } else if (0 == device_class.compare("AtiFts")) {
       device = std::make_shared<AtiFtsOffline>();
