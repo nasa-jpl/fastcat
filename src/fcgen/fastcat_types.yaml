@@ -353,6 +353,8 @@ states:
     fields:
     - name: status 
       type: uint16_t
+    - name: cmd
+      type: uint16_t
     - name: ticks
       type: uint32_t
     - name: voltage_hv
