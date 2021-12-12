@@ -49,14 +49,16 @@ bool fastcat::Jed0200::Read()
       jsd_jed0200_get_state((jsd_t*)context_, slave_id_);
 
   state_->jed0200_state.status = jsd_state->status;
-  state_->jed0200_state.w_raw  = jsd_state->w_raw;
-  state_->jed0200_state.x_raw  = jsd_state->x_raw;
-  state_->jed0200_state.y_raw  = jsd_state->y_raw;
-  state_->jed0200_state.z_raw  = jsd_state->z_raw;
-  state_->jed0200_state.w      = jsd_state->w;
-  state_->jed0200_state.x      = jsd_state->x;
-  state_->jed0200_state.y      = jsd_state->y;
-  state_->jed0200_state.z      = jsd_state->z;
+  state_->jed0200_state.ticks = jsd_state->ticks;
+  state_->jed0200_state.voltage_hv = jsd_state->voltage_hv;
+  state_->jed0200_state.voltage_lv = jsd_state->voltage_lv;
+  state_->jed0200_state.voltage_12v = jsd_state->voltage_12v;
+  state_->jed0200_state.temp_ambient = jsd_state->temp_ambient;
+  state_->jed0200_state.temp_actuator = jsd_state->temp_actuator;
+  state_->jed0200_state.humidity = jsd_state->humidity;
+  state_->jed0200_state.pressure = jsd_state->pressure;
+  state_->jed0200_state.brake_current = jsd_state->brake_current;
+  state_->jed0200_state.brake_cc_val = jsd_state->brake_cc_val;
   state_->jed0200_state.cmd    = jsd_state->cmd;
 
   return true;
