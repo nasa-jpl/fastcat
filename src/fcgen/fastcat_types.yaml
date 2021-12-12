@@ -326,7 +326,7 @@ states:
       - name: adc_value_ch8
         type: int16_t
 
-  - name: jed
+  - name: jed0101
     fields:
     - name: status 
       type: uint16_t
@@ -552,7 +552,7 @@ commands:
       type: bool
       comment: if true, faulter will trigger a fault when the specified signal is received.
 
-  - name: jed_set_cmd_value
+  - name: jed0101_set_cmd_value
     fields:
     - name: cmd
       type: uint16_t

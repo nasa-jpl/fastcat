@@ -1,32 +1,22 @@
-#ifndef FASTCAT_JED_H_
-#define FASTCAT_JED_H_
+#ifndef FASTCAT_JED0101_OFFLINE_H_
+#define FASTCAT_JED0101_OFFLINE_H_
 
 // Include related header (for cc files)
 
 // Include c then c++ libraries
 
 // Include external then project includes
-#include "fastcat/device_base.h"
-#include "jsd/jsd_jed_pub.h"
+#include "fastcat/jsd/jed0101.h"
 
 namespace fastcat
 {
-class Jed : public DeviceBase
+class Jed0101Offline : public Jed0101
 {
  public:
-  Jed();
   bool      ConfigFromYaml(YAML::Node node) override;
   bool      Read() override;
   FaultType Process() override;
   bool      Write(DeviceCmd& cmd) override;
-
- protected:
-  bool ConfigFromYamlCommon(YAML::Node node);
-
-  uint16_t initial_cmd_ = 0;
-
- private:
-  jsd_slave_config_t jsd_slave_config_;
 };
 
 }  // namespace fastcat
