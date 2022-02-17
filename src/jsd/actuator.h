@@ -119,6 +119,11 @@ class Actuator : public DeviceBase
   double egd_crc_                       = 0;
   double egd_drive_max_cur_limit_amps_  = 0;
   double smooth_factor_                 = 0;
+  double torque_constant_               = 0;
+  double winding_resistance_            = 0;
+  double brake_power_                   = 0;
+
+  bool compute_power_ = false;
 
   jsd_slave_config_t jsd_slave_config_;
   jsd_egd_state_t    jsd_egd_state_;

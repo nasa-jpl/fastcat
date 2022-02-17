@@ -132,6 +132,17 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
   if (!ParseValCheckRange(node, "smooth_factor", smooth_factor_, -1, 64)) {
     return false;
   }
+  
+  if (ParseValCheckRange(node, "torque_constant", torque_constant_, 0.0, 999999.0) &&
+      ParseValCheckRange(node, "winding_resistance", winding_resistance_, 0.0, 999999.0) ) {
+    
+    // Only compute power if we received both torque_constant and winding_resistance parameters
+    compute_power_ = true;
+    
+    // Read in brake power (if provided) to add to actuator power
+    if (!ParseValCheckRange(node, "brake_power", brake_power_, 0.0, 9999.0))
+       brake_power_ = 0.0;
+  }
 
   // overall_reduction must be set before using EuToCnts/CntsToEu
   if (actuator_type_ == ACTUATOR_TYPE_REVOLUTE) {
@@ -218,6 +229,22 @@ bool fastcat::Actuator::Read()
   state_->actuator_state.drive_temperature = jsd_egd_state_.drive_temperature;
   state_->actuator_state.actuator_state_machine_state =
       static_cast<int>(actuator_sms_);
+
+  if (compute_power_) {
+    double motor_velocity = 2*M_PI * fabs(jsd_egd_state_.actual_velocity) / counts_per_rev_;
+    double current = fabs(jsd_egd_state_.actual_current);
+
+    // P = R I^2 + K_T * I * \omega
+    state_->actuator_state.power = current *
+      (winding_resistance_ * current +
+       torque_constant_ * motor_velocity);
+
+    // Should checking, but assuming motor_on > 0 means brakes powered/disengaged
+    if (state_->actuator_state.motor_on)
+      state_->actuator_state.power += brake_power_;
+  }
+  // else
+  // state_->actuator_state.power = 0;
 
   return true;
 }
