@@ -262,3 +262,31 @@ bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
         upper);
   return false;
 }
+
+// Optional value parsing
+
+bool fastcat::ParseOptVal(YAML::Node node, std::string field, double& val)
+{
+  if (!node[field]) {
+    MSG_DEBUG("Did not find optional double field: %s", field.c_str());
+    return false;
+  }
+  val = node[field].as<double>();
+  MSG_DEBUG("Parsed double field %s: %lf", field.c_str(), val);
+  return true;
+}
+
+bool fastcat::ParseOptValCheckRange(YAML::Node node, std::string field,
+                                    double& val, double lower, double upper)
+{
+  if (!ParseOptVal(node, field, val)) {
+    return false;
+  }
+
+  if (lower <= val && val <= upper) {
+    return true;
+  }
+  ERROR("%s failed range check %lf <= %lf <= %lf", field.c_str(), lower, val,
+        upper);
+  return false;
+}

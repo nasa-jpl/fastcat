@@ -133,14 +133,14 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
   
-  if (ParseValCheckRange(node, "torque_constant", torque_constant_, 0.0, 999999.0) &&
-      ParseValCheckRange(node, "winding_resistance", winding_resistance_, 0.0, 999999.0) ) {
+  if (ParseOptValCheckRange(node, "torque_constant", torque_constant_, 0.0, 999999.0) &&
+      ParseOptValCheckRange(node, "winding_resistance", winding_resistance_, 0.0, 999999.0) ) {
     
     // Only compute power if we received both torque_constant and winding_resistance parameters
     compute_power_ = true;
     
     // Read in brake power (if provided) to add to actuator power
-    if (!ParseValCheckRange(node, "brake_power", brake_power_, 0.0, 9999.0))
+    if (!ParseOptValCheckRange(node, "brake_power", brake_power_, 0.0, 9999.0))
        brake_power_ = 0.0;
   }
 
