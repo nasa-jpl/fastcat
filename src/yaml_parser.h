@@ -50,6 +50,12 @@ bool ParseValCheckRange(YAML::Node node, std::string field, int8_t& val,
 bool ParseValCheckRange(YAML::Node node, std::string field, uint8_t& val,
                         uint8_t lower, uint8_t upper);
 
+// Optional double values
+bool ParseOptVal(YAML::Node node, std::string field, double& val);
+
+bool ParseOptValCheckRange(YAML::Node node, std::string field, double& val,
+                           double lower, double upper);
+
 }  // namespace fastcat
 
 #endif
