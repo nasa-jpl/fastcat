@@ -55,13 +55,17 @@ void fastcat::ActuatorOffline::EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd)
   jsd_egd_state_.cmd_ff_velocity = jsd_csp_cmd.velocity_offset;
   jsd_egd_state_.cmd_ff_current  = jsd_csp_cmd.torque_offset_amps;
 
+  // Differentiate position to get actual_velocity
+  double vel = (jsd_egd_state_.cmd_position + jsd_egd_state_.cmd_ff_position
+                - jsd_egd_state_.actual_position) / loop_period_;
+
   // simulate actuals
   jsd_egd_state_.actual_position =
       jsd_egd_state_.cmd_position + jsd_egd_state_.cmd_ff_position;
-  jsd_egd_state_.actual_velocity =
-      jsd_egd_state_.cmd_velocity + jsd_egd_state_.cmd_ff_velocity;
   jsd_egd_state_.actual_current =
       jsd_egd_state_.cmd_current + jsd_egd_state_.cmd_ff_current;
+  
+  jsd_egd_state_.actual_velocity = vel; // "sure, why not"
 }
 
 void fastcat::ActuatorOffline::EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd)
