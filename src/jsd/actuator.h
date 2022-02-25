@@ -122,6 +122,7 @@ class Actuator : public DeviceBase
   double torque_constant_               = 0;
   double winding_resistance_            = 0;
   double brake_power_                   = 0;
+  double motor_encoder_gear_ratio_      = 0;
 
   bool compute_power_ = false;
 

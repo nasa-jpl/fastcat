@@ -140,8 +140,16 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     compute_power_ = true;
     
     // Read in brake power (if provided) to add to actuator power
-    if (!ParseOptValCheckRange(node, "brake_power", brake_power_, 0.0, 9999.0))
-       brake_power_ = 0.0;
+    if (!ParseOptValCheckRange(node, "brake_power", brake_power_, 0.0, 9999.0)) {
+      // If not found then set to zero
+      brake_power_ = 0.0;
+    }
+    
+    // Read in any gear ratio between the motor and encoder for power calculation
+    if (!ParseOptValCheckRange(node, "motor_encoder_gear_ratio", motor_encoder_gear_ratio_, 0.0, 9999.0)) {
+      // If not found then set to 1.0
+      motor_encoder_gear_ratio_ = 1.0;
+    }
   }
 
   // overall_reduction must be set before using EuToCnts/CntsToEu
@@ -231,7 +239,7 @@ bool fastcat::Actuator::Read()
       static_cast<int>(actuator_sms_);
 
   if (compute_power_) {
-    double motor_velocity = 2*M_PI * fabs(jsd_egd_state_.actual_velocity) / counts_per_rev_;
+    double motor_velocity = fabs(state_->actuator_state.actual_velocity) * motor_encoder_gear_ratio_;
     double current = fabs(jsd_egd_state_.actual_current);
 
     // P = R I^2 + K_T * I * \omega
