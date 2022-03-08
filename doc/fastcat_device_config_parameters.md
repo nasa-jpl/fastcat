@@ -306,6 +306,35 @@ The permitted range values are:
   name: el2124_1
 ```
 
+## El3318 (8-channel Thermocouple module)
+
+| Parameter   | Description                 |
+| ----------- | --------------------------- |
+| `element`   | type of TC hardware element |
+
+The permitted elements are:
+
+* `TYPE_K`
+* `TYPE_J`
+* `TYPE_L`
+* `TYPE_E`
+* `TYPE_T`
+* `TYPE_N`
+* `TYPE_U`
+* `TYPE_B`
+* `TYPE_R`
+* `TYPE_S`
+* `TYPE_C`
+
+#### Example
+
+``` yaml
+- device_class: El3318
+  name: el3318_tc_location_1
+  element: TYPE_K
+```
+
+
 ## AtiFts (Force Torque Sensor)
 
 | Parameter     | Description                                                  |
