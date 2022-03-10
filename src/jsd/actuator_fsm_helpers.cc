@@ -302,6 +302,35 @@ bool fastcat::Actuator::HandleNewSetOutputPositionCmd(DeviceCmd& cmd)
   return true;
 }
 
+bool fastcat::Actuator::HandleNewSetUnitModeCmd(DeviceCmd& cmd)
+{
+  switch (actuator_sms_) {
+    case ACTUATOR_SMS_FAULTED:
+    case ACTUATOR_SMS_HALTED:
+    case ACTUATOR_SMS_HOLDING:
+      break;
+
+    case ACTUATOR_SMS_PROF_POS:
+    case ACTUATOR_SMS_PROF_VEL:
+    case ACTUATOR_SMS_PROF_TORQUE:
+    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
+    case ACTUATOR_SMS_CAL_AT_HARDSTOP:
+    case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
+      ERROR("Act %s: %s", name_.c_str(),
+            "Cannot set unit mode now, motion command is active");
+      return false;
+
+    default:
+      ERROR("Act %s: %s: %d", name_.c_str(), "Bad Act State ", actuator_sms_);
+      return false;
+  }
+
+  EgdSetUnitMode(cmd.actuator_set_unit_mode_cmd.mode);
+
+  return true;
+}
+
 bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
 {
   switch (actuator_sms_) {

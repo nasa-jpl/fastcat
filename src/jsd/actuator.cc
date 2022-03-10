@@ -302,6 +302,13 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       EgdSetPeakCurrent(peak_current_limit_amps_);
       break;
 
+    case ACTUATOR_SET_UNIT_MODE_CMD:
+      if (!HandleNewSetUnitModeCmd(cmd)) {
+        ERROR("Failed to handle Set Unit Mode Command");
+        return false;
+      }
+      break;
+
     default:
       WARNING("That command type is not supported in this mode!");
       return false;
@@ -557,6 +564,12 @@ void fastcat::Actuator::EgdHalt() { jsd_egd_halt((jsd_t*)context_, slave_id_); }
 void fastcat::Actuator::EgdSetPeakCurrent(double current)
 {
   jsd_egd_set_peak_current((jsd_t*)context_, slave_id_, current);
+}
+
+void fastcat::Actuator::EgdSetUnitMode(int32_t mode)
+{
+  MSG("Commanding new UM[1] = %d", mode);
+  jsd_egd_async_sdo_set_unit_mode((jsd_t*)context_, slave_id_, mode);
 }
 
 void fastcat::Actuator::EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd)
