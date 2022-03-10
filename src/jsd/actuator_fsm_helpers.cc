@@ -77,7 +77,6 @@ bool fastcat::Actuator::HandleNewCSPCmd(DeviceCmd& cmd)
   jsd_cmd.torque_offset_amps = cmd.actuator_csp_cmd.torque_offset_amps;
 
   EgdCSP(jsd_cmd);
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   TransitionToState(ACTUATOR_SMS_CS);
 
@@ -107,7 +106,6 @@ bool fastcat::Actuator::HandleNewCSVCmd(DeviceCmd& cmd)
   jsd_cmd.torque_offset_amps = cmd.actuator_csv_cmd.torque_offset_amps;
 
   EgdCSV(jsd_cmd);
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   TransitionToState(ACTUATOR_SMS_CS);
 
@@ -136,7 +134,6 @@ bool fastcat::Actuator::HandleNewCSTCmd(DeviceCmd& cmd)
   jsd_cmd.torque_offset_amps = cmd.actuator_cst_cmd.torque_offset_amps;
 
   EgdCST(jsd_cmd);
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   TransitionToState(ACTUATOR_SMS_CS);
 
@@ -171,7 +168,6 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
     return false;
   }
 
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   trap_generate(
       &trap_, state_->time,
@@ -202,7 +198,6 @@ bool fastcat::Actuator::HandleNewProfVelCmd(DeviceCmd& cmd)
     return false;
   }
 
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   trap_generate_vel(
       &trap_, state_->time,
@@ -232,7 +227,6 @@ bool fastcat::Actuator::HandleNewProfTorqueCmd(DeviceCmd& cmd)
     return false;
   }
 
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   trap_generate_vel(
       &trap_, state_->time, 0, 0, cmd.actuator_prof_torque_cmd.target_torque_amps,
@@ -379,6 +373,7 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
     target_position = state_->actuator_state.actual_position - cal_range;
   }
 
+  MSG("Setting Peak Current to calibration level: %lf", cal_cmd_.max_current);
   EgdSetPeakCurrent(cal_cmd_.max_current);
 
   trap_generate(
@@ -562,6 +557,10 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
   // add other reasons as needed...
   if (state_->actuator_state.sto_engaged) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+
+    MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
+    EgdSetPeakCurrent(peak_current_limit_amps_);
+
     return ALL_DEVICE_FAULT;
   }
 
@@ -570,6 +569,10 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
     EgdHalt();
     ERROR("Act %s: %s: %d", name_.c_str(), "Detected Hardstop, EGD fault_code",
           state_->actuator_state.fault_code);
+
+    MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
+    EgdSetPeakCurrent(peak_current_limit_amps_);
+
     TransitionToState(ACTUATOR_SMS_CAL_AT_HARDSTOP);
   }
 
@@ -589,6 +592,10 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(),
           "Moved Full Range and did not encounter hard stop");
+
+    MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
+    EgdSetPeakCurrent(peak_current_limit_amps_);
+
     return ALL_DEVICE_FAULT;
   }
 
@@ -627,9 +634,6 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
     backoff_position = low_pos_cmd_limit_eu_;
   }
   SetOutputPosition(cal_position);
-
-  // Restore Current to nominal value
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   trap_generate(&trap_, state_->time, cal_position, backoff_position, 0,
                 0,  // pt2pt motion always uses terminating traps

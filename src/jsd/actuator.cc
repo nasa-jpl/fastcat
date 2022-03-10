@@ -298,7 +298,8 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       // This application may choose to set this during motions
       // in order to boost current during accelration/decel
       // phases so don't check the state machine
-      EgdSetPeakCurrent(cmd.actuator_set_max_current_cmd.current);
+      peak_current_limit_amps_ = cmd.actuator_set_max_current_cmd.current;
+      EgdSetPeakCurrent(peak_current_limit_amps_);
       break;
 
     default:
