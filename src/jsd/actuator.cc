@@ -204,6 +204,8 @@ bool fastcat::Actuator::Read()
   state_->actuator_state.cmd_current =
       (jsd_egd_state_.cmd_current + jsd_egd_state_.cmd_ff_current);
 
+  state_->actuator_state.cmd_max_current = jsd_egd_state_.cmd_max_current;
+
   state_->actuator_state.egd_state_machine_state =
       jsd_egd_state_.actual_state_machine_state;
   state_->actuator_state.egd_mode_of_operation =
@@ -290,6 +292,13 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle Calibrate Command");
         return false;
       }
+      break;
+
+    case ACTUATOR_SET_MAX_CURRENT_CMD:
+      // This application may choose to set this during motions
+      // in order to boost current during accelration/decel
+      // phases so don't check the state machine
+      EgdSetPeakCurrent(cmd.actuator_set_max_current_cmd.current);
       break;
 
     default:

@@ -546,6 +546,12 @@ commands:
     - name: max_current
       type: double
 
+  - name: actuator_set_max_current
+    fields:
+    - name: current 
+      type: double
+      comment: Corresponds to the PL[1] or Peak current setting
+
   - name: faulter_enable
     fields:
     - name: enable
