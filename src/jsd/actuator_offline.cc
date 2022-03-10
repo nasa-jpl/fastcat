@@ -45,7 +45,7 @@ void fastcat::ActuatorOffline::EgdSetPeakCurrent(double /* current */)
   // no-op
 }
 
-void fastcat::Actuator::EgdSetUnitMode(int32_t mode)
+void fastcat::ActuatorOffline::EgdSetUnitMode(int32_t mode)
 {
   MSG("Commanding new UM[1] = %d", mode);
   // no-op
