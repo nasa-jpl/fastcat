@@ -75,7 +75,7 @@ void print_header(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%s_tared_ty, ", state->name.c_str());
         fprintf(file, "%s_tared_tz, ", state->name.c_str());
         break;
-      case fastcat::JED_STATE:
+      case fastcat::JED0101_STATE:
         fprintf(file, "%s_status, ", state->name.c_str());
         fprintf(file, "%s_w_raw, ", state->name.c_str());
         fprintf(file, "%s_x_raw, ", state->name.c_str());
@@ -85,6 +85,20 @@ void print_header(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%s_x, ", state->name.c_str());
         fprintf(file, "%s_y, ", state->name.c_str());
         fprintf(file, "%s_z, ", state->name.c_str());
+        fprintf(file, "%s_cmd, ", state->name.c_str());
+        break;
+      case fastcat::JED0200_STATE:
+        fprintf(file, "%s_status, ", state->name.c_str());
+        fprintf(file, "%s_ticks, ", state->name.c_str());
+        fprintf(file, "%s_voltage_hv, ", state->name.c_str());
+        fprintf(file, "%s_voltage_lv, ", state->name.c_str());
+        fprintf(file, "%s_voltage_12v, ", state->name.c_str());
+        fprintf(file, "%s_temp_ambient, ", state->name.c_str());
+        fprintf(file, "%s_temp_actuator, ", state->name.c_str());
+        fprintf(file, "%s_humidity, ", state->name.c_str());
+        fprintf(file, "%s_pressure, ", state->name.c_str());
+        fprintf(file, "%s_brake_current, ", state->name.c_str());
+        fprintf(file, "%s_brake_cc_val, ", state->name.c_str());
         fprintf(file, "%s_cmd, ", state->name.c_str());
         break;
       case fastcat::EL3208_STATE:
@@ -183,17 +197,31 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%lf, ", state->fts_state.tared_ty);
         fprintf(file, "%lf, ", state->fts_state.tared_tz);
         break;
-      case fastcat::JED_STATE:
-        fprintf(file, "%u, ", state->jed_state.status);
-        fprintf(file, "%u, ", state->jed_state.w_raw);
-        fprintf(file, "%u, ", state->jed_state.x_raw);
-        fprintf(file, "%u, ", state->jed_state.y_raw);
-        fprintf(file, "%u, ", state->jed_state.z_raw);
-        fprintf(file, "%lf, ", state->jed_state.w);
-        fprintf(file, "%lf, ", state->jed_state.x);
-        fprintf(file, "%lf, ", state->jed_state.y);
-        fprintf(file, "%lf, ", state->jed_state.z);
-        fprintf(file, "%u, ", state->jed_state.cmd);
+      case fastcat::JED0101_STATE:
+        fprintf(file, "%u, ", state->jed0101_state.status);
+        fprintf(file, "%u, ", state->jed0101_state.w_raw);
+        fprintf(file, "%u, ", state->jed0101_state.x_raw);
+        fprintf(file, "%u, ", state->jed0101_state.y_raw);
+        fprintf(file, "%u, ", state->jed0101_state.z_raw);
+        fprintf(file, "%lf, ", state->jed0101_state.w);
+        fprintf(file, "%lf, ", state->jed0101_state.x);
+        fprintf(file, "%lf, ", state->jed0101_state.y);
+        fprintf(file, "%lf, ", state->jed0101_state.z);
+        fprintf(file, "%u, ", state->jed0101_state.cmd);
+        break;
+      case fastcat::JED0200_STATE:
+        fprintf(file, "%u, ", state->jed0200_state.status);
+        fprintf(file, "%u, ", state->jed0200_state.ticks);
+        fprintf(file, "%f, ", state->jed0200_state.voltage_hv);
+        fprintf(file, "%f, ", state->jed0200_state.voltage_lv);
+        fprintf(file, "%f, ", state->jed0200_state.voltage_12v);
+        fprintf(file, "%f, ", state->jed0200_state.temp_ambient);
+        fprintf(file, "%f, ", state->jed0200_state.temp_actuator);
+        fprintf(file, "%f, ", state->jed0200_state.humidity);
+        fprintf(file, "%f, ", state->jed0200_state.pressure);
+        fprintf(file, "%u, ", state->jed0200_state.brake_current);
+        fprintf(file, "%u, ", state->jed0200_state.brake_cc_val);
+        fprintf(file, "%u, ", state->jed0200_state.cmd);
         break;
       case fastcat::EL3208_STATE:
         fprintf(file, "%lf, ", state->el3208_state.output_ch1);
@@ -330,12 +358,20 @@ void* cli_process(void*)
       cmd.el2124_write_channel_cmd.level   = atoi(tokens[3].c_str());
       cmd.type                             = fastcat::EL2124_WRITE_CHANNEL_CMD;
 
-    } else if (tokens[0].compare("jed_set_cmd_value") == 0 &&
+    } else if (tokens[0].compare("jed0101_set_cmd_value") == 0 &&
                tokens.size() == 3) {
-      MSG("Issuing jed_set_cmd_value command");
+      MSG("Issuing jed0101_set_cmd_value command");
       cmd.name                      = tokens[1];
-      cmd.jed_set_cmd_value_cmd.cmd = atoi(tokens[2].c_str());
-      cmd.type                      = fastcat::JED_SET_CMD_VALUE_CMD;
+      cmd.jed0101_set_cmd_value_cmd.cmd = atoi(tokens[2].c_str());
+      cmd.type                      = fastcat::JED0101_SET_CMD_VALUE_CMD;
+
+
+    } else if (tokens[0].compare("jed0200_set_cmd_value") == 0 &&
+               tokens.size() == 3) {
+      MSG("Issuing jed0200_set_cmd_value command");
+      cmd.name                      = tokens[1];
+      cmd.jed0200_set_cmd_value_cmd.cmd = atoi(tokens[2].c_str());
+      cmd.type                      = fastcat::JED0200_SET_CMD_VALUE_CMD;
 
     } else if (tokens[0].compare("actuator_set_output_position") == 0 &&
                tokens.size() == 3) {
