@@ -75,8 +75,12 @@ buses:
       range_ch1: 10V
       range_ch2: 5V
 
-    - device_class: Jed
-      name: jed_1
+    - device_class: Jed0101
+      name: jed0101_1
+      initial_cmd: 42
+
+    - device_class: Jed0200
+      name: jed0200_1
       initial_cmd: 42
 
   - type: fastcat_bus

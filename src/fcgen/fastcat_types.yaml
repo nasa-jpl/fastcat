@@ -326,7 +326,7 @@ states:
       - name: adc_value_ch8
         type: int16_t
 
-  - name: jed
+  - name: jed0101
     fields:
     - name: status 
       type: uint16_t
@@ -349,6 +349,32 @@ states:
     - name: z
       type: double
 
+  - name: jed0200
+    fields:
+    - name: status 
+      type: uint16_t
+    - name: cmd
+      type: uint16_t
+    - name: ticks
+      type: uint32_t
+    - name: voltage_hv
+      type: float
+    - name: voltage_lv
+      type: float
+    - name: voltage_12v
+      type: float
+    - name: temp_ambient
+      type: float
+    - name: temp_actuator
+      type: float
+    - name: humidity
+      type: float
+    - name: pressure
+      type: float
+    - name: brake_current
+      type: uint16_t
+    - name: brake_cc_val
+      type: uint16_t
 
 commands:
   - name: commander_enable
@@ -564,7 +590,12 @@ commands:
       type: bool
       comment: if true, faulter will trigger a fault when the specified signal is received.
 
-  - name: jed_set_cmd_value
+  - name: jed0101_set_cmd_value
+    fields:
+    - name: cmd
+      type: uint16_t
+
+  - name: jed0200_set_cmd_value
     fields:
     - name: cmd
       type: uint16_t
