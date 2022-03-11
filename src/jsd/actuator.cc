@@ -545,11 +545,8 @@ void fastcat::Actuator::EgdProcess()
 
 void fastcat::Actuator::EgdReset()
 {
-  if ((state_->time - last_egd_reset_time_) > 1.0) {
     MSG("Resetting EGD through JSD: %s", name_.c_str());
     jsd_egd_reset((jsd_t*)context_, slave_id_);
-    last_egd_reset_time_ = state_->time;
-  }
 }
 
 void fastcat::Actuator::EgdHalt() { jsd_egd_halt((jsd_t*)context_, slave_id_); }
