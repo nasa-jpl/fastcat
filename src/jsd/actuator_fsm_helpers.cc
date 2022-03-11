@@ -688,12 +688,12 @@ fastcat::FaultType fastcat::Actuator::ProcessResetting()
     return ALL_DEVICE_FAULT;
   }
 
-  if (state_->actuator_state.egd_state_machine_state !=
+  EgdReset();
+
+  if (state_->actuator_state.egd_state_machine_state ==
           JSD_EGD_STATE_MACHINE_STATE_OPERATION_ENABLED &&
-      state_->actuator_state.fault_code != 0) {
-    // still waiting on the drive to reset...
-    EgdReset();
-  } else {
+      state_->actuator_state.fault_code == 0) 
+  {
 
     TransitionToState(ACTUATOR_SMS_HALTED);
   }
