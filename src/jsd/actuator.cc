@@ -361,10 +361,6 @@ fastcat::FaultType fastcat::Actuator::Process()
       retval = ProcessCalMoveToSoftstop();
       break;
 
-    case ACTUATOR_SMS_RESETTING:
-      retval = ProcessResetting();
-      break;
-
     default:
       ERROR("Bad Actuator State Machine State: %d", actuator_sms_);
       retval = ALL_DEVICE_FAULT;
@@ -523,9 +519,6 @@ std::string fastcat::Actuator::StateMachineStateToString(
       break;
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       str = std::string("CAL_MOVE_TO_SOFTSTOP");
-      break;
-    case ACTUATOR_SMS_RESETTING:
-      str = std::string("RESETTING");
       break;
     default:
       ERROR("Bad Actuator State Machine State: %d", static_cast<int>(sms));

@@ -670,27 +670,3 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToSoftstop()
 {
   return ProcessProfPos();
 }
-
-fastcat::FaultType fastcat::Actuator::ProcessResetting()
-{
-  // We have waited too long, fault
-  if ((state_->time - last_transition_time_) > 1.0) {
-    ERROR("Act %s: %s: %lf", name_.c_str(),
-          "Waited too long for drive to reset in RESETTING state",
-          (state_->time - last_transition_time_));
-    return ALL_DEVICE_FAULT;
-  }
-
-
-  if (state_->actuator_state.egd_state_machine_state !=
-          JSD_EGD_STATE_MACHINE_STATE_OPERATION_ENABLED ||
-      state_->actuator_state.fault_code != 0) 
-  {
-    // still waiting on the drive to reset...
-    EgdReset();
-  } else {
-    TransitionToState(ACTUATOR_SMS_HALTED);
-  }
-
-  return NO_FAULT;
-}
