@@ -20,6 +20,9 @@ class El3318 : public DeviceBase
 
  protected:
   bool ConfigFromYamlCommon(YAML::Node node);
+  bool ElementFromString(std::string element_string, jsd_el3318_element_t& element);
+  std::string        element_string_;
+  jsd_el3318_element_t element_{JSD_EL3318_ELEMENT_TYPE_K};
 
  private:
   jsd_slave_config_t jsd_slave_config_{0};
