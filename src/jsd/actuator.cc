@@ -387,8 +387,8 @@ void fastcat::Actuator::Reset()
 {
   WARNING("Resetting Actuator device %s", name_.c_str());
   if (actuator_sms_ == ACTUATOR_SMS_FAULTED) {
-    EgdReset();
-    TransitionToState(ACTUATOR_SMS_RESETTING);
+    //EgdReset();
+    TransitionToState(ACTUATOR_SMS_HALTED);
   }
 }
 
