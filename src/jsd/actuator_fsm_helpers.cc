@@ -458,13 +458,6 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
 
 fastcat::FaultType fastcat::Actuator::ProcessFaulted()
 {
-  // if (state_->actuator_state.fault_code == 0 &&
-  //    !device_fault_active_) {
-  //  EgdReset();
-  //  TransitionToState(ACTUATOR_SMS_HOLDING);
-  //}else{
-  //  device_fault_active_ = true;
-  //}
   return NO_FAULT;
 }
 
@@ -688,13 +681,14 @@ fastcat::FaultType fastcat::Actuator::ProcessResetting()
     return ALL_DEVICE_FAULT;
   }
 
-  EgdReset();
 
-  if (state_->actuator_state.egd_state_machine_state ==
-          JSD_EGD_STATE_MACHINE_STATE_OPERATION_ENABLED &&
-      state_->actuator_state.fault_code == 0) 
+  if (state_->actuator_state.egd_state_machine_state !=
+          JSD_EGD_STATE_MACHINE_STATE_OPERATION_ENABLED ||
+      state_->actuator_state.fault_code != 0) 
   {
-
+    // still waiting on the drive to reset...
+    EgdReset();
+  } else {
     TransitionToState(ACTUATOR_SMS_HALTED);
   }
 
