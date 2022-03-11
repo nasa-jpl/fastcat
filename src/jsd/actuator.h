@@ -23,7 +23,6 @@ typedef enum {
   ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP,
   ACTUATOR_SMS_CAL_AT_HARDSTOP,
   ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP,
-  ACTUATOR_SMS_RESETTING,
 } ActuatorStateMachineState;
 
 typedef enum {
@@ -69,6 +68,7 @@ class Actuator : public DeviceBase
   bool HandleNewHaltCmd();
   bool HandleNewResetCmd();
   bool HandleNewSetOutputPositionCmd(DeviceCmd& cmd);
+  bool HandleNewSetUnitModeCmd(DeviceCmd& cmd);
   bool HandleNewCalibrationCmd(DeviceCmd& cmd);
 
   bool      IsIdleFaultConditionMet();
@@ -83,7 +83,6 @@ class Actuator : public DeviceBase
   FaultType ProcessCalMoveToHardstop();
   FaultType ProcessCalAtHardstop();
   FaultType ProcessCalMoveToSoftstop();
-  FaultType ProcessResetting();
 
   virtual void EgdRead();
   virtual void EgdSetConfig();
@@ -91,6 +90,7 @@ class Actuator : public DeviceBase
   virtual void EgdReset();
   virtual void EgdHalt();
   virtual void EgdSetPeakCurrent(double current);
+  virtual void EgdSetUnitMode(int32_t mode);
   virtual void EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd);
   virtual void EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd);
   virtual void EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd);

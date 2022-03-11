@@ -45,6 +45,12 @@ void fastcat::ActuatorOffline::EgdSetPeakCurrent(double /* current */)
   // no-op
 }
 
+void fastcat::ActuatorOffline::EgdSetUnitMode(int32_t mode)
+{
+  MSG("Commanding new UM[1] = %d", mode);
+  // no-op
+}
+
 void fastcat::ActuatorOffline::EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd)
 {
   jsd_egd_state_.cmd_position = jsd_csp_cmd.target_position;

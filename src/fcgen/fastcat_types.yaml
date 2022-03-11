@@ -572,6 +572,18 @@ commands:
     - name: max_current
       type: double
 
+  - name: actuator_set_max_current
+    fields:
+    - name: current 
+      type: double
+      comment: Corresponds to the PL[1] or Peak current setting
+
+  - name: actuator_set_unit_mode
+    fields:
+    - name: mode
+      type: int32_t
+      comment: UM[1] = 5 by default for pos, vel, and current command modes
+
   - name: faulter_enable
     fields:
     - name: enable
