@@ -77,7 +77,6 @@ bool fastcat::Actuator::HandleNewCSPCmd(DeviceCmd& cmd)
   jsd_cmd.torque_offset_amps = cmd.actuator_csp_cmd.torque_offset_amps;
 
   EgdCSP(jsd_cmd);
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   TransitionToState(ACTUATOR_SMS_CS);
 
@@ -107,7 +106,6 @@ bool fastcat::Actuator::HandleNewCSVCmd(DeviceCmd& cmd)
   jsd_cmd.torque_offset_amps = cmd.actuator_csv_cmd.torque_offset_amps;
 
   EgdCSV(jsd_cmd);
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   TransitionToState(ACTUATOR_SMS_CS);
 
@@ -136,7 +134,6 @@ bool fastcat::Actuator::HandleNewCSTCmd(DeviceCmd& cmd)
   jsd_cmd.torque_offset_amps = cmd.actuator_cst_cmd.torque_offset_amps;
 
   EgdCST(jsd_cmd);
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   TransitionToState(ACTUATOR_SMS_CS);
 
@@ -171,7 +168,6 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
     return false;
   }
 
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   trap_generate(
       &trap_, state_->time,
@@ -202,7 +198,6 @@ bool fastcat::Actuator::HandleNewProfVelCmd(DeviceCmd& cmd)
     return false;
   }
 
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   trap_generate_vel(
       &trap_, state_->time,
@@ -232,7 +227,6 @@ bool fastcat::Actuator::HandleNewProfTorqueCmd(DeviceCmd& cmd)
     return false;
   }
 
-  EgdSetPeakCurrent(peak_current_limit_amps_);
 
   trap_generate_vel(
       &trap_, state_->time, 0, 0, cmd.actuator_prof_torque_cmd.target_torque_amps,
@@ -308,6 +302,35 @@ bool fastcat::Actuator::HandleNewSetOutputPositionCmd(DeviceCmd& cmd)
   return true;
 }
 
+bool fastcat::Actuator::HandleNewSetUnitModeCmd(DeviceCmd& cmd)
+{
+  switch (actuator_sms_) {
+    case ACTUATOR_SMS_FAULTED:
+    case ACTUATOR_SMS_HALTED:
+    case ACTUATOR_SMS_HOLDING:
+      break;
+
+    case ACTUATOR_SMS_PROF_POS:
+    case ACTUATOR_SMS_PROF_VEL:
+    case ACTUATOR_SMS_PROF_TORQUE:
+    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
+    case ACTUATOR_SMS_CAL_AT_HARDSTOP:
+    case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
+      ERROR("Act %s: %s", name_.c_str(),
+            "Cannot set unit mode now, motion command is active");
+      return false;
+
+    default:
+      ERROR("Act %s: %s: %d", name_.c_str(), "Bad Act State ", actuator_sms_);
+      return false;
+  }
+
+  EgdSetUnitMode(cmd.actuator_set_unit_mode_cmd.mode);
+
+  return true;
+}
+
 bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
 {
   switch (actuator_sms_) {
@@ -379,6 +402,7 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
     target_position = state_->actuator_state.actual_position - cal_range;
   }
 
+  MSG("Setting Peak Current to calibration level: %lf", cal_cmd_.max_current);
   EgdSetPeakCurrent(cal_cmd_.max_current);
 
   trap_generate(
@@ -434,13 +458,6 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
 
 fastcat::FaultType fastcat::Actuator::ProcessFaulted()
 {
-  // if (state_->actuator_state.fault_code == 0 &&
-  //    !device_fault_active_) {
-  //  EgdReset();
-  //  TransitionToState(ACTUATOR_SMS_HOLDING);
-  //}else{
-  //  device_fault_active_ = true;
-  //}
   return NO_FAULT;
 }
 
@@ -562,6 +579,10 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
   // add other reasons as needed...
   if (state_->actuator_state.sto_engaged) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+
+    MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
+    EgdSetPeakCurrent(peak_current_limit_amps_);
+
     return ALL_DEVICE_FAULT;
   }
 
@@ -570,6 +591,10 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
     EgdHalt();
     ERROR("Act %s: %s: %d", name_.c_str(), "Detected Hardstop, EGD fault_code",
           state_->actuator_state.fault_code);
+
+    MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
+    EgdSetPeakCurrent(peak_current_limit_amps_);
+
     TransitionToState(ACTUATOR_SMS_CAL_AT_HARDSTOP);
   }
 
@@ -589,6 +614,10 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(),
           "Moved Full Range and did not encounter hard stop");
+
+    MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
+    EgdSetPeakCurrent(peak_current_limit_amps_);
+
     return ALL_DEVICE_FAULT;
   }
 
@@ -628,9 +657,6 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
   }
   SetOutputPosition(cal_position);
 
-  // Restore Current to nominal value
-  EgdSetPeakCurrent(peak_current_limit_amps_);
-
   trap_generate(&trap_, state_->time, cal_position, backoff_position, 0,
                 0,  // pt2pt motion always uses terminating traps
                 fabs(cal_cmd_.velocity), cal_cmd_.accel);
@@ -643,27 +669,4 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
 fastcat::FaultType fastcat::Actuator::ProcessCalMoveToSoftstop()
 {
   return ProcessProfPos();
-}
-
-fastcat::FaultType fastcat::Actuator::ProcessResetting()
-{
-  // We have waited too long, fault
-  if ((state_->time - last_transition_time_) > 1.0) {
-    ERROR("Act %s: %s: %lf", name_.c_str(),
-          "Waited too long for drive to reset in RESETTING state",
-          (state_->time - last_transition_time_));
-    return ALL_DEVICE_FAULT;
-  }
-
-  if (state_->actuator_state.egd_state_machine_state !=
-          JSD_EGD_STATE_MACHINE_STATE_OPERATION_ENABLED &&
-      state_->actuator_state.fault_code != 0) {
-    // still waiting on the drive to reset...
-    EgdReset();
-  } else {
-
-    TransitionToState(ACTUATOR_SMS_HALTED);
-  }
-
-  return NO_FAULT;
 }

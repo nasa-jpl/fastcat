@@ -204,6 +204,8 @@ bool fastcat::Actuator::Read()
   state_->actuator_state.cmd_current =
       (jsd_egd_state_.cmd_current + jsd_egd_state_.cmd_ff_current);
 
+  state_->actuator_state.cmd_max_current = jsd_egd_state_.cmd_max_current;
+
   state_->actuator_state.egd_state_machine_state =
       jsd_egd_state_.actual_state_machine_state;
   state_->actuator_state.egd_mode_of_operation =
@@ -292,6 +294,21 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       }
       break;
 
+    case ACTUATOR_SET_MAX_CURRENT_CMD:
+      // This application may choose to set this during motions
+      // in order to boost current during accelration/decel
+      // phases so don't check the state machine
+      peak_current_limit_amps_ = cmd.actuator_set_max_current_cmd.current;
+      EgdSetPeakCurrent(peak_current_limit_amps_);
+      break;
+
+    case ACTUATOR_SET_UNIT_MODE_CMD:
+      if (!HandleNewSetUnitModeCmd(cmd)) {
+        ERROR("Failed to handle Set Unit Mode Command");
+        return false;
+      }
+      break;
+
     default:
       WARNING("That command type is not supported in this mode!");
       return false;
@@ -344,10 +361,6 @@ fastcat::FaultType fastcat::Actuator::Process()
       retval = ProcessCalMoveToSoftstop();
       break;
 
-    case ACTUATOR_SMS_RESETTING:
-      retval = ProcessResetting();
-      break;
-
     default:
       ERROR("Bad Actuator State Machine State: %d", actuator_sms_);
       retval = ALL_DEVICE_FAULT;
@@ -370,8 +383,8 @@ void fastcat::Actuator::Reset()
 {
   WARNING("Resetting Actuator device %s", name_.c_str());
   if (actuator_sms_ == ACTUATOR_SMS_FAULTED) {
-    EgdReset();
-    TransitionToState(ACTUATOR_SMS_RESETTING);
+    //EgdReset();
+    TransitionToState(ACTUATOR_SMS_HALTED);
   }
 }
 
@@ -507,9 +520,6 @@ std::string fastcat::Actuator::StateMachineStateToString(
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       str = std::string("CAL_MOVE_TO_SOFTSTOP");
       break;
-    case ACTUATOR_SMS_RESETTING:
-      str = std::string("RESETTING");
-      break;
     default:
       ERROR("Bad Actuator State Machine State: %d", static_cast<int>(sms));
   }
@@ -535,11 +545,8 @@ void fastcat::Actuator::EgdProcess()
 
 void fastcat::Actuator::EgdReset()
 {
-  if ((state_->time - last_egd_reset_time_) > 1.0) {
     MSG("Resetting EGD through JSD: %s", name_.c_str());
     jsd_egd_reset((jsd_t*)context_, slave_id_);
-    last_egd_reset_time_ = state_->time;
-  }
 }
 
 void fastcat::Actuator::EgdHalt() { jsd_egd_halt((jsd_t*)context_, slave_id_); }
@@ -547,6 +554,12 @@ void fastcat::Actuator::EgdHalt() { jsd_egd_halt((jsd_t*)context_, slave_id_); }
 void fastcat::Actuator::EgdSetPeakCurrent(double current)
 {
   jsd_egd_set_peak_current((jsd_t*)context_, slave_id_, current);
+}
+
+void fastcat::Actuator::EgdSetUnitMode(int32_t mode)
+{
+  MSG("Commanding new UM[1] = %d", mode);
+  jsd_egd_async_sdo_set_unit_mode((jsd_t*)context_, slave_id_, mode);
 }
 
 void fastcat::Actuator::EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd)

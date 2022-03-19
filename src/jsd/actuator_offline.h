@@ -22,6 +22,7 @@ class ActuatorOffline : public Actuator
   void EgdReset() override;
   void EgdHalt() override;
   void EgdSetPeakCurrent(double current) override;
+  void EgdSetUnitMode(int32_t mode) override;
   void EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd) override;
   void EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd) override;
   void EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd) override;

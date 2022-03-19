@@ -1,16 +1,16 @@
-#ifndef FASTCAT_JED_OFFLINE_H_
-#define FASTCAT_JED_OFFLINE_H_
+#ifndef FASTCAT_JED0200_OFFLINE_H_
+#define FASTCAT_JED0200_OFFLINE_H_
 
 // Include related header (for cc files)
 
 // Include c then c++ libraries
 
 // Include external then project includes
-#include "fastcat/jsd/jed.h"
+#include "fastcat/jsd/jed0200.h"
 
 namespace fastcat
 {
-class JedOffline : public Jed
+class Jed0200Offline : public Jed0200
 {
  public:
   bool      ConfigFromYaml(YAML::Node node) override;

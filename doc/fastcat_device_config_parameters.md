@@ -13,6 +13,8 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | El3602   | Beckhoff     | 2-channel +/-10v Diff. Analog Input |
 | El2124   | Beckhoff     | 4-channel 5v Digital Output         |
 | AtiFts   | ATI          | Force-Torque Sensor                 |
+| JED0101  | JPL          | JPL EtherCAT Device 0101 - EELS     |
+| JED0200  | JPL          | JPL EtherCAT Device 0200 - SAEL     |
 
 **Fastcat Devices**
 
@@ -317,6 +319,35 @@ The permitted range values are:
   name: el2124_1
 ```
 
+## El3318 (8-channel Thermocouple module)
+
+| Parameter   | Description                 |
+| ----------- | --------------------------- |
+| `element`   | type of TC hardware element |
+
+The permitted elements are:
+
+* `TYPE_K`
+* `TYPE_J`
+* `TYPE_L`
+* `TYPE_E`
+* `TYPE_T`
+* `TYPE_N`
+* `TYPE_U`
+* `TYPE_B`
+* `TYPE_R`
+* `TYPE_S`
+* `TYPE_C`
+
+#### Example
+
+``` yaml
+- device_class: El3318
+  name: el3318_tc_location_1
+  element: TYPE_K
+```
+
+
 ## AtiFts (Force Torque Sensor)
 
 | Parameter     | Description                                                  |
@@ -370,9 +401,33 @@ If `calibration: 1` is specified, the results `SI-290-10`
 
 ```
 
+## JED0101
 
+| Parameter                       | Description                                                  |
+| ------------------------------- | ------------------------------------------------------------ |
+| `initial_cmd`                   | A float64 that is sent in the initial `cmd` PDO. Unused.     |
 
+#### Example
 
+``` yaml
+- device_class: Jed0101
+  name: jed0101_1
+  initial_cmd: 42
+````
+
+## JED0200
+
+| Parameter                       | Description                                                  |
+| ------------------------------- | ------------------------------------------------------------ |
+| `initial_cmd`                   | A float64 that is sent in the initial `cmd` PDO. Unused.     |
+
+#### Example
+
+``` yaml
+- device_class: Jed0200
+  name: jed0200_1
+  initial_cmd: 42
+````
 
 ## Fastcat Device Parameters
 

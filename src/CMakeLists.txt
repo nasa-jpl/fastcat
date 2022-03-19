@@ -75,7 +75,8 @@ add_library(fastcat STATIC
     jsd/el3104.cc
     jsd/el3202.cc
     jsd/el3318.cc
-    jsd/jed.cc
+    jsd/jed0101.cc
+    jsd/jed0200.cc
     jsd/ati_fts.cc
 
     jsd/actuator_offline.cc
@@ -87,7 +88,8 @@ add_library(fastcat STATIC
     jsd/el3104_offline.cc
     jsd/el3202_offline.cc
     jsd/el3318_offline.cc
-    jsd/jed_offline.cc
+    jsd/jed0101_offline.cc
+    jsd/jed0200_offline.cc
     jsd/ati_fts_offline.cc
 
     ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
