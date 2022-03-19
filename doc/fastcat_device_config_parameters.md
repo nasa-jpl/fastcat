@@ -11,6 +11,7 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | El3208   | Beckhoff     | 8-channel RTD Input                 |
 | El3602   | Beckhoff     | 2-channel +/-10v Diff. Analog Input |
 | El2124   | Beckhoff     | 4-channel 5v Digital Output         |
+| El4102   | Beckhoff     | 2-channel 0-10v Analog Output       |
 | AtiFts   | ATI          | Force-Torque Sensor                 |
 | JED0101  | JPL          | JPL EtherCAT Device 0101 - EELS     |
 | JED0200  | JPL          | JPL EtherCAT Device 0200 - SAEL     |
@@ -306,6 +307,17 @@ The permitted range values are:
 ``` yaml
 - device_class: El2124
   name: el2124_1
+```
+
+## El4102 (2-channel 0-10v Analog Output)
+
+**The El4102 device has no configuration parameters.**
+
+#### Example
+
+``` yaml
+- device_class: El4102
+  name: el4102_1
 ```
 
 ## El3318 (8-channel Thermocouple module)
