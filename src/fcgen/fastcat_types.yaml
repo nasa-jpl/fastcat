@@ -118,6 +118,8 @@ states:
       type: int32_t
     - name: actuator_state_machine_state
       type: uint8_t
+    - name: power
+      type: double
 
   - name: faulter
     fields:
