@@ -9,6 +9,7 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | Actuator | Elmo         | EGD with extra features             |
 | Egd      | Elmo         | Elmo Gold Drive line of controllers |
 | El3208   | Beckhoff     | 8-channel RTD Input                 |
+| El3162   | Beckhoff     | 2-channel 0-10v SE Analog Input     |
 | El3602   | Beckhoff     | 2-channel +/-10v Diff. Analog Input |
 | El2124   | Beckhoff     | 4-channel 5v Digital Output         |
 | El4102   | Beckhoff     | 2-channel 0-10v Analog Output       |
@@ -189,6 +190,9 @@ Engineering Units (EU) are radians for revolute actuators and meters for linear 
 | `egd_crc`                       | CRC of the flashed Elmo parameter set                        |
 | `egd_drive_max_current_limit`   | The Maximum drive current for the Elmo Gold Drive            |
 | `smooth_factor`                 | Affects controller smoothing, defaults to `0`                |
+| `winding_resistance`            | OPTIONAL: Winding resistance of motor for optional power calculation |
+| `torque_constant`               | OPTIONAL: Torque constant of motor for optional power calculation  |
+| `motor_encoder_gear_ratio`      | OPTIONAL: Capture any gear ratio between the motor and the encoder, i.e. an output encoder  |
 
 ### Implementation Notes
 
@@ -273,6 +277,16 @@ Allowable `element` values (See the EL3208 Beckhoff Manual `0x80n0:19` Data Obje
   high_threshold:  [100,   100,   100,   100,   1,    100,   100,      -1            ]
 ```
 
+## El3162 (2-channel 0-10v Single-Ended Analog Input)
+
+**The El3162 device has no configuration parameters**
+
+#### Example
+
+``` yaml
+- device_class: El3162
+  name: el3162_1
+```
 
 ## El3602 (2-channel +/-10v Diff. Analog Input)
 

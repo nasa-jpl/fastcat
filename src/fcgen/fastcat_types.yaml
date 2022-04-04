@@ -118,6 +118,8 @@ states:
       type: int32_t
     - name: actuator_state_machine_state
       type: uint8_t
+    - name: power
+      type: double
 
   - name: faulter
     fields:
@@ -267,6 +269,17 @@ states:
       type: double
     - name: adc_value_ch8
       type: int16_t
+
+  - name: el3162
+    fields:
+      - name: voltage_ch1
+        type: double
+      - name: adc_value_ch1
+        type: int16_t
+      - name: voltage_ch2
+        type: double
+      - name: adc_value_ch2
+        type: int16_t
 
   - name: el3104
     fields:
