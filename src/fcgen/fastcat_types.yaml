@@ -228,6 +228,13 @@ states:
     - name: level_ch4
       type: uint8_t
 
+  - name: el4102
+    fields:
+    - name: voltage_output_ch1
+      type: double
+    - name: voltage_output_ch2
+      type: double
+
   - name: el3208
     fields:
     - name: output_ch1
@@ -502,6 +509,20 @@ commands:
       type: uint8_t
     - name: channel_ch4
       type: uint8_t
+
+  - name: el4102_write_channel
+    fields:
+    - name: channel
+      type: uint8_t
+    - name: voltage_output
+      type: double
+
+  - name: el4102_write_all_channels
+    fields:
+    - name: voltage_output_ch1
+      type: double
+    - name: voltage_output_ch2
+      type: double
 
   - name: actuator_csp
     fields: 

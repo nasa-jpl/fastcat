@@ -45,6 +45,8 @@
 #include "fastcat/jsd/el3318_offline.h"
 #include "fastcat/jsd/el3602.h"
 #include "fastcat/jsd/el3602_offline.h"
+#include "fastcat/jsd/el4102.h"
+#include "fastcat/jsd/el4102_offline.h"
 #include "fastcat/jsd/jed0101.h"
 #include "fastcat/jsd/jed0101_offline.h"
 #include "fastcat/jsd/jed0200.h"
@@ -367,6 +369,9 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("El2124")) {
       device = std::make_shared<El2124>();
+
+    } else if (0 == device_class.compare("El4102")) {
+      device = std::make_shared<El4102>();
 
     } else if (0 == device_class.compare("El3162")) {
       device = std::make_shared<El3162>();
