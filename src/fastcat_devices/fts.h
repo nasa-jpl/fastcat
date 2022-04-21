@@ -51,10 +51,12 @@ class Fts : public DeviceBase
       0};  ///< Array where wrench values are stored.
   double sig_offset_[FC_FTS_N_DIMS] = {
       0};                 ///< Double array for storing tare offsets.
-  double max_force_{0};   ///< If the L2 norm of the force components exceeds
-                          ///< this value, the entire fastcat system will fault.
-  double max_torque_{0};  ///< If the L2 norm of the torque components exceeds
-                          ///< this value, the entire fastcat system will fault.
+
+  bool enable_fts_guard_fault_ = true;
+  double max_force_[3]  = {0, 0, 0}; ///< If x,y,z axis of force components exceeds
+                                     ///< these values, the entire fastcat system will fault.
+  double max_torque_[3] = {0, 0, 0}; ///< If x,y,z axis of torque components exceeds
+                                     ///< these values, the entire fastcat system will fault.
 };
 
 }  // namespace fastcat

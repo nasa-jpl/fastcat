@@ -63,11 +63,33 @@ bool fastcat::VirtualFts::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseVal(node, "max_force", max_force_)) {
+  double dummy;
+  if (ParseOptVal(node, "max_force", dummy)) {
+    ERROR("fastcat no longer accept L2 norm, configure your yaml values per axis");
     return false;
   }
 
-  if (!ParseVal(node, "max_torque", max_torque_)) {
+  if (!ParseVal(node, "max_force_x", max_force_[0])) {
+    return false;
+  }
+
+  if (!ParseVal(node, "max_force_y", max_force_[1])) {
+    return false;
+  }
+
+  if (!ParseVal(node, "max_force_z", max_force_[2])) {
+    return false;
+  }
+
+  if (!ParseVal(node, "max_torque_x", max_torque_[0])) {
+    return false;
+  }
+
+  if (!ParseVal(node, "max_torque_y", max_torque_[1])) {
+    return false;
+  }
+
+  if (!ParseVal(node, "max_torque_z", max_torque_[2])) {
     return false;
   }
 

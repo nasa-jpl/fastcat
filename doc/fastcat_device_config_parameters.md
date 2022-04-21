@@ -649,17 +649,21 @@ Simple Moving Average Example:
 | Parameter            | Description                                                  |
 | -------------------- | ------------------------------------------------------------ |
 | `calibration_matrix` | the 6x6 calibration matrix. Converts 6 input signals to wrench. |
-| `max_force`          | If the norm of the forces exceed this value, emit a fault    |
-| `max_torque`         | if the norm of the torque exceed this value, emit a fault    |
+| `max_force_x` | If the force on x axis exceed this value, emit a fault       |
+| `max_force_y` | If the force on y axis exceed this value, emit a fault       |
+| `max_force_z` | If the force on z axis exceed this value, emit a fault       |
+| `max_torque_x`| If the torque on x axis exceed this value, emit a fault       |
+| `max_torque_y`| If the torque on y axis exceed this value, emit a fault       |
+| `max_torque_z`| If the torque on z axis exceed this value, emit a fault       |
 
 ````
 wrench[6x1] = calibration_matrix[6x6] * signals[6x1]
 ````
 
-The `max_force` and `max_torque` conditions are evaluated like so:
+The `max_force_{x,y,z}` and `max_torque_{x,y,z}` fault checks are evaluated like so:
 
 ``` 
-if (sqrt(fx^2 + fy^2 + fz^2) > max_force) then fault
+if fabs(f{x,y,z}) > max_force_{x,y,z}) then fault
 ```
 
 Note: Exactly 6 signals must be specified in the signals list.
@@ -675,8 +679,13 @@ Note: Exactly 6 signals must be specified in the signals list.
                        0,0,0, 1,0,0,  
                        0,0,0, 0,1,0,  
                        0,0,0, 0,0,1]
-  max_force: 4900
-  max_torque: 10000
+  max_force_x: 4900
+  max_force_y: 4900
+  max_force_z: 4900
+  max_torque_x: 10000
+  max_torque_y: 10000
+  max_torque_z: 10000
+
   signals:
   - observed_device_name: sig_gen_1
     request_signal_name:  output
@@ -863,12 +872,16 @@ The `SAW_TOOTH` signal generator output is computed as:
 | `position`   | The translation component of transformation                  |
 | `quaternion` | the rotation component of transformation as {u, x, y, z} , Option 1 |
 | `euler`      | the rotation component of transformat as Euler angles {roll, pitch, yaw}, Option 2 |
-| `max_force`  | If the norm of the forces exceed this value, emit a fault    |
-| `max_torque` | If the norm of the torques exceed this value, emit a fault   |
+| `max_force_x` | If the force on x axis exceed this value, emit a fault       |
+| `max_force_y` | If the force on y axis exceed this value, emit a fault       |
+| `max_force_z` | If the force on z axis exceed this value, emit a fault       |
+| `max_torque_x`| If the torque on x axis exceed this value, emit a fault       |
+| `max_torque_y`| If the torque on y axis exceed this value, emit a fault       |
+| `max_torque_z`| If the torque on z axis exceed this value, emit a fault       |
 
 The VirtualFts transforms a wrench as if it were sensed at the pose of the specified coordinate frame using the adjoint wrench transformation.
 
-The `max_force` and `max_torque` parameters are the same as the `Fts` device
+The `max_force_{x,y,z}` and `max_torque_{x,y,z}` parameters are the same as the `Fts` device
 
 Only one of `quaternion` or `euler` parameters need to be specified
 
@@ -881,8 +894,12 @@ signal- device_class: VirtualFts
   name: virtual_fts_1
   position: [1, 0, 1]
   quaternion: [0.7071, 0.35355, 0, 0.35355]
-  max_force: 4900
-  max_torque: 10000
+  max_force_x: 4900
+  max_force_y: 4900
+  max_force_z: 4900
+  max_torque_x: 10000
+  max_torque_y: 10000
+  max_torque_z: 10000
   signals:
   - observed_device_name: fts_1
     request_signal_name: raw_fx
