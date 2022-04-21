@@ -126,17 +126,22 @@ fastcat::FaultType fastcat::AtiFts::Process()
 
 bool fastcat::AtiFts::Write(DeviceCmd& cmd)
 {
-  if (cmd.type != FTS_TARE_CMD) {
+  if (cmd.type == FTS_TARE_CMD) {
+    bias_[0] = -state_->fts_state.raw_fx;
+    bias_[1] = -state_->fts_state.raw_fy;
+    bias_[2] = -state_->fts_state.raw_fz;
+    bias_[3] = -state_->fts_state.raw_tx;
+    bias_[4] = -state_->fts_state.raw_ty;
+    bias_[5] = -state_->fts_state.raw_tz;
+    return true;
+  }
+  else if (cmd.type == FTS_CHECK_SENSOR_SAFETY_CMD) {
+    check_sensor_protection_ = cmd.fts_check_sensor_safety_cmd.check;
+    return true;
+  }
+  else{
     WARNING("That command type is not supported!");
     return false;
   }
 
-  bias_[0] = -state_->fts_state.raw_fx;
-  bias_[1] = -state_->fts_state.raw_fy;
-  bias_[2] = -state_->fts_state.raw_fz;
-  bias_[3] = -state_->fts_state.raw_tx;
-  bias_[4] = -state_->fts_state.raw_ty;
-  bias_[5] = -state_->fts_state.raw_tz;
-
-  return true;
 }
