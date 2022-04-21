@@ -368,15 +368,20 @@ The permitted elements are:
 | Parameter     | Description                                                  |
 | ------------- | ------------------------------------------------------------ |
 | `calibration` | Integer value corresponding to as-quoted calibration entries |
-| `max_force`   | If the norm of the forces exceed this value, emit a fault    |
-| `max_torque`  | if the norm of the torque exceed this value, emit a fault    |
+| `max_force_x` | If the force on x axis exceed this value, emit a fault       |
+| `max_force_y` | If the force on y axis exceed this value, emit a fault       |
+| `max_force_z` | If the force on z axis exceed this value, emit a fault       |
+| `max_torque_x`| If the torque on x axis exceed this value, emit a fault       |
+| `max_torque_y`| If the torque on y axis exceed this value, emit a fault       |
+| `max_torque_z`| If the torque on z axis exceed this value, emit a fault       |
+
 
 The `calibration` value by default is `0` if additional calibrations were ordered from ATI, the can be accessed by increasing this index value. It's not possible to look up which calibration integer maps to which calibration, but fastcat will report the calibration name and relevant units.
 
-The `max_force` and `max_torque` fault checks are evaluated like so:
+The `max_force_{x,y,z}` and `max_torque_{x,y,z}` fault checks are evaluated like so:
 
 ``` 
-if (sqrt(fx^2 + fy^2 + fz^2) > max_force) then fault
+if fabs(f{x,y,z}) > max_force_{x,y,z}) then fault
 ```
 
 #### Example
@@ -385,8 +390,12 @@ if (sqrt(fx^2 + fy^2 + fz^2) > max_force) then fault
 - device_class: AtiFts
   name:         ati_fts_1
   calibration:  0
-  max_force:    25
-  max_torque:   2
+  max_force_x:  25
+  max_force_y:  25
+  max_force_z:  100
+  max_torque_x: 2
+  max_torque_x: 2
+  max_torque_x: 10
 ```
 
 This `calibration: 0` yields `SI-580-20` with units of Newtons and Newton-Meters. 

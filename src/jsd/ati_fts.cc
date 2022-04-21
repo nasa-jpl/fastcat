@@ -104,13 +104,6 @@ fastcat::FaultType fastcat::AtiFts::Process()
       return ALL_DEVICE_FAULT;
     }
 
-//    double force_mag  = sqrt(pow(state_->fts_state.tared_fx, 2) +
-//                            pow(state_->fts_state.tared_fy, 2) +
-//                            pow(state_->fts_state.tared_fz, 2));
-//    double torque_mag = sqrt(pow(state_->fts_state.tared_tx, 2) +
-//                             pow(state_->fts_state.tared_ty, 2) +
-//                             pow(state_->fts_state.tared_tz, 2));
-//    if (force_mag > max_force_ || torque_mag > max_torque_) {
     if(check_sensor_protection_){
       if (max_force_[0] < fabs(state_->fts_state.raw_fx) || max_force_[1] < fabs(state_->fts_state.raw_fy) || max_force_[2] < fabs(state_->fts_state.raw_fz) ||
           max_torque_[0] < fabs(state_->fts_state.raw_tx) || max_torque_[1] < fabs(state_->fts_state.raw_ty) || max_torque_[2] < fabs(state_->fts_state.raw_tz))
