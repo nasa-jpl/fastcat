@@ -492,9 +492,9 @@ commands:
       type: bool
       comment: unused
 
-  - name: fts_check_sensor_safety
+  - name: fts_enable_guard_fault
     fields:
-    - name: check
+    - name: enable
       type: bool
 
   - name: el2124_write_channel

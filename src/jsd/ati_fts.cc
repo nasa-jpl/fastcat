@@ -32,6 +32,12 @@ bool fastcat::AtiFts::ConfigFromYamlCommon(YAML::Node node)
   }
   jsd_slave_config_.ati_fts.calibration = cal;
 
+  double dummy;
+  if (ParseOptVal(node, "max_force", dummy)) {
+    ERROR("fastcat no longer accept L2 norm, configure your yaml values per axis");
+    return false;
+  }
+  
   if (!ParseVal(node, "max_force_x", max_force_[0])) {
     return false;
   }
@@ -104,7 +110,7 @@ fastcat::FaultType fastcat::AtiFts::Process()
       return ALL_DEVICE_FAULT;
     }
 
-    if(check_sensor_protection_){
+    if(enable_fts_guard_fault_){
       if (max_force_[0] < fabs(state_->fts_state.raw_fx) || max_force_[1] < fabs(state_->fts_state.raw_fy) || max_force_[2] < fabs(state_->fts_state.raw_fz) ||
           max_torque_[0] < fabs(state_->fts_state.raw_tx) || max_torque_[1] < fabs(state_->fts_state.raw_ty) || max_torque_[2] < fabs(state_->fts_state.raw_tz))
       ERROR(
@@ -135,8 +141,8 @@ bool fastcat::AtiFts::Write(DeviceCmd& cmd)
     bias_[5] = -state_->fts_state.raw_tz;
     return true;
   }
-  else if (cmd.type == FTS_CHECK_SENSOR_SAFETY_CMD) {
-    check_sensor_protection_ = cmd.fts_check_sensor_safety_cmd.check;
+  else if (cmd.type == FTS_ENABLE_GUARD_FAULT_CMD) {
+    enable_fts_guard_fault_ = cmd.fts_enable_guard_fault_cmd.enable;
     return true;
   }
   else{
