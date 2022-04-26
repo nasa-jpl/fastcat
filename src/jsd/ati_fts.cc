@@ -32,11 +32,33 @@ bool fastcat::AtiFts::ConfigFromYamlCommon(YAML::Node node)
   }
   jsd_slave_config_.ati_fts.calibration = cal;
 
-  if (!ParseVal(node, "max_force", max_force_)) {
+  double dummy;
+  if (ParseOptVal(node, "max_force", dummy)) {
+    ERROR("fastcat no longer accept L2 norm, configure your yaml values per axis");
+    return false;
+  }
+  
+  if (!ParseVal(node, "max_force_x", max_force_[0])) {
     return false;
   }
 
-  if (!ParseVal(node, "max_torque", max_torque_)) {
+  if (!ParseVal(node, "max_force_y", max_force_[1])) {
+    return false;
+  }
+
+  if (!ParseVal(node, "max_force_z", max_force_[2])) {
+    return false;
+  }
+
+  if (!ParseVal(node, "max_torque_x", max_torque_[0])) {
+    return false;
+  }
+
+  if (!ParseVal(node, "max_torque_y", max_torque_[1])) {
+    return false;
+  }
+
+  if (!ParseVal(node, "max_torque_z", max_torque_[2])) {
     return false;
   }
 
@@ -88,18 +110,19 @@ fastcat::FaultType fastcat::AtiFts::Process()
       return ALL_DEVICE_FAULT;
     }
 
-    double force_mag  = sqrt(pow(state_->fts_state.tared_fx, 2) +
-                            pow(state_->fts_state.tared_fy, 2) +
-                            pow(state_->fts_state.tared_fz, 2));
-    double torque_mag = sqrt(pow(state_->fts_state.tared_tx, 2) +
-                             pow(state_->fts_state.tared_ty, 2) +
-                             pow(state_->fts_state.tared_tz, 2));
-    if (force_mag > max_force_ || torque_mag > max_torque_) {
+    if(enable_fts_guard_fault_){
+      if (max_force_[0] < fabs(state_->fts_state.raw_fx) || max_force_[1] < fabs(state_->fts_state.raw_fy) || max_force_[2] < fabs(state_->fts_state.raw_fz) ||
+          max_torque_[0] < fabs(state_->fts_state.raw_tx) || max_torque_[1] < fabs(state_->fts_state.raw_ty) || max_torque_[2] < fabs(state_->fts_state.raw_tz))
       ERROR(
           "Force or torque measured by device %s exceeded maximum allowable "
-          "magnitude. Force: %f / %f "
-          "Torque: %f / %f",
-          name_.c_str(), force_mag, max_force_, torque_mag, max_torque_);
+          "magnitude. Force: [x]: %f / %f, [y]: %f / %f, [z]: %f / %f "
+          "Torque: [x]: %f / %f, [y]: %f / %f, [z]: %f / %f",
+          name_.c_str(), state_->fts_state.raw_fx, max_force_[0],
+          state_->fts_state.raw_fy, max_force_[1],
+          state_->fts_state.raw_fz, max_force_[2],
+          state_->fts_state.raw_tx, max_torque_[0],
+          state_->fts_state.raw_ty, max_torque_[1],
+          state_->fts_state.raw_tz, max_torque_[2]);
       return ALL_DEVICE_FAULT;
     }
   }
@@ -109,17 +132,22 @@ fastcat::FaultType fastcat::AtiFts::Process()
 
 bool fastcat::AtiFts::Write(DeviceCmd& cmd)
 {
-  if (cmd.type != FTS_TARE_CMD) {
+  if (cmd.type == FTS_TARE_CMD) {
+    bias_[0] = -state_->fts_state.raw_fx;
+    bias_[1] = -state_->fts_state.raw_fy;
+    bias_[2] = -state_->fts_state.raw_fz;
+    bias_[3] = -state_->fts_state.raw_tx;
+    bias_[4] = -state_->fts_state.raw_ty;
+    bias_[5] = -state_->fts_state.raw_tz;
+    return true;
+  }
+  else if (cmd.type == FTS_ENABLE_GUARD_FAULT_CMD) {
+    enable_fts_guard_fault_ = cmd.fts_enable_guard_fault_cmd.enable;
+    return true;
+  }
+  else{
     WARNING("That command type is not supported!");
     return false;
   }
 
-  bias_[0] = -state_->fts_state.raw_fx;
-  bias_[1] = -state_->fts_state.raw_fy;
-  bias_[2] = -state_->fts_state.raw_fz;
-  bias_[3] = -state_->fts_state.raw_tx;
-  bias_[4] = -state_->fts_state.raw_ty;
-  bias_[5] = -state_->fts_state.raw_tz;
-
-  return true;
 }
