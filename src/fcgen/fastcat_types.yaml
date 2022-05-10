@@ -503,6 +503,12 @@ commands:
       type: bool
       comment: unused
 
+  - name: egd_sdo_enable_position_gain_scheduling
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
   - name: egd_sdo_enable_manual_gain_scheduling
     fields:
     - name: dummy

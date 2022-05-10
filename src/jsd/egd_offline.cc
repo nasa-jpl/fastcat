@@ -347,6 +347,10 @@ bool fastcat::EgdOffline::WriteProfiledMode(DeviceCmd& cmd)
       WARNING("Offline mode not implemented for SDO params");
       break;
     }
+    case EGD_SDO_ENABLE_POSITION_GAIN_SCHEDULING_CMD: {
+      WARNING("Offline mode not implemented for SDO params");
+      break;
+    }
     default: {
       WARNING("That command type is not supported in this mode!");
       return false;
@@ -423,6 +427,10 @@ bool fastcat::EgdOffline::WriteCSMode(DeviceCmd& cmd)
       break;
     }
     case EGD_SDO_ENABLE_SPEED_GAIN_SCHEDULING_CMD: {
+      WARNING("Offline mode not implemented for SDO params");
+      break;
+    }
+    case EGD_SDO_ENABLE_POSITION_GAIN_SCHEDULING_CMD: {
       WARNING("Offline mode not implemented for SDO params");
       break;
     }

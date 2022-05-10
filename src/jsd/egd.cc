@@ -397,6 +397,11 @@ bool fastcat::Egd::WriteCSMode(DeviceCmd& cmd)
           (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_SPEED);
       break;
     }
+    case EGD_SDO_ENABLE_POSITION_GAIN_SCHEDULING_CMD: {
+      jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
+          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_POSITION);
+      break;
+    }
     case EGD_SDO_ENABLE_MANUAL_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
           (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW);
