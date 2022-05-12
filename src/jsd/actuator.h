@@ -137,6 +137,10 @@ class Actuator : public DeviceBase
   int32_t                   egd_pos_offset_cnts_ = 1;
 
   ActuatorCalibrateCmd cal_cmd_;
+
+ private:
+  bool GSModeFromString(std::string                     gs_mode_string,
+                        jsd_egd_gain_scheduling_mode_t& gs_mode);
 };
 
 }  // namespace fastcat
