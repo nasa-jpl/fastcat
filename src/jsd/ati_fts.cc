@@ -112,18 +112,19 @@ fastcat::FaultType fastcat::AtiFts::Process()
 
     if(enable_fts_guard_fault_){
       if (max_force_[0] < fabs(state_->fts_state.raw_fx) || max_force_[1] < fabs(state_->fts_state.raw_fy) || max_force_[2] < fabs(state_->fts_state.raw_fz) ||
-          max_torque_[0] < fabs(state_->fts_state.raw_tx) || max_torque_[1] < fabs(state_->fts_state.raw_ty) || max_torque_[2] < fabs(state_->fts_state.raw_tz))
-      ERROR(
-          "Force or torque measured by device %s exceeded maximum allowable "
-          "magnitude. Force: [x]: %f / %f, [y]: %f / %f, [z]: %f / %f "
-          "Torque: [x]: %f / %f, [y]: %f / %f, [z]: %f / %f",
-          name_.c_str(), state_->fts_state.raw_fx, max_force_[0],
-          state_->fts_state.raw_fy, max_force_[1],
-          state_->fts_state.raw_fz, max_force_[2],
-          state_->fts_state.raw_tx, max_torque_[0],
-          state_->fts_state.raw_ty, max_torque_[1],
-          state_->fts_state.raw_tz, max_torque_[2]);
-      return ALL_DEVICE_FAULT;
+        max_torque_[0] < fabs(state_->fts_state.raw_tx) || max_torque_[1] < fabs(state_->fts_state.raw_ty) || max_torque_[2] < fabs(state_->fts_state.raw_tz)) {
+          ERROR(
+            "Force or torque measured by device %s exceeded maximum allowable "
+            "magnitude. Force: [x]: %f / %f, [y]: %f / %f, [z]: %f / %f "
+            "Torque: [x]: %f / %f, [y]: %f / %f, [z]: %f / %f",
+            name_.c_str(), state_->fts_state.raw_fx, max_force_[0],
+            state_->fts_state.raw_fy, max_force_[1],
+            state_->fts_state.raw_fz, max_force_[2],
+            state_->fts_state.raw_tx, max_torque_[0],
+            state_->fts_state.raw_ty, max_torque_[1],
+            state_->fts_state.raw_tz, max_torque_[2]);
+          return ALL_DEVICE_FAULT;
+      }
     }
   }
 
