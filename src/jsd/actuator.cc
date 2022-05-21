@@ -161,7 +161,7 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
   } else {
     // Use mode saved in driver's non-volatile memory.
     jsd_slave_config_.egd.ctrl_gain_scheduling_mode =
-        (jsd_egd_gain_scheduling_mode_t)-1;
+        JSD_EGD_GAIN_SCHEDULING_MODE_PRELOADED;
   }
 
   // overall_reduction must be set before using EuToCnts/CntsToEu
