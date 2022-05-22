@@ -356,6 +356,52 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       }
       break;
 
+    case ACTUATOR_SDO_DISABLE_GAIN_SCHEDULING_CMD: {
+      if (!CheckStateMachineGainSchedulingCmds()) {
+        ERROR("Failed to handle SDO Disable Gain Scheduling Command");
+        return false;
+      }
+      EgdSetGainSchedulingMode(JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED);
+      break;
+    }
+
+    case ACTUATOR_SDO_ENABLE_SPEED_GAIN_SCHEDULING_CMD: {
+      if (!CheckStateMachineGainSchedulingCmds()) {
+        ERROR("Failed to handle SDO Enable Speed Gain Scheduling Command");
+        return false;
+      }
+      EgdSetGainSchedulingMode(JSD_EGD_GAIN_SCHEDULING_MODE_SPEED);
+      break;
+    }
+
+    case ACTUATOR_SDO_ENABLE_POSITION_GAIN_SCHEDULING_CMD: {
+      if (!CheckStateMachineGainSchedulingCmds()) {
+        ERROR("Failed to handle SDO Enable Position Gain Scheduling Command");
+        return false;
+      }
+      EgdSetGainSchedulingMode(JSD_EGD_GAIN_SCHEDULING_MODE_POSITION);
+      break;
+    }
+
+    case ACTUATOR_SDO_ENABLE_MANUAL_GAIN_SCHEDULING_CMD: {
+      if (!CheckStateMachineGainSchedulingCmds()) {
+        ERROR("Failed to handle SDO Enable Manual Gain Scheduling Command");
+        return false;
+      }
+      EgdSetGainSchedulingMode(JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW);
+      break;
+    }
+
+    case ACTUATOR_SET_GAIN_SCHEDULING_INDEX_CMD: {
+      if (!CheckStateMachineGainSchedulingCmds()) {
+        ERROR("Failed to handle Set Gain Scheduling Index Command");
+        return false;
+      }
+      EgdSetGainSchedulingIndex(
+          cmd.actuator_set_gain_scheduling_index_cmd.gain_scheduling_index);
+      break;
+    }
+
     default:
       WARNING("That command type is not supported in this mode!");
       return false;
@@ -622,6 +668,18 @@ void fastcat::Actuator::EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd)
 void fastcat::Actuator::EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd)
 {
   jsd_egd_set_motion_command_cst((jsd_t*)context_, slave_id_, jsd_cst_cmd);
+}
+
+void fastcat::Actuator::EgdSetGainSchedulingMode(
+    jsd_egd_gain_scheduling_mode_t mode)
+{
+  jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode((jsd_t*)context_, slave_id_,
+                                                  mode);
+}
+
+void fastcat::Actuator::EgdSetGainSchedulingIndex(uint16_t index)
+{
+  jsd_egd_set_gain_scheduling_index((jsd_t*)context_, slave_id_, true, index);
 }
 
 bool fastcat::Actuator::GSModeFromString(

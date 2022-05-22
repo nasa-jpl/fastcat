@@ -580,6 +580,11 @@ commands:
     - name: torque_offset_amps
       type: double
 
+  - name: actuator_set_gain_scheduling_index
+    fields:
+    - name: gain_scheduling_index
+      type: uint16_t
+
   - name: actuator_prof_pos
     fields: 
     - name: target_position
@@ -646,6 +651,30 @@ commands:
     - name: mode
       type: int32_t
       comment: UM[1] = 5 by default for pos, vel, and current command modes
+
+  - name: actuator_sdo_disable_gain_scheduling
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: actuator_sdo_enable_speed_gain_scheduling
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: actuator_sdo_enable_position_gain_scheduling
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: actuator_sdo_enable_manual_gain_scheduling
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
 
   - name: faulter_enable
     fields:

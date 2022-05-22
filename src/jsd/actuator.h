@@ -58,6 +58,7 @@ class Actuator : public DeviceBase
   static std::string StateMachineStateToString(ActuatorStateMachineState sms);
 
   bool CheckStateMachineMotionCmds();
+  bool CheckStateMachineGainSchedulingCmds();
 
   bool HandleNewCSPCmd(DeviceCmd& cmd);
   bool HandleNewCSVCmd(DeviceCmd& cmd);
@@ -94,6 +95,8 @@ class Actuator : public DeviceBase
   virtual void EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd);
   virtual void EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd);
   virtual void EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd);
+  virtual void EgdSetGainSchedulingMode(jsd_egd_gain_scheduling_mode_t mode);
+  virtual void EgdSetGainSchedulingIndex(uint16_t index);
 
   std::string  actuator_type_str_;
   ActuatorType actuator_type_;
