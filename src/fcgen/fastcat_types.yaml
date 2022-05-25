@@ -435,6 +435,11 @@ commands:
     - name: torque_offset_amps
       type: double
 
+  - name: egd_set_gain_scheduling_index
+    fields:
+    - name: gain_scheduling_index
+      type: uint16_t
+
   - name: egd_prof_pos
     fields: 
     - name: target_position
@@ -485,6 +490,30 @@ commands:
     fields:
     - name: unit_mode
       type: int32_t
+
+  - name: egd_sdo_disable_gain_scheduling
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: egd_sdo_enable_speed_gain_scheduling
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: egd_sdo_enable_position_gain_scheduling
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: egd_sdo_enable_manual_gain_scheduling
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
 
   - name: fts_tare
     fields:

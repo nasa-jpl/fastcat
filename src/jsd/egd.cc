@@ -314,6 +314,21 @@ bool fastcat::Egd::WriteProfiledMode(DeviceCmd& cmd)
                                       cmd.egd_sdo_set_unit_mode_cmd.unit_mode);
       break;
     }
+    case EGD_SDO_DISABLE_GAIN_SCHEDULING_CMD: {
+      jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
+          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED);
+      break;
+    }
+    case EGD_SDO_ENABLE_SPEED_GAIN_SCHEDULING_CMD: {
+      jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
+          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_SPEED);
+      break;
+    }
+    case EGD_SDO_ENABLE_POSITION_GAIN_SCHEDULING_CMD: {
+      jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
+          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_POSITION);
+      break;
+    }
     default: {
       WARNING("That command type is not supported in this mode!");
       return false;
@@ -352,6 +367,12 @@ bool fastcat::Egd::WriteCSMode(DeviceCmd& cmd)
       jsd_egd_set_motion_command_cst((jsd_t*)context_, slave_id_, jsd_cmd);
       break;
     }
+    case EGD_SET_GAIN_SCHEDULING_INDEX_CMD: {
+      jsd_egd_set_gain_scheduling_index(
+          (jsd_t*)context_, slave_id_, true,
+          cmd.egd_set_gain_scheduling_index_cmd.gain_scheduling_index);
+      break;
+    }
     case EGD_RESET_CMD: {
       jsd_egd_reset((jsd_t*)context_, slave_id_);
       break;
@@ -369,6 +390,26 @@ bool fastcat::Egd::WriteCSMode(DeviceCmd& cmd)
     case EGD_SDO_SET_UNIT_MODE_CMD: {
       jsd_egd_async_sdo_set_unit_mode((jsd_t*)context_, slave_id_,
                                       cmd.egd_sdo_set_unit_mode_cmd.unit_mode);
+      break;
+    }
+    case EGD_SDO_DISABLE_GAIN_SCHEDULING_CMD: {
+      jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
+          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED);
+      break;
+    }
+    case EGD_SDO_ENABLE_SPEED_GAIN_SCHEDULING_CMD: {
+      jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
+          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_SPEED);
+      break;
+    }
+    case EGD_SDO_ENABLE_POSITION_GAIN_SCHEDULING_CMD: {
+      jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
+          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_POSITION);
+      break;
+    }
+    case EGD_SDO_ENABLE_MANUAL_GAIN_SCHEDULING_CMD: {
+      jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
+          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW);
       break;
     }
     default: {
