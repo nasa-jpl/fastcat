@@ -51,6 +51,17 @@ void fastcat::ActuatorOffline::EgdSetUnitMode(int32_t mode)
   // no-op
 }
 
+void fastcat::ActuatorOffline::EgdSetGainSchedulingMode(
+    jsd_egd_gain_scheduling_mode_t /* mode */)
+{
+  // no-op
+}
+
+void fastcat::ActuatorOffline::EgdSetGainSchedulingIndex(uint16_t /* index */)
+{
+  // no-op
+}
+
 void fastcat::ActuatorOffline::EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd)
 {
   jsd_egd_state_.cmd_position = jsd_csp_cmd.target_position;
