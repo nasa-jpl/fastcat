@@ -193,6 +193,7 @@ Engineering Units (EU) are radians for revolute actuators and meters for linear 
 | `winding_resistance`            | OPTIONAL: Winding resistance of motor for optional power calculation |
 | `torque_constant`               | OPTIONAL: Torque constant of motor for optional power calculation  |
 | `motor_encoder_gear_ratio`      | OPTIONAL: Capture any gear ratio between the motor and the encoder, i.e. an output encoder  |
+| `ctrl_gain_scheduling_mode`     | OPTIONAL: Gain scheduling mode for the drive's controller: `DISABLED`, `SPEED`, `POSITION`, and `MANUAL`. When not specified, the mode stored in the drive's non-volatile memory is used. |
 
 ### Implementation Notes
 

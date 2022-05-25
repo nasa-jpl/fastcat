@@ -243,6 +243,18 @@ bool fastcat::Egd::ConfigFromYamlCommon(YAML::Node node)
     return false;
   }
 
+  std::string ctrl_gs_mode_string;
+  if (ParseOptVal(node, "ctrl_gain_scheduling_mode", ctrl_gs_mode_string)) {
+    if (!GSModeFromString(ctrl_gs_mode_string,
+                          jsd_slave_config_.egd.ctrl_gain_scheduling_mode)) {
+      return false;
+    }
+  } else {
+    // Use mode saved in driver's non-volatile memory.
+    jsd_slave_config_.egd.ctrl_gain_scheduling_mode =
+        JSD_EGD_GAIN_SCHEDULING_MODE_PRELOADED;
+  }
+
   return true;
 }
 
@@ -417,5 +429,25 @@ bool fastcat::Egd::WriteCSMode(DeviceCmd& cmd)
       return false;
     }
   }
+  return true;
+}
+
+bool fastcat::Egd::GSModeFromString(std::string gs_mode_string,
+                                    jsd_egd_gain_scheduling_mode_t& gs_mode)
+{
+  MSG("Converting gain scheduling mode to string.");
+  if (gs_mode_string.compare("DISABLED") == 0) {
+    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED;
+  } else if (gs_mode_string.compare("SPEED") == 0) {
+    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_SPEED;
+  } else if (gs_mode_string.compare("POSITION") == 0) {
+    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_POSITION;
+  } else if (gs_mode_string.compare("MANUAL") == 0) {
+    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW;
+  } else {
+    ERROR("Gain scheduling mode %s is invalid", gs_mode_string.c_str());
+    return false;
+  }
+
   return true;
 }

@@ -152,6 +152,18 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     }
   }
 
+  std::string ctrl_gs_mode_string;
+  if (ParseOptVal(node, "ctrl_gain_scheduling_mode", ctrl_gs_mode_string)) {
+    if (!GSModeFromString(ctrl_gs_mode_string,
+                          jsd_slave_config_.egd.ctrl_gain_scheduling_mode)) {
+      return false;
+    }
+  } else {
+    // Use mode saved in driver's non-volatile memory.
+    jsd_slave_config_.egd.ctrl_gain_scheduling_mode =
+        JSD_EGD_GAIN_SCHEDULING_MODE_PRELOADED;
+  }
+
   // overall_reduction must be set before using EuToCnts/CntsToEu
   if (actuator_type_ == ACTUATOR_TYPE_REVOLUTE) {
     overall_reduction_ = counts_per_rev_ * gear_ratio_ / (2.0 * M_PI);
@@ -610,4 +622,24 @@ void fastcat::Actuator::EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd)
 void fastcat::Actuator::EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd)
 {
   jsd_egd_set_motion_command_cst((jsd_t*)context_, slave_id_, jsd_cst_cmd);
+}
+
+bool fastcat::Actuator::GSModeFromString(
+    std::string gs_mode_string, jsd_egd_gain_scheduling_mode_t& gs_mode)
+{
+  MSG("Converting gain scheduling mode to string.");
+  if (gs_mode_string.compare("DISABLED") == 0) {
+    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED;
+  } else if (gs_mode_string.compare("SPEED") == 0) {
+    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_SPEED;
+  } else if (gs_mode_string.compare("POSITION") == 0) {
+    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_POSITION;
+  } else if (gs_mode_string.compare("MANUAL") == 0) {
+    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW;
+  } else {
+    ERROR("Gain scheduling mode %s is invalid", gs_mode_string.c_str());
+    return false;
+  }
+
+  return true;
 }

@@ -52,6 +52,7 @@ bool ParseValCheckRange(YAML::Node node, std::string field, uint8_t& val,
 
 // Optional double values
 bool ParseOptVal(YAML::Node node, std::string field, double& val);
+bool ParseOptVal(YAML::Node node, std::string field, std::string& val);
 
 bool ParseOptValCheckRange(YAML::Node node, std::string field, double& val,
                            double lower, double upper);
