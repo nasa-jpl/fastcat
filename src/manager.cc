@@ -919,8 +919,8 @@ bool fastcat::Manager::SetActuatorPositions()
     }
     auto find_pos_data = actuator_pos_map_.find(dev_name);
 
-    MSG("Setting actuator: %s to saved pos: %lf", dev_name.c_str(),
-        find_pos_data->second.position);
+    //MSG("Setting actuator: %s to saved pos: %lf", dev_name.c_str(),
+    //    find_pos_data->second.position);
 
     if (!(*device)->SetOutputPosition(find_pos_data->second.position)) {
       ERROR("Failure on SetOutputPosition for device: %s", dev_name.c_str());

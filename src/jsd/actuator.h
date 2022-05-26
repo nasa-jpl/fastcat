@@ -129,6 +129,8 @@ class Actuator : public DeviceBase
 
   bool compute_power_ = false;
 
+  bool absolute_encoder_ = false;
+
   jsd_slave_config_t jsd_slave_config_;
   jsd_egd_state_t    jsd_egd_state_;
 
