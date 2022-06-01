@@ -164,16 +164,9 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
         JSD_EGD_GAIN_SCHEDULING_MODE_PRELOADED;
   }
 
-  std::string abs_encoder_string;
-  if (ParseOptVal(node, "absolute_encoder", abs_encoder_string)) {
-    if (abs_encoder_string == "true") {
-      absolute_encoder_ = true;
-    }
-    else if (abs_encoder_string != "false") {
-      return false;
-    }
-  } else { // set to false if option is not included
-    absolute_encoder_ = false;
+  if (!ParseOptVal(node, "absolute_encoder", actuator_absolute_encoder_)) {
+    // If we do not find this parameter then set it to false
+    actuator_absolute_encoder_ = false;
   }
 
   // overall_reduction must be set before using EuToCnts/CntsToEu
@@ -495,14 +488,6 @@ void fastcat::Actuator::Reset()
 
 bool fastcat::Actuator::SetOutputPosition(double position)
 {
-  // Exit this function if this actuator has an absolute encoder
-  // we won't update the value from disk
-  if (absolute_encoder_) {
-    MSG("Leaving actuator: %s at absolute encoder position %f", name_.c_str(),
-        state_->actuator_state.actual_position);
-    return true;
-  }
-
   MSG("Act %s: %s%lf %s%lf", name_.c_str(),
       "Changing Position from: ", state_->actuator_state.actual_position,
       "to : ", position);

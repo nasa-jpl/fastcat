@@ -43,6 +43,8 @@ class DeviceBase
 
   std::vector<Signal> signals_;
 
+  bool actuator_absolute_encoder_ = false; ///< Actuator with absolute encoder
+
  protected:
   std::string name_;         ///< unique device name
   void*       context_;      ///< generic context for JSD
