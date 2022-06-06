@@ -164,6 +164,11 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
         JSD_EGD_GAIN_SCHEDULING_MODE_PRELOADED;
   }
 
+  if (!ParseOptVal(node, "absolute_encoder", actuator_absolute_encoder_)) {
+    // If we do not find this parameter then set it to false
+    actuator_absolute_encoder_ = false;
+  }
+
   // overall_reduction must be set before using EuToCnts/CntsToEu
   if (actuator_type_ == ACTUATOR_TYPE_REVOLUTE) {
     overall_reduction_ = counts_per_rev_ * gear_ratio_ / (2.0 * M_PI);

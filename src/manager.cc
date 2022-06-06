@@ -885,6 +885,12 @@ bool fastcat::Manager::ValidateActuatorPosFile()
     }
     auto find_pos_data = actuator_pos_map_.find(dev_name);
 
+    if ((*device)->actuator_absolute_encoder_ == true) {
+      MSG("Actuator %s has absolute encoder so does not need saved position",
+          dev_name.c_str());
+      continue;
+    }
+
     if (find_pos_data == actuator_pos_map_.end()) {
       if (!actuator_fault_on_missing_pos_file_) {
         WARNING(
@@ -917,6 +923,11 @@ bool fastcat::Manager::SetActuatorPositions()
     if (dev_state->type != ACTUATOR_STATE) {
       continue;
     }
+    
+    if ((*device)->actuator_absolute_encoder_ == true) {
+      continue;
+    }
+    
     auto find_pos_data = actuator_pos_map_.find(dev_name);
 
     MSG("Setting actuator: %s to saved pos: %lf", dev_name.c_str(),
@@ -941,6 +952,10 @@ void fastcat::Manager::GetActuatorPositions()
     dev_name  = (*device)->GetName();
 
     if (dev_state->type != ACTUATOR_STATE) {
+      continue;
+    }
+
+    if ((*device)->actuator_absolute_encoder_ == true) {
       continue;
     }
 
