@@ -178,9 +178,8 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
 
   double target_position = 0;
   if (cmd.actuator_prof_pos_cmd.relative) {
-    // may be more stable to use cmd than actual position for relative motion
     target_position = cmd.actuator_prof_pos_cmd.target_position +
-                      state_->actuator_state.actual_position;
+                      state_->actuator_state.cmd_position;
   } else {
     target_position = cmd.actuator_prof_pos_cmd.target_position;
   }
@@ -198,9 +197,9 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
 
   trap_generate(
       &trap_, state_->time,
-      state_->actuator_state.actual_position,  // consider cmd position
+      state_->actuator_state.cmd_position,
       target_position,
-      state_->actuator_state.actual_velocity,  // consider cmd vel
+      state_->actuator_state.cmd_velocity,
       cmd.actuator_prof_pos_cmd.end_velocity,
       cmd.actuator_prof_pos_cmd.profile_velocity, // consider abs()
       cmd.actuator_prof_pos_cmd.profile_accel);
@@ -228,8 +227,8 @@ bool fastcat::Actuator::HandleNewProfVelCmd(DeviceCmd& cmd)
 
   trap_generate_vel(
       &trap_, state_->time,
-      state_->actuator_state.actual_position,  // consider cmd position
-      state_->actuator_state.actual_velocity,  // consider cmd velocity
+      state_->actuator_state.cmd_position,
+      state_->actuator_state.cmd_velocity,
       cmd.actuator_prof_vel_cmd.target_velocity,
       cmd.actuator_prof_vel_cmd.profile_accel,
       cmd.actuator_prof_vel_cmd.max_duration);
