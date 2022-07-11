@@ -179,7 +179,7 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
   double target_position = 0;
   if (cmd.actuator_prof_pos_cmd.relative) {
     target_position = cmd.actuator_prof_pos_cmd.target_position +
-                      state_->actuator_state.cmd_position;
+                      state_->actuator_state.actual_position;
   } else {
     target_position = cmd.actuator_prof_pos_cmd.target_position;
   }
