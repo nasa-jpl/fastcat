@@ -197,7 +197,7 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
 
   trap_generate(
       &trap_, state_->time,
-      state_->actuator_state.cmd_position,
+      state_->actuator_state.actual_position,
       target_position,
       state_->actuator_state.cmd_velocity,
       cmd.actuator_prof_pos_cmd.end_velocity,
@@ -227,7 +227,7 @@ bool fastcat::Actuator::HandleNewProfVelCmd(DeviceCmd& cmd)
 
   trap_generate_vel(
       &trap_, state_->time,
-      state_->actuator_state.cmd_position,
+      state_->actuator_state.actual_position,
       state_->actuator_state.cmd_velocity,
       cmd.actuator_prof_vel_cmd.target_velocity,
       cmd.actuator_prof_vel_cmd.profile_accel,
