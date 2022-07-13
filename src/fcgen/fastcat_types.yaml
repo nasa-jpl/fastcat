@@ -346,6 +346,19 @@ states:
       - name: adc_value_ch8
         type: int16_t
 
+  - name: ild1900
+    fields:
+    - name: distance
+      type: double
+    - name: linearized_distance_raw
+      type: uint32_t
+    - name: timestamp
+      type: uint32_t
+    - name: counter
+      type: uint32_t
+    - name: error
+      type: uint8_t
+
   - name: jed0101
     fields:
     - name: status 
