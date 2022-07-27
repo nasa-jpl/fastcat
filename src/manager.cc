@@ -208,7 +208,7 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
 bool fastcat::Manager::Process()
 {
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
-    jsd_read(it->second, 1e9 / target_loop_rate_hz_);
+    jsd_read(it->second, 1e6 / target_loop_rate_hz_);
   }
 
   // Pass the PDO read time for consistent timestamping before the device Read() 
