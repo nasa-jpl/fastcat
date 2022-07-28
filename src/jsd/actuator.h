@@ -144,6 +144,8 @@ class Actuator : public DeviceBase
  private:
   bool GSModeFromString(std::string                     gs_mode_string,
                         jsd_egd_gain_scheduling_mode_t& gs_mode);
+
+  bool prof_pos_hold_;
 };
 
 }  // namespace fastcat
