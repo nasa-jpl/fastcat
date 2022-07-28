@@ -194,6 +194,7 @@ Engineering Units (EU) are radians for revolute actuators and meters for linear 
 | `torque_constant`               | OPTIONAL: Torque constant of motor for optional power calculation  |
 | `motor_encoder_gear_ratio`      | OPTIONAL: Capture any gear ratio between the motor and the encoder, i.e. an output encoder  |
 | `ctrl_gain_scheduling_mode`     | OPTIONAL: Gain scheduling mode for the drive's controller: `DISABLED`, `SPEED`, `POSITION`, and `MANUAL`. When not specified, the mode stored in the drive's non-volatile memory is used. |
+| `prof_pos_hold`                 | OPTIONAL: Perform active position control after completion of a position profile command. Useful to mimic brakes on actuators that do not have them. |
 
 ### Implementation Notes
 
