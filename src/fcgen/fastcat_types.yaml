@@ -352,7 +352,7 @@ states:
       type: double
     - name: intensity
       type: double
-    - name: peak_distance
+    - name: distance_raw
       type: uint32_t
     - name: timestamp
       type: uint32_t
