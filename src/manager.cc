@@ -565,6 +565,15 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("El3318")) {
       device = std::make_shared<El3318Offline>();
 
+    } else if (0 == device_class.compare("El4102")) {
+      device = std::make_shared<El4102Offline>();
+
+    } else if (0 == device_class.compare("El3162")) {
+      device = std::make_shared<El3162Offline>();
+
+    } else if (0 == device_class.compare("Ild1900")) {
+      device == std::make_shared<Ild1900Offline>();
+
     } else if (0 == device_class.compare("Actuator")) {
       device = std::make_shared<ActuatorOffline>();
 
