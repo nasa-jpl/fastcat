@@ -350,7 +350,9 @@ states:
     fields:
     - name: distance
       type: double
-    - name: linearized_distance_raw
+    - name: intensity
+      type: double
+    - name: peak_distance
       type: uint32_t
     - name: timestamp
       type: uint32_t

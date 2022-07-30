@@ -90,8 +90,8 @@ bool fastcat::Ild1900::Read()
       jsd_ild1900_get_state((jsd_t*)context_, slave_id_);
 
   state_->ild1900_state.distance = jsd_state->distance;
-  state_->ild1900_state.linearized_distance_raw =
-      jsd_state->linearized_distance_raw;
+  state_->ild1900_state.intensity     = jsd_state->intensity;
+  state_->ild1900_state.peak_distance = jsd_state->peak_distance;
   state_->ild1900_state.timestamp = jsd_state->timestamp;
   state_->ild1900_state.counter   = jsd_state->counter;
   state_->ild1900_state.error     = jsd_state->error;
