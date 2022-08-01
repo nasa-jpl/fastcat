@@ -264,7 +264,11 @@ bool fastcat::Actuator::Read()
       static_cast<int>(actuator_sms_);
 
   if (compute_power_) {
-    double motor_velocity = fabs(state_->actuator_state.actual_velocity) * motor_encoder_gear_ratio_;
+    double motor_velocity =
+      fabs(state_->actuator_state.actual_velocity) *
+      gear_ratio *
+      motor_encoder_gear_ratio_;
+    
     double current = fabs(jsd_egd_state_.actual_current);
 
     // P = R I^2 + K_T * I * \omega
@@ -272,7 +276,7 @@ bool fastcat::Actuator::Read()
       (winding_resistance_ * current +
        torque_constant_ * motor_velocity);
 
-    // Should checking, but assuming motor_on > 0 means brakes powered/disengaged
+    // Should check, but assuming motor_on > 0 means brakes powered/disengaged
     if (state_->actuator_state.motor_on)
       state_->actuator_state.power += brake_power_;
   }
