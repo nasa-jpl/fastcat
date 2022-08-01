@@ -169,6 +169,12 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     actuator_absolute_encoder_ = false;
   }
 
+  // Whether position should be actively controlled after a profile position
+  // command is concluded.
+  if (!ParseOptVal(node, "prof_pos_hold", prof_pos_hold_)) {
+    prof_pos_hold_ = false;
+  }
+
   // overall_reduction must be set before using EuToCnts/CntsToEu
   if (actuator_type_ == ACTUATOR_TYPE_REVOLUTE) {
     overall_reduction_ = counts_per_rev_ * gear_ratio_ / (2.0 * M_PI);

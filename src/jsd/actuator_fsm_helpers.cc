@@ -528,7 +528,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfPos()
   jsd_cmd.velocity_offset    = EuToCnts(vel);
   jsd_cmd.torque_offset_amps = 0;
 
-  if (!complete) {
+  if (!complete || prof_pos_hold_) {
     EgdCSP(jsd_cmd);
   } else {
     TransitionToState(ACTUATOR_SMS_HOLDING);
