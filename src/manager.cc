@@ -388,7 +388,7 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
       device = std::make_shared<El3318>();
 
     } else if (0 == device_class.compare("Ild1900")) {
-      device == std::make_shared<Ild1900>();
+      device = std::make_shared<Ild1900>();
 
     } else if (0 == device_class.compare("Actuator")) {
       device = std::make_shared<Actuator>();
@@ -572,7 +572,7 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
       device = std::make_shared<El3162Offline>();
 
     } else if (0 == device_class.compare("Ild1900")) {
-      device == std::make_shared<Ild1900Offline>();
+      device = std::make_shared<Ild1900Offline>();
 
     } else if (0 == device_class.compare("Actuator")) {
       device = std::make_shared<ActuatorOffline>();
