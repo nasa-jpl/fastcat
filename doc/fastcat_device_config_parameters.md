@@ -13,6 +13,7 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | El3602   | Beckhoff     | 2-channel +/-10v Diff. Analog Input |
 | El2124   | Beckhoff     | 4-channel 5v Digital Output         |
 | El4102   | Beckhoff     | 2-channel 0-10v Analog Output       |
+| Ild1900  | Micro-Epsilon | Distance Laser Sensor |
 | AtiFts   | ATI          | Force-Torque Sensor                 |
 | JED0101  | JPL          | JPL EtherCAT Device 0101 - EELS     |
 | JED0200  | JPL          | JPL EtherCAT Device 0200 - SAEL     |
@@ -364,6 +365,72 @@ The permitted elements are:
   element: TYPE_K
 ```
 
+## Ild1900 (Distance Laser Sensor)
+
+| Parameter   | Description                 |
+| ----------- | --------------------------- |
+| `model` | Model number |
+| `measuring_rate` | Number of measurements per second (Hz) |
+| `averaging_type` | Type of averaging formula applied to measurements |
+| `averaging_number` | Number of consecutive measurements averaged together |
+| `exposure_mode` | Exposure mode |
+| `peak_selection` | Peak selection strategy |
+
+The allowed model numbers are the following strings:
+
+* `2` - measuring range 2 mm, start measuring range 15 mm
+* `10` - measuring range 10 mm, start measuring range 20 mm 
+* `25` - measuring range 25 mm, start measuring range 25 mm
+* `50` - measuring range 50 mm, start measuring range 40 mm
+* `100` - measuring range 100 mm, start measuring range 50 mm
+* `200` - measuring range 200 mm, start measuring range 60 mm
+* `500` - measuring range 500 mm, start measuring range 100 mm
+* `2LL` - measuring range 2 mm, start measuring range 15 mm
+* `6LL` - measuring range 6 mm, start measuring range 17 mm
+* `10LL` - measuring range 10 mm, start measuring range 20 mm
+* `25LL` - measuring range 25 mm, start measuring range 25 mm
+* `50LL` - measuring range 50 mm, start measuring range 40 mm
+
+The available averaging types are:
+
+* `NONE` - no averaging
+* `MEDIAN` - median from specified number of measurements
+* `MOVING` - arithmetic average from specified number of measurements
+* `RECURSIVE` - Weighted average of new measured value with previous averaging value.
+
+The available exposure modes are:
+
+* `STANDARD` - exposure time automatically adjusted so that intensity is %50
+* `INTELLIGENT` - for moving objects or material transitions
+* `BACKGROUND` - improves ambient light tolerance, but halves output rate
+
+The available peak selection strategies are:
+
+* `HIGHEST` - peak with highest intensity
+* `WIDEST` - peak with largest surface
+* `LAST` - peak furthest away from sensor
+* `FIRST` - nearest peak to sensor
+
+### Notes
+
+* The maximum measuring rate is 10000.
+* If `averaging_type` is `NONE`, `averaging_number` will be ignored and can be omitted.
+* If `averaging_type` is `MEDIAN`, `averaging_number` must be 3, 5, 7, or 9.
+* If `averaging_type` is `MOVING`, `averaging_number` must be a power of 2: 2, 4, 8, ..., 4096.
+* If `averaging_type` is `RECURSIVE`, `averaging_number` must be in the range \[1, 32000].
+
+### Example
+
+``` yaml
+- device_class: Ild1900
+  name: ild1900_1
+  model: 100
+  measuring_rate: 250.0
+  averaging_type: MEDIAN
+  averaging_number: 9
+  exposure_mode: STANDARD
+  peak_selection: HIGHEST
+```
 
 ## AtiFts (Force Torque Sensor)
 
