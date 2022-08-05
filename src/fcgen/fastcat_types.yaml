@@ -348,13 +348,13 @@ states:
 
   - name: ild1900
     fields:
-    - name: distance
+    - name: distance_m
       type: double
     - name: intensity
       type: double
     - name: distance_raw
       type: uint32_t
-    - name: timestamp
+    - name: timestamp_us
       type: uint32_t
     - name: counter
       type: uint32_t
