@@ -111,6 +111,36 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
+  // Optional limits on position feedback.
+  bool low_pos_actual_limit_found =
+      ParseOptVal(node, "low_pos_actual_limit_eu", low_pos_actual_limit_eu_);
+  bool high_pos_actual_limit_found =
+      ParseOptVal(node, "high_pos_actual_limit_eu", high_pos_actual_limit_eu_);
+  if (low_pos_actual_limit_found != high_pos_actual_limit_found) {
+    ERROR(
+        "If low_pos_actual_limit_eu or high_pos_actual_limit_eu is provided, "
+        "the other limit end must be provided.");
+    return false;
+  }
+  pos_actual_limits_defined_ =
+      low_pos_actual_limit_found && high_pos_actual_limit_found;
+  if (pos_actual_limits_defined_ &&
+      high_pos_cmd_limit_eu_ > high_pos_actual_limit_eu_) {
+    ERROR(
+        "high_pos_actual_limit_eu (%lf) must be greater than or equal to "
+        "high_pos_cmd_limit_eu (%lf).",
+        high_pos_actual_limit_eu_, high_pos_cmd_limit_eu_);
+    return false;
+  }
+  if (pos_actual_limits_defined_ &&
+      low_pos_cmd_limit_eu_ < low_pos_actual_limit_eu_) {
+    ERROR(
+        "low_pos_actual_limit_eu (%lf) must be less than or equal to "
+        "low_pos_cmd_limit_eu (%lf).",
+        low_pos_actual_limit_eu_, low_pos_cmd_limit_eu_);
+    return false;
+  }
+
   if (!ParseValCheckRange(node, "holding_duration_sec", holding_duration_sec_,
                           0, 1000.0)) {
     return false;
@@ -572,6 +602,15 @@ bool fastcat::Actuator::CurrentExceedsCmdLimits(double current)
   }
 
   return false;
+}
+
+bool fastcat::Actuator::PosExceedsActualLimits(double pos_eu)
+{
+  if (pos_eu > high_pos_actual_limit_eu_ || pos_eu < low_pos_actual_limit_eu_) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void fastcat::Actuator::TransitionToState(ActuatorStateMachineState sms)
