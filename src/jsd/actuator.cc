@@ -257,6 +257,8 @@ bool fastcat::Actuator::Read()
   state_->actuator_state.hall_state        = jsd_egd_state_.hall_state;
   state_->actuator_state.target_reached    = jsd_egd_state_.target_reached;
   state_->actuator_state.motor_on          = jsd_egd_state_.motor_on;
+  state_->actuator_state.faulted =
+      (jsd_egd_state_.fault_code == JSD_EGD_FAULT_OKAY);
   state_->actuator_state.fault_code        = jsd_egd_state_.fault_code;
   state_->actuator_state.bus_voltage       = jsd_egd_state_.bus_voltage;
   state_->actuator_state.drive_temperature = jsd_egd_state_.drive_temperature;
