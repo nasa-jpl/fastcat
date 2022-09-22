@@ -810,6 +810,28 @@ void fastcat::Manager::ExecuteAllDeviceResets()
 
 bool fastcat::Manager::LoadActuatorPosFile()
 {
+
+  // Look for the existence of at least one actuator in the topology 
+  std::shared_ptr<DeviceState> dev_state;
+  std::string                  dev_name;
+  bool actuators_in_topo = false;
+  for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
+       ++device) {
+    dev_state = (*device)->GetState();
+    dev_name  = (*device)->GetName();
+
+    if (dev_state->type == ACTUATOR_STATE) {
+      actuators_in_topo = true;
+      break;
+    }
+  }
+
+  if(!actuators_in_topo){
+    MSG("No actuators found in topology, bypassing saved positions file functions");
+    return true;
+  }
+
+
   if (!actuator_fault_on_missing_pos_file_) {
     WARNING("YAML parameter \'actuator_fault_on_missing_pos_file\' is FALSE");
     WARNING("\tThis setting is intended for demo and testing and should");
