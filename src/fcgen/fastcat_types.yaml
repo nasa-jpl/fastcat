@@ -106,8 +106,12 @@ states:
       type: uint8_t
     - name: motor_on
       type: uint8_t
-    - name: fault_code
+    - name: servo_enabled
       type: uint8_t
+    - name: fault_code
+      type: uint16_t
+    - name: fault_enum
+      type: uint32_t 
     - name: bus_voltage
       type: double
     - name: drive_temperature

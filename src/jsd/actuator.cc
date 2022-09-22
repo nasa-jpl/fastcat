@@ -257,9 +257,11 @@ bool fastcat::Actuator::Read()
   state_->actuator_state.hall_state        = jsd_egd_state_.hall_state;
   state_->actuator_state.target_reached    = jsd_egd_state_.target_reached;
   state_->actuator_state.motor_on          = jsd_egd_state_.motor_on;
+  state_->actuator_state.servo_enabled     = jsd_egd_state_.servo_enabled;
   state_->actuator_state.faulted =
-      (jsd_egd_state_.fault_code == JSD_EGD_FAULT_OKAY);
+      (jsd_egd_state_.fault_enum == JSD_EGD_FAULT_OKAY);
   state_->actuator_state.fault_code        = jsd_egd_state_.fault_code;
+  state_->actuator_state.fault_enum        = jsd_egd_state_.fault_enum;
   state_->actuator_state.bus_voltage       = jsd_egd_state_.bus_voltage;
   state_->actuator_state.drive_temperature = jsd_egd_state_.drive_temperature;
   state_->actuator_state.actuator_state_machine_state =
@@ -268,7 +270,7 @@ bool fastcat::Actuator::Read()
   if (compute_power_) {
     double motor_velocity =
       fabs(state_->actuator_state.actual_velocity) *
-      gear_ratio *
+      gear_ratio_ *
       motor_encoder_gear_ratio_;
     
     double current = fabs(jsd_egd_state_.actual_current);
