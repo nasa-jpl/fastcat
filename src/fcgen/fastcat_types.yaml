@@ -95,9 +95,11 @@ states:
     - name: cmd_max_current
       type: double
     - name: egd_state_machine_state
-      type: uint8_t
+      type: uint32_t
+      comment: "From jsd_egd_state_machine_state_t"
     - name: egd_mode_of_operation
-      type: uint8_t
+      type: uint32_t
+      comment: "From jsd_egd_mode_of_operation_t"
     - name: sto_engaged
       type: uint8_t
     - name: hall_state
@@ -109,9 +111,10 @@ states:
     - name: servo_enabled
       type: uint8_t
     - name: fault_code
-      type: uint16_t
-    - name: fault_enum
       type: uint32_t 
+      comment: "From jsd_egd_fault_code_t"
+    - name: emcy_error_code
+      type: uint16_t 
     - name: bus_voltage
       type: double
     - name: drive_temperature
@@ -121,7 +124,8 @@ states:
     - name: egd_cmd_position
       type: int32_t
     - name: actuator_state_machine_state
-      type: uint8_t
+      type: uint32_t
+      comment: "From jsd_egd_State_machine_state_t"
     - name: power
       type: double
 
@@ -160,11 +164,11 @@ states:
     - name: cmd_ff_current
       type: double
     - name: actual_state_machine_state
-      type: uint8_t
+      type: uint32_t
+      comment: "From jsd_egd_state_machine_state_t"
     - name: actual_mode_of_operation
-      type: uint8_t
-    - name: async_sdo_in_prog
-      type: bool
+      type: uint32_t
+      comment: "From jsd_egd_mode_of_operation_t"
     - name: sto_engaged
       type: uint8_t
     - name: hall_state
@@ -177,8 +181,13 @@ states:
       type: uint8_t
     - name: motor_on
       type: uint8_t
-    - name: fault_code
+    - name: servo_enabled
       type: uint8_t
+    - name: fault_code
+      type: uint32_t
+      comment: "From jsd_egd_fault_code_t"
+    - name: emcy_error_code
+      type: uint16_t 
     - name: bus_voltage
       type: double
     - name: analog_input_voltage
@@ -504,35 +513,35 @@ commands:
     fields:
     - name: drive_position
       type: int32_t
+    - name: app_id
+      type: uint16_t
 
   - name: egd_sdo_set_unit_mode
     fields:
     - name: unit_mode
       type: int32_t
+    - name: app_id
+      type: uint16_t
 
   - name: egd_sdo_disable_gain_scheduling
     fields:
-    - name: dummy
-      type: bool
-      comment: unused
+    - name: app_id
+      type: uint16_t
 
   - name: egd_sdo_enable_speed_gain_scheduling
     fields:
-    - name: dummy
-      type: bool
-      comment: unused
+    - name: app_id
+      type: uint16_t
 
   - name: egd_sdo_enable_position_gain_scheduling
     fields:
-    - name: dummy
-      type: bool
-      comment: unused
+    - name: app_id
+      type: uint16_t
 
   - name: egd_sdo_enable_manual_gain_scheduling
     fields:
-    - name: dummy
-      type: bool
-      comment: unused
+    - name: app_id
+      type: uint16_t
 
   - name: fts_tare
     fields:
@@ -670,35 +679,33 @@ commands:
       type: double
       comment: Corresponds to the PL[1] or Peak current setting
 
-  - name: actuator_set_unit_mode
+  - name: actuator_sdo_set_unit_mode
     fields:
     - name: mode
       type: int32_t
       comment: UM[1] = 5 by default for pos, vel, and current command modes
+    - name: app_id
+      type: uint16_t
 
   - name: actuator_sdo_disable_gain_scheduling
     fields:
-    - name: dummy
-      type: bool
-      comment: unused
+    - name: app_id
+      type: uint16_t
 
   - name: actuator_sdo_enable_speed_gain_scheduling
     fields:
-    - name: dummy
-      type: bool
-      comment: unused
+    - name: app_id
+      type: uint16_t
 
   - name: actuator_sdo_enable_position_gain_scheduling
     fields:
-    - name: dummy
-      type: bool
-      comment: unused
+    - name: app_id
+      type: uint16_t
 
   - name: actuator_sdo_enable_manual_gain_scheduling
     fields:
-    - name: dummy
-      type: bool
-      comment: unused
+    - name: app_id
+      type: uint16_t
 
   - name: faulter_enable
     fields:

@@ -813,10 +813,9 @@ bool fastcat::Manager::LoadActuatorPosFile()
 
   // Look for the existence of at least one actuator in the topology 
   bool actuators_in_topo = false;
-  for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
-       ++device) {
-
-    if (dev_state->type == ACTUATOR_STATE) {
+  for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end(); ++device) 
+  {
+    if ((*device)->GetState()->type == ACTUATOR_STATE) {
       actuators_in_topo = true;
       break;
     }
