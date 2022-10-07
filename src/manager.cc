@@ -808,6 +808,24 @@ void fastcat::Manager::ExecuteAllDeviceResets()
   faulted_ = false;
 }
 
+bool fastcat::Manager::IsSdoResponseQueueEmpty(){
+  return sdo_response_queue_.empty();
+}
+
+bool fastcat::Manager::PopSdoResponseQueue(SdoResponse& res){
+  if(sdo_response_queue_.empty()){
+    res.bus_name = "INVALID";
+    res.response.success = false;
+    res.response.app_id = 0;
+    return false;
+  }
+
+  res = sdo_response_queue_.front();
+  sdo_response_queue_.pop();
+
+  return true;
+}
+
 bool fastcat::Manager::LoadActuatorPosFile()
 {
 
