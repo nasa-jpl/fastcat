@@ -33,27 +33,21 @@ class DeviceBase
   void RegisterCmdQueue(std::shared_ptr<std::queue<DeviceCmd>> cmd_queue);
   std::string                  GetName();
   std::shared_ptr<DeviceState> GetState();
-  void SetTime(double time);
 
-  // setters/getters for EtherCat devices
-  void     SetSlaveId(uint16_t slave_id);
-  uint16_t GetSlaveId();
-  void     SetContext(void* context);
-  void     SetLoopPeriod(double loop_period);
+  void SetTime(double time);
+  void SetLoopPeriod(double loop_period);
 
   std::vector<Signal> signals_;
 
-  bool actuator_absolute_encoder_ = false; ///< Actuator with absolute encoder
+  bool actuator_absolute_encoder_ = false; ///< Actuator with absolute encoder TODO
 
  protected:
   std::string name_;         ///< unique device name
-  void*       context_;      ///< generic context for JSD
-  int         slave_id_;     ///< EtherCAT Slave Index
-  double      loop_period_;  ///< only some devices need
+
+  double loop_period_;  ///< only some devices need
 
   bool device_fault_active_ = false;  ///< device-level fault, manager
                                       ///    also has fault status flag
-
   std::shared_ptr<DeviceState> state_;  ///< Fastcat state data
   std::shared_ptr<std::queue<DeviceCmd>>
       cmd_queue_;  ///< for intra-device commands

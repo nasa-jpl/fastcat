@@ -6,7 +6,7 @@
 // Include c then c++ libraries
 
 // Include external then project includes
-#include "fastcat/device_base.h"
+#include "fastcat/jsd/jsd_device_base.h"
 #include "fastcat/trap.h"
 #include "jsd/jsd_egd_pub.h"
 
@@ -30,7 +30,7 @@ typedef enum {
   ACTUATOR_TYPE_PRISMATIC,
 } ActuatorType;
 
-class Actuator : public DeviceBase
+class Actuator : public JsdDeviceBase
 {
  public:
   Actuator();

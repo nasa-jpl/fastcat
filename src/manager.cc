@@ -344,7 +344,7 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
   JSDPair pair(ifname, jsd);
   jsd_map_.insert(pair);
 
-  std::shared_ptr<DeviceBase> device;
+  std::shared_ptr<DeviceBase>     device;
   uint16_t                    slave_id = 0;
 
   for (auto device_node = devices_node.begin();
@@ -407,9 +407,6 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
       return false;
     }
 
-    device->SetLoopPeriod(1.0 / target_loop_rate_hz_);
-    device->SetContext((void*)jsd);
-    device->SetSlaveId(slave_id);
     if (!device->ConfigFromYaml(*device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
@@ -422,7 +419,15 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
 
     DevicePair pair(device->GetName(), device);
     device_map_.insert(pair);
-    jsd_device_list_.push_back(device);
+
+    // Now do JSD device specific things
+    auto jsdDevice = std::dynamic_pointer_cast<JsdDeviceBase>(device);
+
+    jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
+    jsdDevice->SetContext(jsd);
+    jsdDevice->SetSlaveId(slave_id);
+
+    jsd_device_list_.push_back(jsdDevice);
   }
 
   return jsd_init(jsd, ifname.c_str(), enable_ar);
@@ -491,7 +496,6 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
       return false;
     }
 
-    device->SetLoopPeriod(1.0 / target_loop_rate_hz_);
     if (!device->ConfigFromYaml(*device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
@@ -591,8 +595,6 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
       return false;
     }
 
-    device->SetLoopPeriod(1.0 / target_loop_rate_hz_);
-    device->SetSlaveId(slave_id);
     if (!device->ConfigFromYaml(*device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
@@ -605,7 +607,14 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
     DevicePair pair(device->GetName(), device);
     device_map_.insert(pair);
-    jsd_device_list_.push_back(device);
+
+    // Now do JSD device specific things
+    auto jsdDevice = std::dynamic_pointer_cast<JsdDeviceBase>(device);
+
+    jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
+    jsdDevice->SetSlaveId(slave_id);
+
+    jsd_device_list_.push_back(jsdDevice);
   }
 
   return true;
