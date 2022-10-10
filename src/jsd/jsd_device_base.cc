@@ -97,6 +97,9 @@ fastcat::JsdDeviceBase::AsyncSdoRetVal fastcat::JsdDeviceBase::WriteAsyncSdoRequ
     resp.response.data_type    = cmd.async_sdo_write_cmd.data_type;
     resp.response.app_id       = cmd.async_sdo_write_cmd.app_id;
 
+    // since these are simulated...
+    resp.response.success = true;
+
     sdo_response_queue_->push(resp);
     retval = SDO_RET_VAL_SUCCESS;
 
@@ -110,6 +113,9 @@ fastcat::JsdDeviceBase::AsyncSdoRetVal fastcat::JsdDeviceBase::WriteAsyncSdoRequ
     resp.response.data         = {0};
     resp.response.data_type    = cmd.async_sdo_read_cmd.data_type;
     resp.response.app_id       = cmd.async_sdo_read_cmd.app_id;
+
+    // since these are simulated...
+    resp.response.success = true;
 
     sdo_response_queue_->push(resp);
     retval = SDO_RET_VAL_SUCCESS;

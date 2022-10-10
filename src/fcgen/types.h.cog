@@ -169,7 +169,7 @@ typedef struct{
 
 typedef struct{
   jsd_sdo_req_t response;
-  std::string   bus_name;
+  std::string   device_name;
 } SdoResponse;
 
 } // fastcat namespace
