@@ -133,6 +133,13 @@ fastcat::FaultType fastcat::AtiFts::Process()
 
 bool fastcat::AtiFts::Write(DeviceCmd& cmd)
 {
+
+  // If device supports async SDO requests
+  AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
+  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+    return (sdoResult == SDO_RET_VAL_SUCCESS);
+  }
+
   if (cmd.type == FTS_TARE_CMD) {
     bias_[0] = -state_->fts_state.raw_fx;
     bias_[1] = -state_->fts_state.raw_fy;

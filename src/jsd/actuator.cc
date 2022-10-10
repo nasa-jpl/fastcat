@@ -296,6 +296,13 @@ bool fastcat::Actuator::Read()
 
 bool fastcat::Actuator::Write(DeviceCmd& cmd)
 {
+
+  // If device supports async SDO requests
+  AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
+  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+    return (sdoResult == SDO_RET_VAL_SUCCESS);
+  }
+
   switch (cmd.type) {
     case ACTUATOR_CSP_CMD:
       if (!HandleNewCSPCmd(cmd)) {

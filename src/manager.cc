@@ -60,6 +60,7 @@
 fastcat::Manager::Manager()
 {
   cmd_queue_ = std::make_shared<std::queue<DeviceCmd>>();
+  sdo_response_queue_ = std::make_shared<std::queue<SdoResponse>>();
 }
 
 fastcat::Manager::~Manager()
@@ -426,6 +427,7 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
     jsdDevice->SetContext(jsd);
     jsdDevice->SetSlaveId(slave_id);
+    jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
 
     jsd_device_list_.push_back(jsdDevice);
   }
@@ -613,6 +615,8 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
     jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
     jsdDevice->SetSlaveId(slave_id);
+    jsdDevice->SetOffline(true);
+    jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
 
     jsd_device_list_.push_back(jsdDevice);
   }
@@ -818,19 +822,19 @@ void fastcat::Manager::ExecuteAllDeviceResets()
 }
 
 bool fastcat::Manager::IsSdoResponseQueueEmpty(){
-  return sdo_response_queue_.empty();
+  return sdo_response_queue_->empty();
 }
 
 bool fastcat::Manager::PopSdoResponseQueue(SdoResponse& res){
-  if(sdo_response_queue_.empty()){
-    res.bus_name = "INVALID";
+  if(sdo_response_queue_->empty()){
+    res.device_name = "INVALID";
     res.response.success = false;
     res.response.app_id = 0;
     return false;
   }
 
-  res = sdo_response_queue_.front();
-  sdo_response_queue_.pop();
+  res = sdo_response_queue_->front();
+  sdo_response_queue_->pop();
 
   return true;
 }

@@ -97,6 +97,12 @@ fastcat::FaultType fastcat::Egd::Process()
 
 bool fastcat::Egd::Write(DeviceCmd& cmd)
 {
+  // If device supports async SDO requests
+  AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
+  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+    return (sdoResult == SDO_RET_VAL_SUCCESS);
+  }
+
   switch (jsd_slave_config_.egd.drive_cmd_mode) {
     case JSD_EGD_DRIVE_CMD_MODE_PROFILED:
       return WriteProfiledMode(cmd);

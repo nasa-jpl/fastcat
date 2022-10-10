@@ -733,3 +733,29 @@ commands:
       type: double 
     - name: max_duration
       type: double
+
+  - name: async_sdo_write
+    comment: "async_sdo commands are not available for use by the fastcat commander device"
+    fields: 
+    - name: sdo_index
+      type: uint16_t
+    - name: sdo_subindex
+      type: uint8_t
+    - name: data
+      type: jsd_sdo_data_t
+    - name: data_type
+      type: jsd_sdo_data_type_t
+    - name: app_id
+      type: uint16_t
+
+  - name: async_sdo_read
+    comment: "async_sdo commands are not available for use by the fastcat commander device"
+    fields: 
+    - name: sdo_index
+      type: uint16_t
+    - name: sdo_subindex
+      type: uint8_t
+    - name: data_type
+      type: jsd_sdo_data_type_t
+    - name: app_id
+      type: uint16_t

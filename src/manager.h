@@ -186,7 +186,7 @@ class Manager
   std::vector<DeviceState>                           states_;
   std::map<std::string, ActuatorPosData>             actuator_pos_map_;
   std::unordered_map<std::string, bool>              unique_device_map_;
-  std::queue<SdoResponse>                            sdo_response_queue_;
+  std::shared_ptr<std::queue<SdoResponse>>           sdo_response_queue_;
 };
 }  // namespace fastcat
 
