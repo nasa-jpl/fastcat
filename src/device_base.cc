@@ -48,9 +48,3 @@ void fastcat::DeviceBase::Reset()
 
 fastcat::FaultType fastcat::DeviceBase::Process() { return NO_FAULT; }
 
-bool fastcat::DeviceBase::SetOutputPosition(double /* position */)
-{
-  ERROR("SetOutputPosition not defined for Device: %s", name_.c_str());
-  return false;
-}
-

@@ -40,7 +40,8 @@ class Actuator : public JsdDeviceBase
   bool      Write(DeviceCmd& cmd) override;
   void      Fault() override;
   void      Reset() override;
-  bool      SetOutputPosition(double position) override;
+  bool      SetOutputPosition(double position);
+  bool      HasAbsoluteEncoder();
 
  protected:
   double  CntsToEu(int32_t cnts);
@@ -146,6 +147,8 @@ class Actuator : public JsdDeviceBase
                         jsd_egd_gain_scheduling_mode_t& gs_mode);
 
   bool prof_pos_hold_;
+
+  bool actuator_absolute_encoder_ = false;
 };
 
 }  // namespace fastcat

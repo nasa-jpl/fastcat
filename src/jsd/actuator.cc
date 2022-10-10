@@ -530,6 +530,10 @@ bool fastcat::Actuator::SetOutputPosition(double position)
   return true;
 }
 
+bool fastcat::Actuator::HasAbsoluteEncoder(){
+  return actuator_absolute_encoder_;
+}
+
 double fastcat::Actuator::CntsToEu(int32_t cnts)
 {
   return cnts / overall_reduction_;

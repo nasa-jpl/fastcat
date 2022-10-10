@@ -935,6 +935,7 @@ bool fastcat::Manager::ValidateActuatorPosFile()
   }
 
   // Err if actuator is created by topology but no pos file entry exists
+  std::shared_ptr<Actuator>    actuator;
   std::shared_ptr<DeviceState> dev_state;
   std::string                  dev_name;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
@@ -945,9 +946,12 @@ bool fastcat::Manager::ValidateActuatorPosFile()
     if (dev_state->type != ACTUATOR_STATE) {
       continue;
     }
+
+    actuator = std::dynamic_pointer_cast<Actuator>(*device);
+
     auto find_pos_data = actuator_pos_map_.find(dev_name);
 
-    if ((*device)->actuator_absolute_encoder_ == true) {
+    if (actuator->HasAbsoluteEncoder()) {
       MSG("Actuator %s has absolute encoder so does not need saved position",
           dev_name.c_str());
       continue;
@@ -975,6 +979,7 @@ bool fastcat::Manager::ValidateActuatorPosFile()
 bool fastcat::Manager::SetActuatorPositions()
 {
   std::shared_ptr<DeviceState> dev_state;
+  std::shared_ptr<Actuator>    actuator;
   std::string                  dev_name;
 
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
@@ -986,7 +991,10 @@ bool fastcat::Manager::SetActuatorPositions()
       continue;
     }
     
-    if ((*device)->actuator_absolute_encoder_ == true) {
+    actuator = std::dynamic_pointer_cast<Actuator>(*device);
+
+    if (actuator->HasAbsoluteEncoder()) {
+      MSG_DEBUG("Actuator (%s) has absolute encoder, ignoring saved positions", dev_name.c_str());
       continue;
     }
     
@@ -995,7 +1003,7 @@ bool fastcat::Manager::SetActuatorPositions()
     MSG("Setting actuator: %s to saved pos: %lf", dev_name.c_str(),
         find_pos_data->second.position);
 
-    if (!(*device)->SetOutputPosition(find_pos_data->second.position)) {
+    if (!actuator->SetOutputPosition(find_pos_data->second.position)) {
       ERROR("Failure on SetOutputPosition for device: %s", dev_name.c_str());
       return false;
     }
@@ -1007,6 +1015,7 @@ bool fastcat::Manager::SetActuatorPositions()
 void fastcat::Manager::GetActuatorPositions()
 {
   std::shared_ptr<DeviceState> dev_state;
+  std::shared_ptr<Actuator>    actuator;
   std::string                  dev_name;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
        ++device) {
@@ -1017,7 +1026,9 @@ void fastcat::Manager::GetActuatorPositions()
       continue;
     }
 
-    if ((*device)->actuator_absolute_encoder_ == true) {
+    actuator = std::dynamic_pointer_cast<Actuator>(*device);
+
+    if (actuator->HasAbsoluteEncoder()) {
       continue;
     }
 
