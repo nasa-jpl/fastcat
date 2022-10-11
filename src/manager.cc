@@ -410,6 +410,13 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
       return false;
     }
 
+    // Now do JSD device specific things before configuring from Yaml
+    auto jsdDevice = std::dynamic_pointer_cast<JsdDeviceBase>(device);
+    jsdDevice->SetContext(jsd);
+    jsdDevice->SetSlaveId(slave_id);
+    jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
+    jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
+
     if (!device->ConfigFromYaml(*device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
@@ -422,14 +429,6 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
 
     DevicePair pair(device->GetName(), device);
     device_map_.insert(pair);
-
-    // Now do JSD device specific things
-    auto jsdDevice = std::dynamic_pointer_cast<JsdDeviceBase>(device);
-
-    jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
-    jsdDevice->SetContext(jsd);
-    jsdDevice->SetSlaveId(slave_id);
-    jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
 
     jsd_device_list_.push_back(jsdDevice);
   }
@@ -599,6 +598,14 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
       return false;
     }
 
+    // Now do JSD device specific things
+    auto jsdDevice = std::dynamic_pointer_cast<JsdDeviceBase>(device);
+
+    jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
+    jsdDevice->SetSlaveId(slave_id);
+    jsdDevice->SetOffline(true);
+    jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
+
     if (!device->ConfigFromYaml(*device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
@@ -611,14 +618,6 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
     DevicePair pair(device->GetName(), device);
     device_map_.insert(pair);
-
-    // Now do JSD device specific things
-    auto jsdDevice = std::dynamic_pointer_cast<JsdDeviceBase>(device);
-
-    jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
-    jsdDevice->SetSlaveId(slave_id);
-    jsdDevice->SetOffline(true);
-    jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
 
     jsd_device_list_.push_back(jsdDevice);
   }
