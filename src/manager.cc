@@ -55,7 +55,9 @@
 #include "fastcat/jsd/jed0200_offline.h"
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
+
 #include "jsd/jsd_print.h"
+#include "jsd/jsd_sdo_pub.h"
 
 fastcat::Manager::Manager()
 {
@@ -273,6 +275,23 @@ bool fastcat::Manager::Process()
 
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     jsd_write(it->second);
+  }
+
+  // for each JSD context, pop their queues and push them onto the single 
+  // fastcat queue
+  SdoResponse entry;
+  for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
+    while(jsd_sdo_pop_response_queue(it->second, &entry.response)){
+      
+      if(entry.response.slave_id < *(it->second->ecx_context.slavecount) ){
+        entry.device_name = it->second->slave_configs[entry.response.slave_id].name;
+      }else{
+          entry.device_name = "invalid name";
+      }
+      MSG("JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)", 
+              it->first.c_str(), entry.device_name.c_str(), entry.response.app_id);
+      sdo_response_queue_->push(entry);
+    }
   }
 
   return !faulted_;
