@@ -106,10 +106,6 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  // load pos file startup positions
-  if (!LoadActuatorPosFile()) {
-    return false;
-  }
 
   // Configure Buses
   YAML::Node buses_node;
@@ -147,11 +143,17 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
     }
   }
 
+
   SUCCESS("Added %lu devices to map", device_map_.size());
 
   MSG("JSD device list entries: ");
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
     MSG("\t%s", (*it)->GetName().c_str());
+  }
+
+  // load pos file startup positions
+  if (!LoadActuatorPosFile()) {
+    return false;
   }
 
   if (!ValidateActuatorPosFile()) {
