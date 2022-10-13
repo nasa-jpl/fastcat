@@ -504,6 +504,19 @@ fastcat::FaultType fastcat::Actuator::ProcessHolding()
     return ALL_DEVICE_FAULT;
   }
 
+  if (pos_actual_limits_defined_ &&
+      PosExceedsActualLimits(state_->actuator_state.actual_position)) {
+    // EgdHalt() will be called this cycle, but will take effect the next one.
+    // Shouldn't make much difference.
+    ERROR(
+        "Act %s: Actual position (%lf) is outside limits ([%lf, %lf]), "
+        "faulting. After reset, actuator can be moved back to within limits "
+        "with profile position command.",
+        name_.c_str(), state_->actuator_state.actual_position,
+        low_pos_actual_limit_eu_, high_pos_actual_limit_eu_);
+    return ALL_DEVICE_FAULT;
+  }
+
   if ((state_->time - last_transition_time_) > holding_duration_sec_) {
     EgdHalt();
     TransitionToState(ACTUATOR_SMS_HALTED);
@@ -515,6 +528,29 @@ fastcat::FaultType fastcat::Actuator::ProcessProfPos()
 {
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    return ALL_DEVICE_FAULT;
+  }
+
+  // There are two special instances in which the limits on actual position
+  // shall not be checked in ProcessProfPos:
+  // - Calibration. In addition to state ACTUATOR_SMS_PROF_POS, ProcessProfPos
+  // is also called in ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP. When in the latter the
+  // limits shall be ignored.
+  // - Ongoing Profile Position processing in which the target position (i.e.
+  // trap_.pos_fini) is within limits. This provides a mechanism to get the
+  // actuator back into nominal operation after a limit violation.
+  if (pos_actual_limits_defined_ &&
+      actuator_sms_ != ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP &&
+      PosExceedsActualLimits(state_->actuator_state.actual_position) &&
+      PosExceedsActualLimits(trap_.pos_fini)) {
+    // EgdHalt() will be called this cycle, but will take effect the next one.
+    // Shouldn't make much difference.
+    ERROR(
+        "Act %s: Actual position (%lf) is outside limits ([%lf, %lf]), "
+        "faulting. After reset, actuator can be moved back to within limits "
+        "with profile position command.",
+        name_.c_str(), state_->actuator_state.actual_position,
+        low_pos_actual_limit_eu_, high_pos_actual_limit_eu_);
     return ALL_DEVICE_FAULT;
   }
 
@@ -544,6 +580,19 @@ fastcat::FaultType fastcat::Actuator::ProcessProfVel()
     return ALL_DEVICE_FAULT;
   }
 
+  if (pos_actual_limits_defined_ &&
+      PosExceedsActualLimits(state_->actuator_state.actual_position)) {
+    // EgdHalt() will be called this cycle, but will take effect the next one.
+    // Shouldn't make much difference.
+    ERROR(
+        "Act %s: Actual position (%lf) is outside limits ([%lf, %lf]), "
+        "faulting. After reset, actuator can be moved back to within limits "
+        "with profile position command.",
+        name_.c_str(), state_->actuator_state.actual_position,
+        low_pos_actual_limit_eu_, high_pos_actual_limit_eu_);
+    return ALL_DEVICE_FAULT;
+  }
+
   jsd_egd_motion_command_csv_t jsd_cmd;
 
   double pos_eu, vel;
@@ -570,6 +619,19 @@ fastcat::FaultType fastcat::Actuator::ProcessProfTorque()
     return ALL_DEVICE_FAULT;
   }
 
+  if (pos_actual_limits_defined_ &&
+      PosExceedsActualLimits(state_->actuator_state.actual_position)) {
+    // EgdHalt() will be called this cycle, but will take effect the next one.
+    // Shouldn't make much difference.
+    ERROR(
+        "Act %s: Actual position (%lf) is outside limits ([%lf, %lf]), "
+        "faulting. After reset, actuator can be moved back to within limits "
+        "with profile position command.",
+        name_.c_str(), state_->actuator_state.actual_position,
+        low_pos_actual_limit_eu_, high_pos_actual_limit_eu_);
+    return ALL_DEVICE_FAULT;
+  }
+
   jsd_egd_motion_command_cst_t jsd_cmd;
 
   double dummy_pos_eu, current;
@@ -590,6 +652,19 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
 {
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    return ALL_DEVICE_FAULT;
+  }
+
+  if (pos_actual_limits_defined_ &&
+      PosExceedsActualLimits(state_->actuator_state.actual_position)) {
+    // EgdHalt() will be called this cycle, but will take effect the next one.
+    // Shouldn't make much difference.
+    ERROR(
+        "Act %s: Actual position (%lf) is outside limits ([%lf, %lf]), "
+        "faulting. After reset, actuator can be moved back to within limits "
+        "with profile position command.",
+        name_.c_str(), state_->actuator_state.actual_position,
+        low_pos_actual_limit_eu_, high_pos_actual_limit_eu_);
     return ALL_DEVICE_FAULT;
   }
 

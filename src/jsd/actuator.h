@@ -52,6 +52,7 @@ class Actuator : public DeviceBase
   bool VelExceedsCmdLimits(double vel_eu);
   bool AccExceedsCmdLimits(double vel_eu);
   bool CurrentExceedsCmdLimits(double current);
+  bool PosExceedsActualLimits(double pos_eu);
 
   void               RequestStateMachineState(ActuatorStateMachineState sms);
   void               TransitionToState(ActuatorStateMachineState sms);
@@ -114,8 +115,10 @@ class Actuator : public DeviceBase
   double torque_slope_amps_per_sec_     = 0;
   double low_pos_cal_limit_eu_          = 0;
   double low_pos_cmd_limit_eu_          = 0;
+  double low_pos_actual_limit_eu_       = 0.0;
   double high_pos_cmd_limit_eu_         = 0;
   double high_pos_cal_limit_eu_         = 0;
+  double high_pos_actual_limit_eu_      = 0.0;
   double holding_duration_sec_          = 0;
   double egd_brake_engage_msec_         = 0;
   double egd_brake_disengage_msec_      = 0;
@@ -146,6 +149,7 @@ class Actuator : public DeviceBase
                         jsd_egd_gain_scheduling_mode_t& gs_mode);
 
   bool prof_pos_hold_;
+  bool pos_actual_limits_defined_ = false;
 };
 
 }  // namespace fastcat
