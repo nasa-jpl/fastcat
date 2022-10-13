@@ -463,8 +463,8 @@ if fabs(f{x,y,z}) > max_force_{x,y,z}) then fault
   max_force_y:  25
   max_force_z:  100
   max_torque_x: 2
-  max_torque_x: 2
-  max_torque_x: 10
+  max_torque_y: 2
+  max_torque_z: 10
 ```
 
 This `calibration: 0` yields `SI-580-20` with units of Newtons and Newton-Meters. 
