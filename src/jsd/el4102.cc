@@ -58,6 +58,13 @@ fastcat::FaultType fastcat::El4102::Process()
 
 bool fastcat::El4102::Write(DeviceCmd& cmd)
 {
+
+  // If device supports async SDO requests
+  AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
+  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+    return (sdoResult == SDO_RET_VAL_SUCCESS);
+  }
+
   // The use of ERROR statements, which are not real-time safe, is deemed
   // acceptable in this function. Their execution would imply the existence of
   // a serious issue in the application's side that should be addressed.
@@ -69,7 +76,7 @@ bool fastcat::El4102::Write(DeviceCmd& cmd)
     }
 
     jsd_el4102_write_single_channel(
-        (jsd_t*)context_, slave_id_, ch - 1,
+        context_, slave_id_, ch - 1,
         cmd.el4102_write_channel_cmd.voltage_output);
 
   } else if (cmd.type == EL4102_WRITE_ALL_CHANNELS_CMD) {

@@ -934,7 +934,7 @@ The `SAW_TOOTH` signal generator output is computed as:
 
 
 
-## VirtualFtsRepeat 
+## VirtualFts
 
 | Parameter    | Description                                                  |
 | ------------ | ------------------------------------------------------------ |

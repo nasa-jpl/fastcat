@@ -27,6 +27,13 @@ fastcat::FaultType fastcat::El2124Offline::Process()
 
 bool fastcat::El2124Offline::Write(DeviceCmd& cmd)
 {
+
+  // If device supports async SDO requests
+  AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
+  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+    return (sdoResult == SDO_RET_VAL_SUCCESS);
+  }
+
   if (cmd.type == EL2124_WRITE_CHANNEL_CMD) {
     uint8_t ch = cmd.el2124_write_channel_cmd.channel;
     if (ch < 1 || ch > JSD_EL2124_NUM_CHANNELS) {

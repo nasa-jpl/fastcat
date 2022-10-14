@@ -70,6 +70,13 @@ fastcat::FaultType fastcat::Jed0101::Process()
 
 bool fastcat::Jed0101::Write(DeviceCmd& cmd)
 {
+
+  // If device supports async SDO requests
+  AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
+  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+    return (sdoResult == SDO_RET_VAL_SUCCESS);
+  }
+
   if (cmd.type == JED0101_SET_CMD_VALUE_CMD) {
     jsd_jed0101_set_cmd_value((jsd_t*)context_, slave_id_,
                           cmd.jed0101_set_cmd_value_cmd.cmd);

@@ -65,6 +65,8 @@ add_library(fastcat STATIC
     ${CMAKE_BINARY_DIR}/fastcat/autogen/signal_handling.cc
     transform_utils.cc
 
+    jsd/jsd_device_base.cc
+
     jsd/actuator.cc
     jsd/actuator_fsm_helpers.cc
     jsd/egd.cc

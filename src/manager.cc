@@ -55,11 +55,14 @@
 #include "fastcat/jsd/jed0200_offline.h"
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
+
 #include "jsd/jsd_print.h"
+#include "jsd/jsd_sdo_pub.h"
 
 fastcat::Manager::Manager()
 {
   cmd_queue_ = std::make_shared<std::queue<DeviceCmd>>();
+  sdo_response_queue_ = std::make_shared<std::queue<SdoResponse>>();
 }
 
 fastcat::Manager::~Manager()
@@ -105,10 +108,6 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  // load pos file startup positions
-  if (!LoadActuatorPosFile()) {
-    return false;
-  }
 
   // Configure Buses
   YAML::Node buses_node;
@@ -146,11 +145,17 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
     }
   }
 
+
   SUCCESS("Added %lu devices to map", device_map_.size());
 
   MSG("JSD device list entries: ");
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
     MSG("\t%s", (*it)->GetName().c_str());
+  }
+
+  // load pos file startup positions
+  if (!LoadActuatorPosFile()) {
+    return false;
   }
 
   if (!ValidateActuatorPosFile()) {
@@ -272,6 +277,23 @@ bool fastcat::Manager::Process()
     jsd_write(it->second);
   }
 
+  // for each JSD context, pop their queues and push them onto the single 
+  // fastcat queue
+  SdoResponse entry;
+  for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
+    while(jsd_sdo_pop_response_queue(it->second, &entry.response)){
+      
+      if(entry.response.slave_id < *(it->second->ecx_context.slavecount) ){
+        entry.device_name = it->second->slave_configs[entry.response.slave_id].name;
+      }else{
+          entry.device_name = "invalid name";
+      }
+      MSG("JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)", 
+              it->first.c_str(), entry.device_name.c_str(), entry.response.app_id);
+      sdo_response_queue_->push(entry);
+    }
+  }
+
   return !faulted_;
 }
 
@@ -344,7 +366,7 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
   JSDPair pair(ifname, jsd);
   jsd_map_.insert(pair);
 
-  std::shared_ptr<DeviceBase> device;
+  std::shared_ptr<DeviceBase>     device;
   uint16_t                    slave_id = 0;
 
   for (auto device_node = devices_node.begin();
@@ -407,9 +429,13 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
       return false;
     }
 
-    device->SetLoopPeriod(1.0 / target_loop_rate_hz_);
-    device->SetContext((void*)jsd);
-    device->SetSlaveId(slave_id);
+    // Now do JSD device specific things before configuring from Yaml
+    auto jsdDevice = std::dynamic_pointer_cast<JsdDeviceBase>(device);
+    jsdDevice->SetContext(jsd);
+    jsdDevice->SetSlaveId(slave_id);
+    jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
+    jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
+
     if (!device->ConfigFromYaml(*device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
@@ -422,7 +448,8 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
 
     DevicePair pair(device->GetName(), device);
     device_map_.insert(pair);
-    jsd_device_list_.push_back(device);
+
+    jsd_device_list_.push_back(jsdDevice);
   }
 
   return jsd_init(jsd, ifname.c_str(), enable_ar);
@@ -491,7 +518,6 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
       return false;
     }
 
-    device->SetLoopPeriod(1.0 / target_loop_rate_hz_);
     if (!device->ConfigFromYaml(*device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
@@ -591,8 +617,14 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
       return false;
     }
 
-    device->SetLoopPeriod(1.0 / target_loop_rate_hz_);
-    device->SetSlaveId(slave_id);
+    // Now do JSD device specific things
+    auto jsdDevice = std::dynamic_pointer_cast<JsdDeviceBase>(device);
+
+    jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
+    jsdDevice->SetSlaveId(slave_id);
+    jsdDevice->SetOffline(true);
+    jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
+
     if (!device->ConfigFromYaml(*device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
@@ -605,7 +637,8 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
     DevicePair pair(device->GetName(), device);
     device_map_.insert(pair);
-    jsd_device_list_.push_back(device);
+
+    jsd_device_list_.push_back(jsdDevice);
   }
 
   return true;
@@ -809,19 +842,19 @@ void fastcat::Manager::ExecuteAllDeviceResets()
 }
 
 bool fastcat::Manager::IsSdoResponseQueueEmpty(){
-  return sdo_response_queue_.empty();
+  return sdo_response_queue_->empty();
 }
 
 bool fastcat::Manager::PopSdoResponseQueue(SdoResponse& res){
-  if(sdo_response_queue_.empty()){
-    res.bus_name = "INVALID";
+  if(sdo_response_queue_->empty()){
+    res.device_name = "INVALID";
     res.response.success = false;
     res.response.app_id = 0;
     return false;
   }
 
-  res = sdo_response_queue_.front();
-  sdo_response_queue_.pop();
+  res = sdo_response_queue_->front();
+  sdo_response_queue_->pop();
 
   return true;
 }
@@ -922,6 +955,7 @@ bool fastcat::Manager::ValidateActuatorPosFile()
   }
 
   // Err if actuator is created by topology but no pos file entry exists
+  std::shared_ptr<Actuator>    actuator;
   std::shared_ptr<DeviceState> dev_state;
   std::string                  dev_name;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
@@ -932,9 +966,12 @@ bool fastcat::Manager::ValidateActuatorPosFile()
     if (dev_state->type != ACTUATOR_STATE) {
       continue;
     }
+
+    actuator = std::dynamic_pointer_cast<Actuator>(*device);
+
     auto find_pos_data = actuator_pos_map_.find(dev_name);
 
-    if ((*device)->actuator_absolute_encoder_ == true) {
+    if (actuator->HasAbsoluteEncoder()) {
       MSG("Actuator %s has absolute encoder so does not need saved position",
           dev_name.c_str());
       continue;
@@ -962,6 +999,7 @@ bool fastcat::Manager::ValidateActuatorPosFile()
 bool fastcat::Manager::SetActuatorPositions()
 {
   std::shared_ptr<DeviceState> dev_state;
+  std::shared_ptr<Actuator>    actuator;
   std::string                  dev_name;
 
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
@@ -973,7 +1011,10 @@ bool fastcat::Manager::SetActuatorPositions()
       continue;
     }
     
-    if ((*device)->actuator_absolute_encoder_ == true) {
+    actuator = std::dynamic_pointer_cast<Actuator>(*device);
+
+    if (actuator->HasAbsoluteEncoder()) {
+      MSG_DEBUG("Actuator (%s) has absolute encoder, ignoring saved positions", dev_name.c_str());
       continue;
     }
     
@@ -982,7 +1023,7 @@ bool fastcat::Manager::SetActuatorPositions()
     MSG("Setting actuator: %s to saved pos: %lf", dev_name.c_str(),
         find_pos_data->second.position);
 
-    if (!(*device)->SetOutputPosition(find_pos_data->second.position)) {
+    if (!actuator->SetOutputPosition(find_pos_data->second.position)) {
       ERROR("Failure on SetOutputPosition for device: %s", dev_name.c_str());
       return false;
     }
@@ -994,6 +1035,7 @@ bool fastcat::Manager::SetActuatorPositions()
 void fastcat::Manager::GetActuatorPositions()
 {
   std::shared_ptr<DeviceState> dev_state;
+  std::shared_ptr<Actuator>    actuator;
   std::string                  dev_name;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
        ++device) {
@@ -1004,7 +1046,9 @@ void fastcat::Manager::GetActuatorPositions()
       continue;
     }
 
-    if ((*device)->actuator_absolute_encoder_ == true) {
+    actuator = std::dynamic_pointer_cast<Actuator>(*device);
+
+    if (actuator->HasAbsoluteEncoder()) {
       continue;
     }
 

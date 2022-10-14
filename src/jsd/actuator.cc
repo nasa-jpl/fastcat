@@ -296,6 +296,13 @@ bool fastcat::Actuator::Read()
 
 bool fastcat::Actuator::Write(DeviceCmd& cmd)
 {
+
+  // If device supports async SDO requests
+  AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
+  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+    return (sdoResult == SDO_RET_VAL_SUCCESS);
+  }
+
   switch (cmd.type) {
     case ACTUATOR_CSP_CMD:
       if (!HandleNewCSPCmd(cmd)) {
@@ -521,6 +528,10 @@ bool fastcat::Actuator::SetOutputPosition(double position)
   egd_pos_offset_cnts_ =
       jsd_egd_state_.actual_position - (int32_t)(position * overall_reduction_);
   return true;
+}
+
+bool fastcat::Actuator::HasAbsoluteEncoder(){
+  return actuator_absolute_encoder_;
 }
 
 double fastcat::Actuator::CntsToEu(int32_t cnts)

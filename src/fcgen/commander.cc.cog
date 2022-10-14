@@ -23,6 +23,8 @@ cog.outl('// Please make modifications to fcgen/commander.cc.cog')
 #include <unordered_map>
 
 // Include external then project includes
+#include "jsd/jsd_types.h"
+
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd_print.h"
@@ -74,6 +76,8 @@ bool fastcat::Commander::ConfigFromYaml(YAML::Node node)
 
     [[[cog
     for cmd in data['commands']:
+      if cmd['name'] == "async_sdo_write" or cmd['name'] == "async_sdo_read":
+        continue
       cog.outl('case %s_CMD:' % cmd['name'].upper())
       cog.outl('  if (signals_.size() != %d) {' % len(cmd['fields']))
       cog.outl('    ERROR("Received %s signals when expecting %d for command type %sCmd", signals_.size());' % ('%lu', len(cmd['fields']), snake2camel(cmd['name'])))
@@ -141,6 +145,8 @@ bool fastcat::Commander::Read()
 
       [[[cog
       for cmd in data['commands']:
+        if cmd['name'] == "async_sdo_write" or cmd['name'] == "async_sdo_read":
+          continue
         cog.outl("case %s_CMD:" % cmd['name'].upper())
         cog.out("  ");
         for field in cmd['fields']:
