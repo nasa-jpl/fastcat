@@ -54,7 +54,7 @@ find_package(YamlCpp REQUIRED 0.6.3)
 include(FetchContent)
 FetchContent_Declare(jsd
     GIT_REPOSITORY https://github.com/nasa-jpl/jsd.git
-    GIT_TAG alex-fault-codes
+    GIT_TAG v1.9.0
     )
 FetchContent_MakeAvailable(jsd)
 
