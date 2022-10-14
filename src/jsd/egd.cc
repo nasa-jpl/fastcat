@@ -44,18 +44,22 @@ bool fastcat::Egd::Read()
   state_->egd_state.cmd_ff_current  = jsd_egd_state_.cmd_ff_current;
 
   state_->egd_state.actual_state_machine_state =
-      jsd_egd_state_.actual_state_machine_state;
+      static_cast<uint32_t>(jsd_egd_state_.actual_state_machine_state);
   state_->egd_state.actual_mode_of_operation =
-      jsd_egd_state_.actual_mode_of_operation;
+      static_cast<uint32_t>(jsd_egd_state_.actual_mode_of_operation);
 
-  state_->egd_state.async_sdo_in_prog    = jsd_egd_state_.async_sdo_in_prog;
   state_->egd_state.sto_engaged          = jsd_egd_state_.sto_engaged;
   state_->egd_state.hall_state           = jsd_egd_state_.hall_state;
   state_->egd_state.in_motion            = jsd_egd_state_.in_motion;
   state_->egd_state.warning              = jsd_egd_state_.warning;
   state_->egd_state.target_reached       = jsd_egd_state_.target_reached;
   state_->egd_state.motor_on             = jsd_egd_state_.motor_on;
-  state_->egd_state.fault_code           = jsd_egd_state_.fault_code;
+  state_->egd_state.servo_enabled        = jsd_egd_state_.servo_enabled;
+
+  state_->egd_state.emcy_error_code = jsd_egd_state_.emcy_error_code;
+  state_->egd_state.fault_code = 
+    static_cast<uint32_t>(jsd_egd_state_.fault_code);
+
   state_->egd_state.bus_voltage          = jsd_egd_state_.bus_voltage;
   state_->egd_state.analog_input_voltage = jsd_egd_state_.analog_input_voltage;
   state_->egd_state.digital_input_ch1    = jsd_egd_state_.digital_inputs[0];
@@ -80,7 +84,7 @@ bool fastcat::Egd::Read()
 
   state_->egd_state.drive_temperature = jsd_egd_state_.drive_temperature;
 
-  state_->egd_state.faulted = (jsd_egd_state_.fault_code == JSD_EGD_FAULT_OKAY);
+  state_->egd_state.faulted = (jsd_egd_state_.fault_code != JSD_EGD_FAULT_OKAY);
 
   return true;
 }
@@ -318,27 +322,43 @@ bool fastcat::Egd::WriteProfiledMode(DeviceCmd& cmd)
     case EGD_SDO_SET_DRIVE_POS_CMD: {
       jsd_egd_async_sdo_set_drive_position(
           (jsd_t*)context_, slave_id_,
-          cmd.egd_sdo_set_drive_pos_cmd.drive_position);
+          cmd.egd_sdo_set_drive_pos_cmd.drive_position,
+          cmd.egd_sdo_set_drive_pos_cmd.app_id);
       break;
     }
     case EGD_SDO_SET_UNIT_MODE_CMD: {
-      jsd_egd_async_sdo_set_unit_mode((jsd_t*)context_, slave_id_,
-                                      cmd.egd_sdo_set_unit_mode_cmd.unit_mode);
+      jsd_egd_async_sdo_set_unit_mode(
+          (jsd_t*)context_, slave_id_,
+          cmd.egd_sdo_set_unit_mode_cmd.unit_mode,
+          cmd.egd_sdo_set_unit_mode_cmd.app_id);
       break;
     }
     case EGD_SDO_DISABLE_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED);
+          (jsd_t*)context_, slave_id_, 
+          JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED,
+          cmd.egd_sdo_disable_gain_scheduling_cmd.app_id);
       break;
     }
     case EGD_SDO_ENABLE_SPEED_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_SPEED);
+          (jsd_t*)context_, slave_id_, 
+          JSD_EGD_GAIN_SCHEDULING_MODE_SPEED,
+          cmd.egd_sdo_enable_speed_gain_scheduling_cmd.app_id);
       break;
     }
     case EGD_SDO_ENABLE_POSITION_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_POSITION);
+          (jsd_t*)context_, slave_id_, 
+          JSD_EGD_GAIN_SCHEDULING_MODE_POSITION,
+          cmd.egd_sdo_enable_position_gain_scheduling_cmd.app_id);
+      break;
+    }
+    case EGD_SDO_ENABLE_MANUAL_GAIN_SCHEDULING_CMD: {
+      jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
+          (jsd_t*)context_, slave_id_, 
+          JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW,
+          cmd.egd_sdo_enable_position_gain_scheduling_cmd.app_id);
       break;
     }
     default: {
@@ -396,32 +416,43 @@ bool fastcat::Egd::WriteCSMode(DeviceCmd& cmd)
     case EGD_SDO_SET_DRIVE_POS_CMD: {
       jsd_egd_async_sdo_set_drive_position(
           (jsd_t*)context_, slave_id_,
-          cmd.egd_sdo_set_drive_pos_cmd.drive_position);
+          cmd.egd_sdo_set_drive_pos_cmd.drive_position,
+          cmd.egd_sdo_set_drive_pos_cmd.app_id);
       break;
     }
     case EGD_SDO_SET_UNIT_MODE_CMD: {
-      jsd_egd_async_sdo_set_unit_mode((jsd_t*)context_, slave_id_,
-                                      cmd.egd_sdo_set_unit_mode_cmd.unit_mode);
+      jsd_egd_async_sdo_set_unit_mode(
+          (jsd_t*)context_, slave_id_,
+          cmd.egd_sdo_set_unit_mode_cmd.unit_mode,
+          cmd.egd_sdo_set_unit_mode_cmd.app_id);
       break;
     }
     case EGD_SDO_DISABLE_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED);
+          (jsd_t*)context_, slave_id_, 
+          JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED,
+          cmd.egd_sdo_disable_gain_scheduling_cmd.app_id);
       break;
     }
     case EGD_SDO_ENABLE_SPEED_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_SPEED);
+          (jsd_t*)context_, slave_id_, 
+          JSD_EGD_GAIN_SCHEDULING_MODE_SPEED,
+          cmd.egd_sdo_enable_speed_gain_scheduling_cmd.app_id);
       break;
     }
     case EGD_SDO_ENABLE_POSITION_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_POSITION);
+          (jsd_t*)context_, slave_id_, 
+          JSD_EGD_GAIN_SCHEDULING_MODE_POSITION,
+          cmd.egd_sdo_enable_position_gain_scheduling_cmd.app_id);
       break;
     }
     case EGD_SDO_ENABLE_MANUAL_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          (jsd_t*)context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW);
+          (jsd_t*)context_, slave_id_, 
+          JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW,
+          cmd.egd_sdo_enable_position_gain_scheduling_cmd.app_id);
       break;
     }
     default: {

@@ -45,14 +45,15 @@ void fastcat::ActuatorOffline::EgdSetPeakCurrent(double /* current */)
   // no-op
 }
 
-void fastcat::ActuatorOffline::EgdSetUnitMode(int32_t mode)
+void fastcat::ActuatorOffline::EgdSetUnitMode(int32_t mode, uint16_t app_id)
 {
-  MSG("Commanding new UM[1] = %d", mode);
+  MSG("Commanding new UM[1] = %d app_id = %u", mode, app_id);
   // no-op
 }
 
 void fastcat::ActuatorOffline::EgdSetGainSchedulingMode(
-    jsd_egd_gain_scheduling_mode_t /* mode */)
+    jsd_egd_gain_scheduling_mode_t /* mode */,
+    uint16_t /* app_id */)
 {
   // no-op
 }

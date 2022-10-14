@@ -91,11 +91,11 @@ class Actuator : public DeviceBase
   virtual void EgdReset();
   virtual void EgdHalt();
   virtual void EgdSetPeakCurrent(double current);
-  virtual void EgdSetUnitMode(int32_t mode);
+  virtual void EgdSetUnitMode(int32_t mode, uint16_t app_id);
   virtual void EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd);
   virtual void EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd);
   virtual void EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd);
-  virtual void EgdSetGainSchedulingMode(jsd_egd_gain_scheduling_mode_t mode);
+  virtual void EgdSetGainSchedulingMode(jsd_egd_gain_scheduling_mode_t mode, uint16_t app_id);
   virtual void EgdSetGainSchedulingIndex(uint16_t index);
 
   std::string  actuator_type_str_;

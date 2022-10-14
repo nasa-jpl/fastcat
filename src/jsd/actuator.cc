@@ -249,26 +249,32 @@ bool fastcat::Actuator::Read()
   state_->actuator_state.cmd_max_current = jsd_egd_state_.cmd_max_current;
 
   state_->actuator_state.egd_state_machine_state =
-      jsd_egd_state_.actual_state_machine_state;
+      static_cast<uint32_t>(jsd_egd_state_.actual_state_machine_state);
   state_->actuator_state.egd_mode_of_operation =
-      jsd_egd_state_.actual_mode_of_operation;
+      static_cast<uint32_t>(jsd_egd_state_.actual_mode_of_operation);
 
-  state_->actuator_state.sto_engaged       = jsd_egd_state_.sto_engaged;
-  state_->actuator_state.hall_state        = jsd_egd_state_.hall_state;
-  state_->actuator_state.target_reached    = jsd_egd_state_.target_reached;
-  state_->actuator_state.motor_on          = jsd_egd_state_.motor_on;
+  state_->actuator_state.sto_engaged    = jsd_egd_state_.sto_engaged;
+  state_->actuator_state.hall_state     = jsd_egd_state_.hall_state;
+  state_->actuator_state.target_reached = jsd_egd_state_.target_reached;
+  state_->actuator_state.motor_on       = jsd_egd_state_.motor_on;
+  state_->actuator_state.servo_enabled  = jsd_egd_state_.servo_enabled;
+
   state_->actuator_state.faulted =
-      (jsd_egd_state_.fault_code == JSD_EGD_FAULT_OKAY);
-  state_->actuator_state.fault_code        = jsd_egd_state_.fault_code;
+      (jsd_egd_state_.fault_code != JSD_EGD_FAULT_OKAY);
+  state_->actuator_state.fault_code = 
+    static_cast<uint32_t>(jsd_egd_state_.fault_code);
+  state_->actuator_state.emcy_error_code   = jsd_egd_state_.emcy_error_code;
+
   state_->actuator_state.bus_voltage       = jsd_egd_state_.bus_voltage;
   state_->actuator_state.drive_temperature = jsd_egd_state_.drive_temperature;
+
   state_->actuator_state.actuator_state_machine_state =
-      static_cast<int>(actuator_sms_);
+      static_cast<uint32_t>(actuator_sms_);
 
   if (compute_power_) {
     double motor_velocity =
       fabs(state_->actuator_state.actual_velocity) *
-      gear_ratio *
+      gear_ratio_ *
       motor_encoder_gear_ratio_;
     
     double current = fabs(jsd_egd_state_.actual_current);
@@ -366,7 +372,7 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       EgdSetPeakCurrent(peak_current_limit_amps_);
       break;
 
-    case ACTUATOR_SET_UNIT_MODE_CMD:
+    case ACTUATOR_SDO_SET_UNIT_MODE_CMD:
       if (!HandleNewSetUnitModeCmd(cmd)) {
         ERROR("Failed to handle Set Unit Mode Command");
         return false;
@@ -378,7 +384,9 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle SDO Disable Gain Scheduling Command");
         return false;
       }
-      EgdSetGainSchedulingMode(JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED);
+      EgdSetGainSchedulingMode(
+          JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED,
+          cmd.actuator_sdo_disable_gain_scheduling_cmd.app_id);
       break;
     }
 
@@ -387,7 +395,9 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle SDO Enable Speed Gain Scheduling Command");
         return false;
       }
-      EgdSetGainSchedulingMode(JSD_EGD_GAIN_SCHEDULING_MODE_SPEED);
+      EgdSetGainSchedulingMode(
+          JSD_EGD_GAIN_SCHEDULING_MODE_SPEED,
+          cmd.actuator_sdo_enable_speed_gain_scheduling_cmd.app_id);
       break;
     }
 
@@ -396,7 +406,9 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle SDO Enable Position Gain Scheduling Command");
         return false;
       }
-      EgdSetGainSchedulingMode(JSD_EGD_GAIN_SCHEDULING_MODE_POSITION);
+      EgdSetGainSchedulingMode(
+          JSD_EGD_GAIN_SCHEDULING_MODE_POSITION,
+          cmd.actuator_sdo_enable_position_gain_scheduling_cmd.app_id);
       break;
     }
 
@@ -405,7 +417,9 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle SDO Enable Manual Gain Scheduling Command");
         return false;
       }
-      EgdSetGainSchedulingMode(JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW);
+      EgdSetGainSchedulingMode(
+          JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW, 
+          cmd.actuator_sdo_enable_manual_gain_scheduling_cmd.app_id);
       break;
     }
 
@@ -414,7 +428,7 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle Set Gain Scheduling Index Command");
         return false;
       }
-      EgdSetGainSchedulingIndex(
+      EgdSetGainSchedulingIndex( 
           cmd.actuator_set_gain_scheduling_index_cmd.gain_scheduling_index);
       break;
     }
@@ -666,10 +680,10 @@ void fastcat::Actuator::EgdSetPeakCurrent(double current)
   jsd_egd_set_peak_current((jsd_t*)context_, slave_id_, current);
 }
 
-void fastcat::Actuator::EgdSetUnitMode(int32_t mode)
+void fastcat::Actuator::EgdSetUnitMode(int32_t mode, uint16_t app_id)
 {
-  MSG("Commanding new UM[1] = %d", mode);
-  jsd_egd_async_sdo_set_unit_mode((jsd_t*)context_, slave_id_, mode);
+  MSG("Commanding new UM[1] = %d app_id = %u", mode, app_id);
+  jsd_egd_async_sdo_set_unit_mode((jsd_t*)context_, slave_id_, mode, app_id);
 }
 
 void fastcat::Actuator::EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd)
@@ -688,15 +702,17 @@ void fastcat::Actuator::EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd)
 }
 
 void fastcat::Actuator::EgdSetGainSchedulingMode(
-    jsd_egd_gain_scheduling_mode_t mode)
+    jsd_egd_gain_scheduling_mode_t mode, 
+    uint16_t app_id)
 {
-  jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode((jsd_t*)context_, slave_id_,
-                                                  mode);
+  jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
+      (jsd_t*)context_, slave_id_, mode, app_id);
 }
 
 void fastcat::Actuator::EgdSetGainSchedulingIndex(uint16_t index)
 {
-  jsd_egd_set_gain_scheduling_index((jsd_t*)context_, slave_id_, true, index);
+  jsd_egd_set_gain_scheduling_index(
+      (jsd_t*)context_, slave_id_, true, index);
 }
 
 bool fastcat::Actuator::GSModeFromString(

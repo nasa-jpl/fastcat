@@ -352,7 +352,9 @@ bool fastcat::Actuator::HandleNewSetUnitModeCmd(DeviceCmd& cmd)
       return false;
   }
 
-  EgdSetUnitMode(cmd.actuator_set_unit_mode_cmd.mode);
+  EgdSetUnitMode(
+      cmd.actuator_sdo_set_unit_mode_cmd.mode,
+      cmd.actuator_sdo_set_unit_mode_cmd.app_id);
 
   return true;
 }

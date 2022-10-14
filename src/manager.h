@@ -137,6 +137,21 @@ class Manager
    */
   void ExecuteAllDeviceFaults();
 
+  /** @brief checks if the SdoResponse Queue is empty
+   *  @return if queue is empty
+   */
+  bool IsSdoResponseQueueEmpty();
+
+  /** @brief get the result of a background SDO operation 
+   *
+   *  If the SDO Response queue contains any responses, this function pops the 
+   *  oldest value and returns it to the application.
+   *
+   *  @return true if the return reference 'res' is valid
+   */
+  bool PopSdoResponseQueue(SdoResponse& res);
+
+
  private:
   bool ConfigJSDBusFromYaml(YAML::Node node);
   bool ConfigFastcatBusFromYaml(YAML::Node node);
@@ -169,6 +184,7 @@ class Manager
   std::vector<DeviceState>                           states_;
   std::map<std::string, ActuatorPosData>             actuator_pos_map_;
   std::unordered_map<std::string, bool>              unique_device_map_;
+  std::queue<SdoResponse>                            sdo_response_queue_;
 };
 }  // namespace fastcat
 
