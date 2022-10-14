@@ -52,7 +52,6 @@ fastcat::JsdDeviceBase::AsyncSdoRetVal fastcat::JsdDeviceBase::WriteAsyncSdoRequ
 }
 
 fastcat::JsdDeviceBase::AsyncSdoRetVal fastcat::JsdDeviceBase::WriteAsyncSdoRequestOnline(DeviceCmd& cmd){
-  MSG("fastcat::WriteAsyncSdoRequestOnline");
 
   AsyncSdoRetVal retval = SDO_RET_VAL_NOT_APPLICABLE;
 
@@ -88,8 +87,6 @@ fastcat::JsdDeviceBase::AsyncSdoRetVal fastcat::JsdDeviceBase::WriteAsyncSdoRequ
 
 fastcat::JsdDeviceBase::AsyncSdoRetVal fastcat::JsdDeviceBase::WriteAsyncSdoRequestOffline(DeviceCmd& cmd){
 
-  MSG("fastcat::WriteAsyncSdoRequestOffline");
-
   AsyncSdoRetVal retval = SDO_RET_VAL_NOT_APPLICABLE;
 
   SdoResponse resp;
@@ -108,7 +105,6 @@ fastcat::JsdDeviceBase::AsyncSdoRetVal fastcat::JsdDeviceBase::WriteAsyncSdoRequ
     // since these are simulated...
     resp.response.success = true;
 
-    MSG("pushing simulated SDO response onto queue...");
     sdo_response_queue_->push(resp);
     retval = SDO_RET_VAL_SUCCESS;
 
@@ -126,7 +122,6 @@ fastcat::JsdDeviceBase::AsyncSdoRetVal fastcat::JsdDeviceBase::WriteAsyncSdoRequ
     // since these are simulated...
     resp.response.success = true;
 
-    MSG("pushing simulated SDO response onto queue...");
     sdo_response_queue_->push(resp);
     retval = SDO_RET_VAL_SUCCESS;
   }
