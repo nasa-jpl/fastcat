@@ -55,7 +55,9 @@
 #include "fastcat/jsd/jed0200_offline.h"
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
+
 #include "jsd/jsd_print.h"
+#include "jsd/jsd_sdo_pub.h"
 
 fastcat::Manager::Manager()
 {
@@ -106,10 +108,6 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  // load pos file startup positions
-  if (!LoadActuatorPosFile()) {
-    return false;
-  }
 
   // Configure Buses
   YAML::Node buses_node;
@@ -147,11 +145,17 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
     }
   }
 
+
   SUCCESS("Added %lu devices to map", device_map_.size());
 
   MSG("JSD device list entries: ");
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
     MSG("\t%s", (*it)->GetName().c_str());
+  }
+
+  // load pos file startup positions
+  if (!LoadActuatorPosFile()) {
+    return false;
   }
 
   if (!ValidateActuatorPosFile()) {
@@ -271,6 +275,23 @@ bool fastcat::Manager::Process()
 
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     jsd_write(it->second);
+  }
+
+  // for each JSD context, pop their queues and push them onto the single 
+  // fastcat queue
+  SdoResponse entry;
+  for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
+    while(jsd_sdo_pop_response_queue(it->second, &entry.response)){
+      
+      if(entry.response.slave_id < *(it->second->ecx_context.slavecount) ){
+        entry.device_name = it->second->slave_configs[entry.response.slave_id].name;
+      }else{
+          entry.device_name = "invalid name";
+      }
+      MSG("JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)", 
+              it->first.c_str(), entry.device_name.c_str(), entry.response.app_id);
+      sdo_response_queue_->push(entry);
+    }
   }
 
   return !faulted_;
@@ -408,6 +429,13 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
       return false;
     }
 
+    // Now do JSD device specific things before configuring from Yaml
+    auto jsdDevice = std::dynamic_pointer_cast<JsdDeviceBase>(device);
+    jsdDevice->SetContext(jsd);
+    jsdDevice->SetSlaveId(slave_id);
+    jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
+    jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
+
     if (!device->ConfigFromYaml(*device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
@@ -420,14 +448,6 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
 
     DevicePair pair(device->GetName(), device);
     device_map_.insert(pair);
-
-    // Now do JSD device specific things
-    auto jsdDevice = std::dynamic_pointer_cast<JsdDeviceBase>(device);
-
-    jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
-    jsdDevice->SetContext(jsd);
-    jsdDevice->SetSlaveId(slave_id);
-    jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
 
     jsd_device_list_.push_back(jsdDevice);
   }
@@ -597,6 +617,14 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
       return false;
     }
 
+    // Now do JSD device specific things
+    auto jsdDevice = std::dynamic_pointer_cast<JsdDeviceBase>(device);
+
+    jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
+    jsdDevice->SetSlaveId(slave_id);
+    jsdDevice->SetOffline(true);
+    jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
+
     if (!device->ConfigFromYaml(*device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
@@ -609,14 +637,6 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
     DevicePair pair(device->GetName(), device);
     device_map_.insert(pair);
-
-    // Now do JSD device specific things
-    auto jsdDevice = std::dynamic_pointer_cast<JsdDeviceBase>(device);
-
-    jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
-    jsdDevice->SetSlaveId(slave_id);
-    jsdDevice->SetOffline(true);
-    jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
 
     jsd_device_list_.push_back(jsdDevice);
   }
