@@ -109,6 +109,7 @@ add_library(fastcat STATIC
     fastcat_devices/fts.cc
     fastcat_devices/virtual_fts.cc
     fastcat_devices/faulter.cc
+    fastcat_devices/linear_interpolation.cc
     )
 
 target_include_directories(
