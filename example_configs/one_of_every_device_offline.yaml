@@ -1,5 +1,5 @@
 fastcat:
-  target_loop_rate_hz:                1000
+  target_loop_rate_hz:                100
   zero_latency_required:              True
   actuator_position_directory:        /tmp/
   actuator_fault_on_missing_pos_file: False
@@ -53,8 +53,8 @@ buses:
       high_pos_cmd_limit_eu:            3.14159
       high_pos_cal_limit_eu:            3.2 
       holding_duration_sec:            3.0 # chosen arbitrarily
-      egd_brake_engage_msec:           5
-      egd_brake_disengage_msec:        10
+      egd_brake_engage_msec:           500 
+      egd_brake_disengage_msec:        1000
       egd_crc:                         12345
       egd_drive_max_current_limit:     10 # amps
       smooth_factor:                   0 # default value is 0

@@ -28,6 +28,9 @@ class ActuatorOffline : public Actuator
   void EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd) override;
   void EgdSetGainSchedulingMode(jsd_egd_gain_scheduling_mode_t mode, uint16_t app_id) override;
   void EgdSetGainSchedulingIndex(uint16_t index) override;
+
+  double motor_on_start_time_;
+  uint8_t last_motor_on_state_;
 };
 
 }  // namespace fastcat

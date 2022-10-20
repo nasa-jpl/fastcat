@@ -14,6 +14,7 @@ fastcat::ActuatorOffline::ActuatorOffline()
   MSG_DEBUG("Constructed ActuatorOffline");
 
   memset(&jsd_egd_state_, 0, sizeof(jsd_egd_state_t));
+  motor_on_start_time_ = jsd_get_time_sec();
 }
 
 void fastcat::ActuatorOffline::EgdRead()
@@ -27,7 +28,39 @@ void fastcat::ActuatorOffline::EgdSetConfig()
 }
 void fastcat::ActuatorOffline::EgdProcess()
 {
-  // no-op
+  switch (actuator_sms_) {
+    case ACTUATOR_SMS_FAULTED:
+    case ACTUATOR_SMS_HALTED:
+      jsd_egd_state_.motor_on = 0;
+      jsd_egd_state_.servo_enabled = 0;
+      break;
+
+    case ACTUATOR_SMS_HOLDING:
+    case ACTUATOR_SMS_PROF_POS:
+    case ACTUATOR_SMS_PROF_VEL:
+    case ACTUATOR_SMS_PROF_TORQUE:
+    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
+    case ACTUATOR_SMS_CAL_AT_HARDSTOP:
+    case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
+    default:
+      jsd_egd_state_.motor_on = 1;
+      break;
+  }
+
+  // reset motor_on timer on rising edge
+  if(!last_motor_on_state_ and jsd_egd_state_.motor_on){
+    motor_on_start_time_ = jsd_get_time_sec();
+  }
+  last_motor_on_state_ = jsd_egd_state_.motor_on;
+
+  // 
+  if(!jsd_egd_state_.servo_enabled and jsd_egd_state_.motor_on){
+    double brake_on_dur = jsd_get_time_sec() - motor_on_start_time_;
+    if(brake_on_dur > egd_brake_disengage_msec_/1000.0){
+      jsd_egd_state_.servo_enabled = 1;
+    }
+  }
 }
 
 void fastcat::ActuatorOffline::EgdReset()

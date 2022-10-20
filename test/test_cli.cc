@@ -127,6 +127,9 @@ void print_header(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%s_target_reached, ", state->name.c_str());
         fprintf(file, "%s_egd_actual_position, ", state->name.c_str());
         fprintf(file, "%s_egd_cmd_position, ", state->name.c_str());
+
+        fprintf(file, "%s_motor_on, ",  state->name.c_str());
+        fprintf(file, "%s_servo_enabled, ", state->name.c_str());
         break;
       default:
         break;
@@ -250,6 +253,9 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
 
         fprintf(file, "%i, ", state->actuator_state.egd_actual_position);
         fprintf(file, "%i, ", state->actuator_state.egd_cmd_position);
+
+        fprintf(file, "%u, ", state->actuator_state.motor_on);
+        fprintf(file, "%u, ", state->actuator_state.servo_enabled);
         break;
       default:
         break;
