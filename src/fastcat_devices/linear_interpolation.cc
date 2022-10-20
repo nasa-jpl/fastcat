@@ -116,19 +116,19 @@ bool fastcat::LinearInterpolation::Read() {
   double range_min = domain_range_.front().second;
   double range_max = domain_range_.back().second;
 
-  bool is_out_of_domain = false;
+  state_->linear_interpolation_state.is_saturated = false;
 
   // Check if the input signal is off the interp table
   if(signal_value < domain_min){
     state_->linear_interpolation_state.output = range_min;
-    is_out_of_domain = true;
+    state_->linear_interpolation_state.is_saturated = true;
 
   }else if(signal_value > domain_max){
     state_->linear_interpolation_state.output = range_max;
-    is_out_of_domain = true;
+    state_->linear_interpolation_state.is_saturated = true;
   }
 
-  if(is_out_of_domain) {
+  if(state_->linear_interpolation_state.is_saturated){
 
     // only return false to indicate a NEW fault condition
     if(enable_out_of_bounds_fault_ and (not device_fault_active_)) {

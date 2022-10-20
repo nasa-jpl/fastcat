@@ -25,6 +25,8 @@
 #include "fastcat/fastcat_devices/schmitt_trigger.h"
 #include "fastcat/fastcat_devices/signal_generator.h"
 #include "fastcat/fastcat_devices/virtual_fts.h"
+#include "fastcat/fastcat_devices/linear_interpolation.h"
+
 #include "fastcat/jsd/actuator.h"
 #include "fastcat/jsd/actuator_offline.h"
 #include "fastcat/jsd/ati_fts.h"
@@ -53,6 +55,7 @@
 #include "fastcat/jsd/jed0101_offline.h"
 #include "fastcat/jsd/jed0200.h"
 #include "fastcat/jsd/jed0200_offline.h"
+
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
 
@@ -512,6 +515,9 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("Faulter")) {
       device = std::make_shared<Faulter>();
+
+    } else if (0 == device_class.compare("LinearInterpolation")) {
+      device = std::make_shared<LinearInterpolation>();
 
     } else {
       ERROR("Unknown device_class: %s", device_class.c_str());
