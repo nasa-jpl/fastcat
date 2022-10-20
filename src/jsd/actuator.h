@@ -17,8 +17,11 @@ typedef enum {
   ACTUATOR_SMS_HALTED,
   ACTUATOR_SMS_HOLDING,
   ACTUATOR_SMS_PROF_POS,
+  ACTUATOR_SMS_PROF_POS_DISENGAGING,
   ACTUATOR_SMS_PROF_VEL,
+  ACTUATOR_SMS_PROF_VEL_DISENGAGING,
   ACTUATOR_SMS_PROF_TORQUE,
+  ACTUATOR_SMS_PROF_TORQUE_DISENGAGING,
   ACTUATOR_SMS_CS,
   ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP,
   ACTUATOR_SMS_CAL_AT_HARDSTOP,
@@ -85,6 +88,9 @@ class Actuator : public JsdDeviceBase
   FaultType ProcessCalMoveToHardstop();
   FaultType ProcessCalAtHardstop();
   FaultType ProcessCalMoveToSoftstop();
+  FaultType ProcessProfPosDisengaging();
+  FaultType ProcessProfVelDisengaging();
+  FaultType ProcessProfTorqueDisengaging();
 
   virtual void EgdRead();
   virtual void EgdSetConfig();
@@ -132,6 +138,7 @@ class Actuator : public JsdDeviceBase
 
   jsd_slave_config_t jsd_slave_config_;
   jsd_egd_state_t    jsd_egd_state_;
+  DeviceCmd          last_cmd_;
 
   ActuatorStateMachineState actuator_sms_;
   double                    last_transition_time_;
