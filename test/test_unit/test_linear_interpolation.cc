@@ -5,6 +5,8 @@
 #include "fastcat/fastcat_devices/linear_interpolation.h"
 #include "fastcat/signal_handling.h"
 
+#include "jsd/jsd_print.h"
+
 namespace
 {
 class LinearInterpolationTest : public ::testing::Test
@@ -49,36 +51,102 @@ TEST_F(LinearInterpolationTest, InvalidNoSignals) {
   EXPECT_FALSE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_+"invalid_7.yaml")));
 }
 
-TEST_F(LinearInterpolationTest, ValidSquared) {
-  EXPECT_FALSE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_+"valid_squared.yaml")));
-
-  EXPECT_FALSE(device_.Read()); // off the interp table
-  device_.Reset();
-
-  device_.signals_[0].value = 10;
-  EXPECT_FALSE(device_.Read()); // off the interp table
-  device_.Reset();
+TEST_F(LinearInterpolationTest, ValidAbs) {
+  EXPECT_TRUE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_+"valid_abs.yaml")));
+  // This table is valid from -30 to +20 and should be a perfect fabs function 
+  // in this range.
 
   auto state = device_.GetState();
+  double *output = &state->linear_interpolation_state.output;
+  double *input = &device_.signals_[0].value;
 
-  device_.signals_[0].value = 1.5;
-  EXPECT_TRUE(device_.Read()); 
-  EXPECT_NEAR(state->linear_interpolation_state.output, pow(1.5, 2), 1.0);
-  
-  device_.signals_[0].value = 2.5;
-  EXPECT_TRUE(device_.Read()); 
-  EXPECT_NEAR(state->linear_interpolation_state.output, pow(2.5, 2), 1.0);
+  *input = -100;
+  EXPECT_FALSE(device_.Read()); // off the interp table
+  EXPECT_NEAR(*output, 30, 1e-12);
+  device_.Reset();
 
-  device_.signals_[0].value = 3.5;
-  EXPECT_TRUE(device_.Read()); 
-  EXPECT_NEAR(state->linear_interpolation_state.output, pow(3.5, 2), 1.0);
-
-  device_.signals_[0].value = 4.5;
-  EXPECT_TRUE(device_.Read()); 
-  EXPECT_NEAR(state->linear_interpolation_state.output, pow(4.5, 2), 1.0);
+  *input = 100;
+  EXPECT_FALSE(device_.Read()); // off the interp table
+  EXPECT_NEAR(*output, 20, 1e-12);
+  device_.Reset();
 
 
+  // Test nominal ranges
+  double step = 1.5;
+  *input = -15;
+  while(*input < 15){
+    *input += step;
+    EXPECT_TRUE(device_.Read()); 
+    EXPECT_NEAR(*output, fabs(*input), 1e-12);
+    MSG("testing fabs(%lf) = %lf ", *input, *output);
+  }
+
+  // finer-grained
+  step = 0.001;
+  *input = -30;
+  while(*input < (20 - step)){
+    *input += step;
+    EXPECT_TRUE(device_.Read()); 
+    EXPECT_NEAR(*output, fabs(*input), 1e-12);
+  }
 }
 
+
+TEST_F(LinearInterpolationTest, ValidAbsDecadeTests) {
+  EXPECT_TRUE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_+"valid_abs_no_error.yaml")));
+  // This table is valid from -30 to +20 and should be a perfect fabs function 
+  // in this range.
+
+  auto state = device_.GetState();
+  double *output = &state->linear_interpolation_state.output;
+  double *input = &device_.signals_[0].value;
+
+  // the val here increases logarithimically like so:
+  //      v--- start here since (i=-4) 
+  // 0.0001
+  // 0.0002
+  // ...
+  // 0.0009
+  // 0.0010
+  // 0.0020
+  // ...
+  // 0.0090
+  // 0.0100
+  for(int i = -6; i < 0; i++){
+    double decade = pow(10, i);
+    for(int j = 1; j < 10; j++){
+      double val = (double)j * decade;
+      MSG_DEBUG("val: %0.6lf", val);
+
+      // off table, low-end
+      *input = -30 - val;
+      EXPECT_TRUE(device_.Read()); 
+      EXPECT_NEAR(*output, 30, 1e-12);
+
+      *input = -30 + val;
+      EXPECT_TRUE(device_.Read()); 
+      EXPECT_NEAR(*output, fabs(*input), 1e-12);
+
+      // At the zero pivot
+      *input = 0 - val;
+      EXPECT_TRUE(device_.Read()); 
+      EXPECT_NEAR(*output, fabs(*input), 1e-12);
+
+      *input = 0 + val;
+      EXPECT_TRUE(device_.Read()); 
+      EXPECT_NEAR(*output, fabs(*input), 1e-12);
+
+      // off table, high-end
+      *input = 20 + val;
+      EXPECT_TRUE(device_.Read()); 
+      EXPECT_NEAR(*output, 20, 1e-12);
+
+      *input = 20 - val;
+      EXPECT_TRUE(device_.Read()); 
+      EXPECT_NEAR(*output, fabs(*input), 1e-12);
+    }
+  }
+
+}
 
 }  // namespace

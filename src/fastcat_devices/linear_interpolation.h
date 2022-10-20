@@ -23,6 +23,9 @@ class LinearInterpolation: public DeviceBase
   std::vector<std::pair<double, double>> domain_range_;
   bool enable_out_of_bounds_fault_ = false;
 
+  double domain_min_;
+  double domain_max_;
+
   std::vector<double> slope_; // computed during initialization
 };
 

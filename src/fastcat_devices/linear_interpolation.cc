@@ -38,26 +38,25 @@ bool fastcat::LinearInterpolation::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if(range_node.size() != domain_node.size()){
-    ERROR("Range size (%zu) and Domain size (%zu) do no match", 
-        range_node.size(), domain_node.size());
-    return false;
-  }
-
   if(range_node.size() < 2){
     ERROR("Interpolation Table must consist of at least 2 elements. Provided: (%zu)", 
         range_node.size());
     return false;
   }
 
+  if(range_node.size() != domain_node.size()){
+    ERROR("Range size (%zu) and Domain size (%zu) do no match", 
+        range_node.size(), domain_node.size());
+    return false;
+  }
+  domain_range_.resize(range_node.size());
+
   // group together before sorting
-  std::pair<double, double> entry;
   auto domain_iter = domain_node.begin();
   auto range_iter = range_node.begin();
   for(size_t i = 0; i < range_node.size(); i++){
-    entry.first  = domain_iter->as<double>();
-    entry.second = range_iter->as<double>();
-    domain_range_.push_back(entry);
+    domain_range_[i].first  = domain_iter->as<double>();
+    domain_range_[i].second = range_iter->as<double>();
     domain_iter++;
     range_iter++;
   }
@@ -71,6 +70,7 @@ bool fastcat::LinearInterpolation::ConfigFromYaml(YAML::Node node)
       });
 
   // And precompute the slope
+  slope_.resize(range_node.size()-1);
   MSG_DEBUG("Interpolation Table (%s)", name_.c_str());
   MSG_DEBUG("row: domain, range, slope ");
   size_t i;
@@ -81,7 +81,7 @@ bool fastcat::LinearInterpolation::ConfigFromYaml(YAML::Node node)
       ERROR("Interpolation domain entries are too close (or repeated)");
       return false;
     }
-    slope_.push_back(dy/dx);
+    slope_[i] = dy/dx;
 
     MSG_DEBUG("%zu: %lf, %lf, %lf", 
         i, domain_range_[i].first, domain_range_[i].second, slope_[i]);
@@ -108,38 +108,65 @@ bool fastcat::LinearInterpolation::Read() {
     ERROR("Could not extract signal");
     return false;
   }
-
   double signal_value = signals_[0].value;
 
-  size_t i;
-  for(i = 0; i < domain_range_.size()-1; i++){
-    if(signal_value < domain_range_[i+1].first){
-      i++;
-      break;
-    }
+  double domain_min = domain_range_.front().first;
+  double domain_max = domain_range_.back().first;
+
+  double range_min = domain_range_.front().second;
+  double range_max = domain_range_.back().second;
+
+  bool is_out_of_domain = false;
+
+  // Check if the input signal is off the interp table
+  if(signal_value < domain_min){
+    state_->linear_interpolation_state.output = range_min;
+    is_out_of_domain = true;
+
+  }else if(signal_value > domain_max){
+    state_->linear_interpolation_state.output = range_max;
+    is_out_of_domain = true;
   }
-  i--;
-  assert(i < domain_range_.size());
 
-  // Check if extrapolating
-  if( (i == 0) or (i == (domain_range_.size()-1)) ) {
+  if(is_out_of_domain) {
 
-    // Saturate
-    state_->linear_interpolation_state.output = domain_range_[i].second;
-
-    if(enable_out_of_bounds_fault_ and (not device_fault_active_)){
+    // only return false to indicate a NEW fault condition
+    if(enable_out_of_bounds_fault_ and (not device_fault_active_)) {
       ERROR("Linear Interpolation (%s) out of interpolation domain (%g to %g) signal was (%g)", 
-          name_.c_str(), 
-          domain_range_.front().first,
-          domain_range_.back().first,
-          signal_value);
+        name_.c_str(), 
+        domain_min, domain_max,
+        signal_value);
       return false;
     }
-  }else{
 
-    // calc linear interpolation output[i] = y[i] + m[i](input[i] - x[i])
-    state_->linear_interpolation_state.output = domain_range_[i].second + 
-      slope_[i]*(signal_value - domain_range_[i].first);
+    // otherwise we do not fault, and just saturate
+    return true;
   }
-  return true;
+
+  
+
+  //// calc linear interpolation: output[i] = y[i] + m[i](input[i] - x[i])
+  // Find where in the domain we fall and compute linear interpolation
+  // Performance improvement: could precompute slope array
+  // Performance improvement: divide-and-conquer to find the pivot
+  //   rather than linear scan for log(n)-time, rather than n-time here
+  size_t i;
+  for(i = 0; i < domain_range_.size()-1; i++){
+    double x1 = domain_range_[i].first;
+    double y1 = domain_range_[i].second;
+    double x2 = domain_range_[i+1].first;
+    double y2 = domain_range_[i+1].second;
+
+    if( (signal_value <= x2) && (signal_value > x1)) {
+
+      state_->linear_interpolation_state.output = 
+        y1 + (y2-y1)/(x2-x1)*(signal_value - x1);
+      return true;
+    }
+  }
+
+  ERROR("Linear Interpolation (%s) internal error for signal value (%g)",
+      name_.c_str(), 
+      signal_value);
+  return false;
 }
