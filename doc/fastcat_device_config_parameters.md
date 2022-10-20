@@ -35,6 +35,7 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | SchmittTrigger  | Simple software debounce trigger, parameterized with upper and lower thresholds |
 | SignalGenerator | Generates a parameterized signal (e.g. sine wave or sawtooth) useful for testing devices and configurations |
 | VirtualFts      | Reads in 6 signals (corresponding to a wrench) and applies the adjoint wrench transformation to different 6DOF pose |
+| LinearInterpolation | Passes a signal through a user-specified table using linear interpolation |
 
 ---
 
@@ -959,7 +960,7 @@ Note: The Euler angles are specified in [Roll, Pitch, Yaw] order but are actuall
 #### Example
 
 ``` yaml
-signal- device_class: VirtualFts
+- device_class: VirtualFts
   name: virtual_fts_1
   position: [1, 0, 1]
   quaternion: [0.7071, 0.35355, 0, 0.35355]
@@ -984,3 +985,34 @@ signal- device_class: VirtualFts
     request_signal_name: raw_tz
 ```
 
+
+## LinearInterpolation
+
+| Parameter   | Description |
+| ----------- | ----------- |
+| domain      | Variable-length array of domain values |
+| range       | Variable-length array of range values |
+| enable_output_bounds_fault | controls fault behavior |
+
+The LinearInterpolation provides a general method for converting a signal by interpolation table. Within the domain, the output is linearly interpolated between adjacent pivot points where the input is between the pivot points (e.g. domain[i] < intput < domain[i+1])
+```
+  output = range[i] + (range[i+1] - range[i]) / (domain[i+1] - domain[i]) * (input - domain[i])
+```
+If the input falls outside the valid domain specified by the input YAML, the output signal saturates and does not attempt extrapolation. the state feedback value `is_saturated` is also set to indicate this has happened. 
+
+If `enable_output_bounds_fault` is `true` then a Fastcat fault is emitted when the device saturates. Otherwise, no faults are emitted by a LinearInterpolation device and it will silently saturate.
+
+### Example
+
+This example implements an absolute value function over the range of [-9, 9] 
+
+``` yaml
+- device_class: LinearInterpolation
+  name:         my_lin_interp_1 
+  domain:       [-9, 0, 9]
+  range:        [ 9, 0, 9]
+  enable_out_of_bounds_fault: false
+  signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name:  output
+```
