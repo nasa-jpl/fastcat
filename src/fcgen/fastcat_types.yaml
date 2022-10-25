@@ -139,6 +139,13 @@ states:
       comment: "if true, the conditions for faulting are met - 
         on rising edge, the faulter will trigger all devices to fault."
 
+  - name: linear_interpolation
+    fields:
+    - name: output
+      type: double
+    - name: is_saturated
+      type: bool
+
   - name: egd
     fields:
     - name: actual_position

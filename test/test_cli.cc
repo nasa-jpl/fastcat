@@ -128,6 +128,11 @@ void print_header(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%s_egd_actual_position, ", state->name.c_str());
         fprintf(file, "%s_egd_cmd_position, ", state->name.c_str());
         break;
+      case fastcat::LINEAR_INTERPOLATION_STATE:
+        fprintf(file, "%s_output, ", state->name.c_str());
+        fprintf(file, "%s_is_saturated, ", state->name.c_str());
+
+        break;
       default:
         break;
     }
@@ -251,6 +256,11 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%i, ", state->actuator_state.egd_actual_position);
         fprintf(file, "%i, ", state->actuator_state.egd_cmd_position);
         break;
+      case fastcat::LINEAR_INTERPOLATION_STATE:
+        fprintf(file, "%lf, ", state->linear_interpolation_state.output);
+        fprintf(file, "%u, ", state->linear_interpolation_state.is_saturated);
+        break;
+
       default:
         break;
     }

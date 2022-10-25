@@ -1,5 +1,5 @@
 fastcat:
-  target_loop_rate_hz:                1000
+  target_loop_rate_hz:                100
   zero_latency_required:              True
   actuator_position_directory:        /tmp/
   actuator_fault_on_missing_pos_file: False
@@ -220,4 +220,13 @@ buses:
       upper_limit: 0.05
       signals:
       - observed_device_name: pid_1
+        request_signal_name:  output
+
+    - device_class: LinearInterpolation
+      name:         my_lin_interp_1 
+      domain:       [-9, 0, 9]
+      range:        [ 9, 0, 9]
+      enable_out_of_bounds_fault: false
+      signals:
+      - observed_device_name: sig_gen_1
         request_signal_name:  output
