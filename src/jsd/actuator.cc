@@ -467,13 +467,22 @@ fastcat::FaultType fastcat::Actuator::Process()
     case ACTUATOR_SMS_PROF_POS:
       retval = ProcessProfPos();
       break;
+    case ACTUATOR_SMS_PROF_POS_DISENGAGING:
+      retval = ProcessProfPosDisengaging();
+      break;
 
     case ACTUATOR_SMS_PROF_VEL:
       retval = ProcessProfVel();
       break;
+    case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
+      retval = ProcessProfVelDisengaging();
+      break;
 
     case ACTUATOR_SMS_PROF_TORQUE:
       retval = ProcessProfTorque();
+      break;
+    case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
+      retval = ProcessProfTorqueDisengaging();
       break;
 
     case ACTUATOR_SMS_CS:
@@ -637,11 +646,20 @@ std::string fastcat::Actuator::StateMachineStateToString(
     case ACTUATOR_SMS_PROF_POS:
       str = std::string("PROF_POS");
       break;
+    case ACTUATOR_SMS_PROF_POS_DISENGAGING:
+      str = std::string("PROF_POS_DISENGAGING");
+      break;
     case ACTUATOR_SMS_PROF_VEL:
       str = std::string("PROF_VEL");
       break;
+    case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
+      str = std::string("PROF_VEL_DISENGAGING");
+      break;
     case ACTUATOR_SMS_PROF_TORQUE:
       str = std::string("PROF_TORQUE");
+      break;
+    case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
+      str = std::string("PROF_TORQUE_DISENGAGING");
       break;
     case ACTUATOR_SMS_CS:
       str = std::string("CS");
