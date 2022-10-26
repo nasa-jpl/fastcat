@@ -462,7 +462,7 @@ int main(int argc, char* argv[])
 
   jsd_timer_t* timer = jsd_timer_alloc();
   jsd_timer_init_ex(timer, 1e9 / loop_rate, JSD_TIMER_ANY_CPU, false, false);
-  cli_start_time = jsd_get_time_sec();
+  cli_start_time = jsd_time_get_time_sec();
 
   std::vector<fastcat::DeviceState> states;
 

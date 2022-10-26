@@ -61,6 +61,7 @@
 
 #include "jsd/jsd_print.h"
 #include "jsd/jsd_sdo_pub.h"
+#include "jsd/jsd_time.h"
 
 fastcat::Manager::Manager()
 {
@@ -223,7 +224,7 @@ bool fastcat::Manager::Process()
 
   // Pass the PDO read time for consistent timestamping before the device Read() 
   //   method is invoked
-  double read_time = jsd_get_time_sec();
+  double read_time = jsd_time_get_time_sec();
 
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
 
