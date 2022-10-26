@@ -8,13 +8,14 @@
 
 // Include external then project includes
 #include "jsd/jsd.h"
+#include "jsd/jsd_time.h"
 
 fastcat::ActuatorOffline::ActuatorOffline()
 {
   MSG_DEBUG("Constructed ActuatorOffline");
 
   memset(&jsd_egd_state_, 0, sizeof(jsd_egd_state_t));
-  motor_on_start_time_ = jsd_get_time_sec();
+  motor_on_start_time_ = jsd_time_get_time_sec();
 }
 
 void fastcat::ActuatorOffline::EgdRead()
@@ -50,13 +51,13 @@ void fastcat::ActuatorOffline::EgdProcess()
 
   // reset motor_on timer on rising edge
   if(!last_motor_on_state_ and jsd_egd_state_.motor_on){
-    motor_on_start_time_ = jsd_get_time_sec();
+    motor_on_start_time_ = jsd_time_get_time_sec();
   }
   last_motor_on_state_ = jsd_egd_state_.motor_on;
 
   // 
   if(!jsd_egd_state_.servo_enabled and jsd_egd_state_.motor_on){
-    double brake_on_dur = jsd_get_time_sec() - motor_on_start_time_;
+    double brake_on_dur = jsd_time_get_time_sec() - motor_on_start_time_;
     if(brake_on_dur > egd_brake_disengage_msec_/1000.0){
       jsd_egd_state_.servo_enabled = 1;
     }

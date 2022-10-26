@@ -8,6 +8,7 @@
 
 // Include external then project includes
 #include "jsd/jsd.h"
+#include "jsd/jsd_time.h"
 
 bool fastcat::Actuator::CheckStateMachineMotionCmds()
 {
@@ -784,7 +785,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfPosDisengaging()
 
     // Check runout timer here, brake engage/disengage time cannot exceed 1 second
     // per MAN-G-CR Section BP - Brake Parameters
-    if( (jsd_get_time_sec() - last_transition_time_) > (1.0 + 2*loop_period_)){
+    if( (jsd_time_get_time_sec() - last_transition_time_) > (1.0 + 2*loop_period_)){
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting", name_.c_str());
       return ALL_DEVICE_FAULT;
     }
@@ -824,7 +825,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfVelDisengaging()
 
     // Check runout timer here, brake engage/disengage time cannot exceed 1 second
     // per MAN-G-CR Section BP - Brake Parameters
-    if( (jsd_get_time_sec() - last_transition_time_) > (1.0 + 2*loop_period_)){
+    if( (jsd_time_get_time_sec() - last_transition_time_) > (1.0 + 2*loop_period_)){
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting", name_.c_str());
       return ALL_DEVICE_FAULT;
     }
@@ -859,7 +860,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfTorqueDisengaging()
 
     // Check runout timer here, brake engage/disengage time cannot exceed 1 second
     // per MAN-G-CR Section BP - Brake Parameters
-    if( (jsd_get_time_sec() - last_transition_time_) > (1.0 + 2*loop_period_)){
+    if( (jsd_time_get_time_sec() - last_transition_time_) > (1.0 + 2*loop_period_)){
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting", name_.c_str());
       return ALL_DEVICE_FAULT;
     }
