@@ -526,6 +526,8 @@ void fastcat::Actuator::Reset()
     // Resetting here would open brakes so we explicitly do not reset the EGD
     // and instead wait until the next transition out of HALTED is requested.
     //EgdReset();
+    // but we can and need to clear errors
+    EgdClearErrors();
     TransitionToState(ACTUATOR_SMS_HALTED);
   }
 }
@@ -698,10 +700,15 @@ void fastcat::Actuator::EgdProcess()
   jsd_egd_process((jsd_t*)context_, slave_id_);
 }
 
+void fastcat::Actuator::EgdClearErrors()
+{
+  jsd_egd_clear_errors((jsd_t*)context_, slave_id_);
+}
+
 void fastcat::Actuator::EgdReset()
 {
-    MSG("Resetting EGD through JSD: %s", name_.c_str());
-    jsd_egd_reset((jsd_t*)context_, slave_id_);
+  MSG("Resetting EGD through JSD: %s", name_.c_str());
+  jsd_egd_reset((jsd_t*)context_, slave_id_);
 }
 
 void fastcat::Actuator::EgdHalt() { jsd_egd_halt((jsd_t*)context_, slave_id_); }

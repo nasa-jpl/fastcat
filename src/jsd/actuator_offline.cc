@@ -64,6 +64,11 @@ void fastcat::ActuatorOffline::EgdProcess()
   }
 }
 
+void fastcat::ActuatorOffline::EgdClearErrors()
+{
+  // no-op
+}
+
 void fastcat::ActuatorOffline::EgdReset()
 {
   // no-op

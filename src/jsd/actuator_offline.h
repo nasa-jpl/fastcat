@@ -19,6 +19,7 @@ class ActuatorOffline : public Actuator
   void EgdRead() override;
   void EgdSetConfig() override;
   void EgdProcess() override;
+  void EgdClearErrors() override;
   void EgdReset() override;
   void EgdHalt() override;
   void EgdSetPeakCurrent(double current) override;
