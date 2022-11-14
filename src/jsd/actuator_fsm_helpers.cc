@@ -535,15 +535,10 @@ fastcat::FaultType fastcat::Actuator::ProcessFaulted()
 
 fastcat::FaultType fastcat::Actuator::ProcessHalted()
 {
-  //  Invoking a RESET will fail the following fault condition since the 
-  //  fault_code and emcy_error_code will contain the last-tripped fault information.
-  //  Currently, the only way for JSD to clear these codes is to call `EgdReset();
-  //
-  //if (IsIdleFaultConditionMet()) {
-  //  ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
-  //  return ALL_DEVICE_FAULT;
-  //}
-
+  if (IsIdleFaultConditionMet()) {
+    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    return ALL_DEVICE_FAULT;
+  }
   return NO_FAULT;
 }
 
