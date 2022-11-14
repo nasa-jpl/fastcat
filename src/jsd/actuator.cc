@@ -524,9 +524,7 @@ void fastcat::Actuator::Reset()
   WARNING("Resetting Actuator device %s", name_.c_str());
   if (actuator_sms_ == ACTUATOR_SMS_FAULTED) {
     // Resetting here would open brakes so we explicitly do not reset the EGD
-    // and instead wait until the next transition out of HALTED is requested.
-    //EgdReset();
-    // but we can and need to clear errors
+    // and instead only clear latched errors 
     EgdClearErrors();
     TransitionToState(ACTUATOR_SMS_HALTED);
   }
