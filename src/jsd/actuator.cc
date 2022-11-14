@@ -523,7 +523,9 @@ void fastcat::Actuator::Reset()
 {
   WARNING("Resetting Actuator device %s", name_.c_str());
   if (actuator_sms_ == ACTUATOR_SMS_FAULTED) {
-    //EgdReset();
+    // Resetting here would open brakes so we explicitly do not reset the EGD
+    // and instead only clear latched errors 
+    EgdClearErrors();
     TransitionToState(ACTUATOR_SMS_HALTED);
   }
 }
@@ -696,10 +698,15 @@ void fastcat::Actuator::EgdProcess()
   jsd_egd_process((jsd_t*)context_, slave_id_);
 }
 
+void fastcat::Actuator::EgdClearErrors()
+{
+  jsd_egd_clear_errors((jsd_t*)context_, slave_id_);
+}
+
 void fastcat::Actuator::EgdReset()
 {
-    MSG("Resetting EGD through JSD: %s", name_.c_str());
-    jsd_egd_reset((jsd_t*)context_, slave_id_);
+  MSG("Resetting EGD through JSD: %s", name_.c_str());
+  jsd_egd_reset((jsd_t*)context_, slave_id_);
 }
 
 void fastcat::Actuator::EgdHalt() { jsd_egd_halt((jsd_t*)context_, slave_id_); }

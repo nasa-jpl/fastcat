@@ -539,7 +539,6 @@ fastcat::FaultType fastcat::Actuator::ProcessHalted()
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
-
   return NO_FAULT;
 }
 

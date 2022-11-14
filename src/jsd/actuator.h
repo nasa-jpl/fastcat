@@ -95,6 +95,7 @@ class Actuator : public JsdDeviceBase
   virtual void EgdRead();
   virtual void EgdSetConfig();
   virtual void EgdProcess();
+  virtual void EgdClearErrors();
   virtual void EgdReset();
   virtual void EgdHalt();
   virtual void EgdSetPeakCurrent(double current);
