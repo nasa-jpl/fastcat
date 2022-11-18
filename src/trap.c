@@ -488,7 +488,7 @@ int trap_update_vel(trap_t* self, double t, double* pos, double* vel)
   double dt;
 
   if (t < self->t_acc) {
-    dt   = fmax(t - self->t_init, 0.01);
+    dt   = fmax(t - self->t_init, 0.001);
     *vel = self->vel_init + self->acc * dt;
     *pos = self->pos_init + self->vel_init * dt + 0.5 * self->acc * dt * dt;
   } else {
