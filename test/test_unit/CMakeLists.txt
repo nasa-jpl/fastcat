@@ -10,6 +10,8 @@ set(TEST_SOURCES
     test_linear_interpolation.cc
 
     test_jsd_device_base.cc
+
+    test_trap.cc
     )
 
 foreach(TEST_SOURCE ${TEST_SOURCES})
