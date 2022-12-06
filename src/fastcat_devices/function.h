@@ -10,7 +10,8 @@
 
 namespace fastcat
 {
-enum FunctionType { POLYNOMIAL, BAD_FUNCTION_TYPE };
+enum FunctionType { POLYNOMIAL, SUMMATION, BAD_FUNCTION_TYPE };
+FunctionType FunctionTypeFromString(const std::string&);
 
 class Function : public DeviceBase
 {
@@ -18,12 +19,16 @@ class Function : public DeviceBase
   Function();
   bool ConfigFromYaml(YAML::Node node) override;
   bool Read() override;
-
  protected:
   std::string         function_type_string_;
   enum FunctionType   function_type_;
+  
+  // POLYNOMIAL member variables
   int                 order_{0};
   std::vector<double> coefficients_;
+
+  // SUMMATION member variabls
+  std::vector<std::string> signals_;
 };
 
 }  // namespace fastcat

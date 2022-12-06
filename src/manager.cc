@@ -275,7 +275,9 @@ bool fastcat::Manager::Process()
   return !faulted_;
 }
 
-void fastcat::Manager::QueueCommand(DeviceCmd& cmd) { cmd_queue_->push(cmd); }
+void fastcat::Manager::QueueCommand(DeviceCmd& cmd) { 
+  cmd_queue_->push(cmd); 
+}
 
 std::vector<fastcat::DeviceState> fastcat::Manager::GetDeviceStates()
 {

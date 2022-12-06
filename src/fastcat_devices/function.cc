@@ -15,6 +15,16 @@ fastcat::Function::Function()
   state_->type = FUNCTION_STATE;
 }
 
+fastcat::FunctionType fastcat::FunctionTypeFromString(const std::string& function_type) {
+  if(function_type.compare("POLYNOMIAL") != 0) {
+    return POLYNOMIAL;
+  } else if(function_type.compare("SUMMATION") != 0) {
+    return SUMMATION;
+  } else {
+    return BAD_FUNCTION_TYPE;
+  }
+}
+
 bool fastcat::Function::ConfigFromYaml(YAML::Node node)
 {
   if (!ParseVal(node, "name", name_)) {
@@ -25,77 +35,95 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
   if (!ParseVal(node, "function_type", function_type_string_)) {
     return false;
   }
+  function_type_ = fastcat::FunctionTypeFromString(function_type_string_);
+  switch(function_type_) {
+    case POLYNOMIAL: 
+      if (!ParseVal(node, "order", order_)) {
+        return false;
+      }
+     
+      YAML::Node coeff_node;
+      if (!ParseList(node, "coefficients", coeff_node)) {
+        return false;
+      }
+     
+      for (auto coeff = coeff_node.begin(); coeff != coeff_node.end(); ++coeff) {
+        coefficients_.push_back((*coeff).as<double>());
+      }
+     
+      if (order_ != static_cast<int>(coefficients_.size()) - 1) {
+        ERROR("for a polynomial of %d-order, expecting %d coefficients. %lu found",
+              order_, order_ + 1, coefficients_.size());
+        return false;
+      }
+      // print the coefficients
+      std::string coeff_str("y = ");
+      for (int i = 0; i <= order_; ++i) {
+        char term[64];
+        if (i == order_) {
+          snprintf(term, 64, "(%f)*x^%d ", coefficients_[i], order_ - i);
+        } else {
+          snprintf(term, 64, "(%f)*x^%d + ", coefficients_[i], order_ - i);
+        }
+        coeff_str.append(term);
+      }
+      MSG("Function: %s %s", name_.c_str(), coeff_str.c_str());
+     
+      if (!ConfigSignalsFromYaml(node, signals_, false)) {
+        return false;
+      }
+      if (signals_.size() != 1) {
+        ERROR("Expecting exactly one signal for Function");
+        return false;
+      } 
+      
+      return true;
 
-  // TODO if other function types are needed
-  // function_type_ = FunctionTypeFromString(function_type_string_);
+    switch SUMMATION:    
+      
+      if (!ConfigSignalsFromYaml(node, signals_, false)) {
+        return false;
+      }
+      
+      return true;
 
-  if (function_type_string_.compare("POLYNOMIAL") != 0) {
-    ERROR("Could not determind function type: %s",
-          function_type_string_.c_str());
-    return false;
-  }
-  function_type_ = POLYNOMIAL;
+    case BAD_FUNCTION_TYPE:
 
-  if (!ParseVal(node, "order", order_)) {
-    return false;
-  }
+      ERROR("Could not determine function type: %s", 
+        function_type_string_.c_str());
 
-  YAML::Node coeff_node;
-  if (!ParseList(node, "coefficients", coeff_node)) {
-    return false;
+      return false;
   }
 
-  for (auto coeff = coeff_node.begin(); coeff != coeff_node.end(); ++coeff) {
-    coefficients_.push_back((*coeff).as<double>());
-  }
-
-  if (order_ != static_cast<int>(coefficients_.size()) - 1) {
-    ERROR("for a polynomial of %d-order, expecting %d coefficients. %lu found",
-          order_, order_ + 1, coefficients_.size());
-    return false;
-  }
-  // print the coefficients
-  std::string coeff_str("y = ");
-  for (int i = 0; i <= order_; ++i) {
-    char term[64];
-    if (i == order_) {
-      snprintf(term, 64, "(%f)*x^%d ", coefficients_[i], order_ - i);
-    } else {
-      snprintf(term, 64, "(%f)*x^%d + ", coefficients_[i], order_ - i);
-    }
-    coeff_str.append(term);
-  }
-  MSG("Function: %s %s", name_.c_str(), coeff_str.c_str());
-
-  if (!ConfigSignalsFromYaml(node, signals_, false)) {
-    return false;
-  }
-  if (signals_.size() != 1) {
-    ERROR("Expecting exactly one signal for Function");
-    return false;
-  }
-
-  return true;
 }
 
 bool fastcat::Function::Read()
 {
-  // update input signal
-  if (!UpdateSignal(signals_[0])) {
+  for(auto& signal : signals_) {
+  if (!UpdateSignal(signal)) {
     ERROR("Could not extract signal");
     return false;
   }
 
-  if (function_type_ == POLYNOMIAL) {
-    state_->function_state.output = 0;
-    for (int i = 0; i <= order_; ++i) {
-      state_->function_state.output +=
-          pow(signals_[0].value, order_ - i) * coefficients_[i];
-    }
-  } else {
-    ERROR("Unhandled function_type");
-    return false;
+  switch(function_type_) {
+    case POLYNOMIAL:
+      state_->function_state.output = 0;
+      for (int i = 0; i <= order_; ++i) {
+        state_->function_state.output +=
+            pow(signals_[0].value, order_ - i) * coefficients_[i];
+      }
+      break;
+    case SUMMATION:
+      state_->function_state.output = 0;
+      for(auto& signal : signals_) {
+        state_->function_state.output += signal.value;
+      }
+      break;
+    default:
+      ERROR("Unhandled function_type");
+      return false;
   }
 
   return true;
+
 }

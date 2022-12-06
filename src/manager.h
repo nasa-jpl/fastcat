@@ -68,7 +68,7 @@ class Manager
    *
    *  @return void
    */
-  void QueueCommand(DeviceCmd& cmd);
+  void QueueCommand(DeviceCmd& cmd, int request_id);
 
   /** @brief Returns list of device states
    *  
