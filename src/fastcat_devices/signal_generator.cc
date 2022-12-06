@@ -11,7 +11,6 @@
 
 fastcat::SignalGeneratorType fastcat::SignalGeneratorTypeFromString(
     const std::string& signal_generator_type) {
-  std::cout << signal_generator_type << std::endl;
   if(signal_generator_type.compare("SINE_WAVE") == 0) {
     return SINE_WAVE;
   } else if(signal_generator_type.compare("SAW_TOOTH") == 0) {
@@ -96,7 +95,7 @@ bool fastcat::SignalGenerator::ConfigFromYaml(YAML::Node node)
         return false;
       }
       generator_.seed(gaussian_random_.seed);
-      gaussian_random_.distrubition = 
+      gaussian_random_.distribution = 
         std::normal_distribution<double>(
           gaussian_random_.mean, gaussian_random_.sigma
         );
@@ -113,7 +112,7 @@ bool fastcat::SignalGenerator::ConfigFromYaml(YAML::Node node)
         return false;
       }
       generator_.seed(uniform_random_.seed);
-      uniform_random_.distrubition = 
+      uniform_random_.distribution = 
         std::uniform_real_distribution<double>(
           uniform_random_.min, gaussian_random_.max
         );
