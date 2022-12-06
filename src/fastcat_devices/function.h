@@ -27,8 +27,6 @@ class Function : public DeviceBase
   int                 order_{0};
   std::vector<double> coefficients_;
 
-  // SUMMATION member variabls
-  std::vector<std::string> signals_;
 };
 
 }  // namespace fastcat
