@@ -38,14 +38,14 @@ typedef struct {
 } SawToothParams;
 
 typedef struct {
-  uint64_t seed = 1;
+  uint32_t seed = 1;
   double mean;
   double sigma;
   std::normal_distribution<double> distribution;
 } GaussianRandomParams;
 
 typedef struct {
-  uint64_t seed = 1;
+  uint32_t seed = 1;
   double min;
   double max;  
   std::uniform_real_distribution<double> distribution;
