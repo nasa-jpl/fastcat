@@ -20,6 +20,10 @@ fastcat::FunctionType fastcat::FunctionTypeFromString(const std::string& functio
     return POLYNOMIAL;
   } else if(function_type.compare("SUMMATION") != 0) {
     return SUMMATION;
+  } else if(function_type.compare("MULTIPLICATION") != 0) {
+    return MULTIPLICATION;
+  } else if(function_type.compare("INVERSION") != 0) {
+    return INVERSION;
   } else {
     return BAD_FUNCTION_TYPE;
   }
@@ -36,6 +40,10 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
     return false;
   }
   function_type_ = fastcat::FunctionTypeFromString(function_type_string_);
+  if (!ConfigSignalsFromYaml(node, signals_, false)) {
+    return false;
+  }
+ 
   switch(function_type_) {
 
     case POLYNOMIAL: 
@@ -71,9 +79,6 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
       }
       MSG("Function: %s %s", name_.c_str(), coeff_str.c_str());
      
-      if (!ConfigSignalsFromYaml(node, signals_, false)) {
-        return false;
-      }
       if (signals_.size() != 1) {
         ERROR("Expecting exactly one signal for Function");
         return false;
@@ -81,13 +86,17 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
       
       return true;
 
-    switch SUMMATION:    
-      
-      if (!ConfigSignalsFromYaml(node, signals_, false)) {
-        return false;
-      }
-      
+    case SUMMATION:    
+
+    case MULTIPLICATION:
       return true;
+
+    case INVERSION:
+      if (signals_.size() != 1) {
+        ERROR("Expecting exactly one signal for Function");
+        return false;
+      } 
+      return true;      
 
     case BAD_FUNCTION_TYPE:
 
