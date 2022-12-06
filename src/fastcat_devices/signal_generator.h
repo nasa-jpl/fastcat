@@ -62,12 +62,12 @@ class SignalGenerator : public DeviceBase
   std::string              signal_generator_type_string_;
   enum SignalGeneratorType signal_generator_type_;
   double                   start_time_ = 0;
-  std::default_random_engine generator;
+  std::default_random_engine generator_;
 
   union {
     SineWaveParams sine_wave_;
     SawToothParams saw_tooth_;
-    GaussianRandomParams guassian_random_;
+    GaussianRandomParams gaussian_random_;
     UniformRandomParams uniform_random_;
   };
 };
