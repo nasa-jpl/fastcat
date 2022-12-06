@@ -84,21 +84,20 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
         ERROR("Expecting exactly one signal for Function");
         return false;
       } 
-      
-      return true;
+      break;
 
     case SUMMATION:    
+      break;
 
     case MULTIPLICATION:
-      return true;
+      break;
 
     case INVERSION:
       if (signals_.size() != 1) {
         ERROR("Expecting exactly one signal for Function");
         return false;
       } 
-      return true;      
-
+      break;
     case BAD_FUNCTION_TYPE:
 
       ERROR("Could not determine function type: %s", 
@@ -106,7 +105,7 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
 
       return false;
   }
-
+  return true;
 }
 
 bool fastcat::Function::Read()
