@@ -114,7 +114,7 @@ bool fastcat::SignalGenerator::ConfigFromYaml(YAML::Node node)
       generator_.seed(uniform_random_.seed);
       uniform_random_.distribution = 
         std::uniform_real_distribution<double>(
-          uniform_random_.min, gaussian_random_.max
+          uniform_random_.min, uniform_random_.max
         );
       break;
     }
