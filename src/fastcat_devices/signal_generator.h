@@ -4,6 +4,7 @@
 // Include related header (for cc files)
 
 // Include c then c++ libraries
+#include <random>
 
 // Include external then project includes
 #include "fastcat/device_base.h"
@@ -11,7 +12,15 @@
 
 namespace fastcat
 {
-enum SignalGeneratorType { SINE_WAVE, SAW_TOOTH, BAD_SIGNAL_GENERATOR_TYPE };
+enum SignalGeneratorType { 
+  SINE_WAVE, 
+  SAW_TOOTH, 
+  GUASSIAN_RANDOM, 
+  UNIFORM_RANDOM, 
+  BAD_SIGNAL_GENERATOR_TYPE 
+};
+
+SignalGeneratorType SignalGeneratorTypeFromString(const std::string&);
 
 typedef struct {
   double angular_frequency;
@@ -28,6 +37,20 @@ typedef struct {
   double modulo;
 } SawToothParams;
 
+typedef struct {
+  uint64_t seed = 1;
+  double mean;
+  double sigma;
+  std::normal_distribition<double> distribution;
+} GaussianRandomParams;
+
+typedef struct {
+  uint64_t seed = 1;
+  double min;
+  double max;  
+  std::uniform_real_distribution<double> distribution;
+} UniformRandomParams;
+
 class SignalGenerator : public DeviceBase
 {
  public:
@@ -39,10 +62,13 @@ class SignalGenerator : public DeviceBase
   std::string              signal_generator_type_string_;
   enum SignalGeneratorType signal_generator_type_;
   double                   start_time_ = 0;
+  std::default_random_engine generator;
 
   union {
     SineWaveParams sine_wave_;
     SawToothParams saw_tooth_;
+    GaussianRandomParams guassian_random_;
+    UniformRandomParams uniform_random_;
   };
 };
 

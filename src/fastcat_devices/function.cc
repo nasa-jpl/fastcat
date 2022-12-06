@@ -16,13 +16,13 @@ fastcat::Function::Function()
 }
 
 fastcat::FunctionType fastcat::FunctionTypeFromString(const std::string& function_type) {
-  if(function_type.compare("POLYNOMIAL") != 0) {
+  if(function_type.compare("POLYNOMIAL") == 0) {
     return POLYNOMIAL;
-  } else if(function_type.compare("SUMMATION") != 0) {
+  } else if(function_type.compare("SUMMATION") == 0) {
     return SUMMATION;
-  } else if(function_type.compare("MULTIPLICATION") != 0) {
+  } else if(function_type.compare("MULTIPLICATION") == 0) {
     return MULTIPLICATION;
-  } else if(function_type.compare("INVERSION") != 0) {
+  } else if(function_type.compare("INVERSION") == 0) {
     return INVERSION;
   } else {
     return BAD_FUNCTION_TYPE;
