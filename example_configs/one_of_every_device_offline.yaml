@@ -95,6 +95,27 @@ buses:
       amplitude: 10
       offset: 0
 
+    - device_class: SignalGenerator
+      name: sig_gen_2
+      signal_generator_type: SAW_TOOTH
+      slope: 10.0
+      max: 0.5
+      min: -0.5
+    
+    - device_class: SignalGenerator
+      name: sig_gen_3
+      signal_generator_type: GAUSSIAN_RANDOM
+      seed: 2
+      mean: 0.0
+      sigma: 0.2
+
+    - device_class: SignalGenerator
+      name: sig_gen_4
+      signal_generator_type: UNIFORM_RANDOM
+      min: -10.0
+      max: 20.0
+      # seed is an optional parameter, uses default of 1 if not provided
+
     - device_class: Conditional
       name: cond_1
       conditional_type: ">"
@@ -175,6 +196,52 @@ buses:
       function_type: POLYNOMIAL
       order: 1
       coefficients: [1, 100]
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+
+    - device_class: Function
+      name: fun_2
+      function_type: SUMMATION
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+      - observed_device_name: sig_gen_2
+        request_signal_name: output
+
+    - device_class: Function
+      name: fun_3
+      function_type: MULTIPLICATION
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+      - observed_device_name: sig_gen_2
+        request_signal_name: output
+      - observed_device_name: sig_gen_3
+        request_signal_name: output
+
+    - device_class: Function
+      name: fun_4
+      function_type: POWER
+      exponent: 4  # raise signal to the 4th power (x^4)
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+
+    - device_class: Function
+      name: fun_5
+      function_type: EXPONENTIAL
+      base: 4  # raise 4 to the power of the signal (4^x)
+      signals:
+      - observed_device_name: sig_gen_1
+        request_signal_name: output
+
+    - device_class: Function
+      name: fun_6
+      function_type: EXPONENTIAL
+      # When 'base' is not specified, uses the default exponential function
+      # exp(x), which uses a base equal to euler's number `e`
+      # This example raises e to the power of the signal (e^x)
       signals:
       - observed_device_name: sig_gen_1
         request_signal_name: output

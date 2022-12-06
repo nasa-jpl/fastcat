@@ -15,10 +15,10 @@ fastcat::SignalGeneratorType fastcat::SignalGeneratorTypeFromString(
     return SINE_WAVE;
   } else if(signal_generator_type.compare("SAW_TOOTH") == 0) {
     return SAW_TOOTH;;
-  } else if(signal_generator_type.compare("UNIFORM_RANDOM") == 0) {
-    return UNIFORM_RANDOM;
   } else if(signal_generator_type.compare("GAUSSIAN_RANDOM") == 0) {
     return GAUSSIAN_RANDOM;
+  } else if(signal_generator_type.compare("UNIFORM_RANDOM") == 0) {
+    return UNIFORM_RANDOM;
   } else {
     return BAD_SIGNAL_GENERATOR_TYPE;
   }
@@ -87,6 +87,8 @@ bool fastcat::SignalGenerator::ConfigFromYaml(YAML::Node node)
     case GAUSSIAN_RANDOM: {
       if(!ParseVal(node, "seed", gaussian_random_.seed)) {
         WARNING("Key 'seed' not supplied, using default random number generator"); 
+      } else {
+        gaussian_random_.seed = 1;
       }
       if(!ParseVal(node, "mean", gaussian_random_.mean)) {
         return false;
@@ -104,6 +106,8 @@ bool fastcat::SignalGenerator::ConfigFromYaml(YAML::Node node)
     case UNIFORM_RANDOM: {
       if(!ParseVal(node, "seed", uniform_random_.seed)) {
         WARNING("Key 'seed' not supplied, using default random number generator"); 
+      } else {
+        uniform_random_.seed = 1;
       }
       if(!ParseVal(node, "min", uniform_random_.min)) {
         return false;

@@ -775,21 +775,35 @@ Note: Exactly 6 signals must be specified in the signals list.
 
 ## Function
 
-| Parameter       | Description                                                  |
-| --------------- | ------------------------------------------------------------ |
-| `function_type` | type of function {`POLYNOMINAL`}                             |
-| `order`         | `POLYNOMINAL` only. Order of polynominal function            |
-| `coefficients`  | `POLYNOMINAL` only. The coefficients, length must be equal to `order + 1` . Starts with highest-power term. |
+| Parameter             | Description                                                  |
+| --------------------- | ------------------------------------------------------------ |
+| `function_type`       | type of function {`POLYNOMINAL`, `SUMMATION`, `MULTIPLICATION`, `POWER`, `EXPONENTIAL`, `SIGMOID`}  |
+|                       |                                                                               |
+| for `POLYNOMIAL`:     |                                                                               |
+| `order`               | order of polynomial                                                           |
+| `coefficients`        | Polynomial coefficients; length must be equal to `order + 1` . Starts with highest-power term. |
+|                       |                                                                               |
+| for `SUMMATION`:      | no additional parameters, specify `signals` field only, signals will be added together                        |
+|                       |                                                                               |
+| for `MULTIPLICATION`: | no additional parameters, specify `signals` field only, signals will be multiplied together |   
+|                       |                                                                               |
+| for `POWER`:          | raises a single signal to a constant power: `(x^a)`                           |
+| `exponent`            | exponent                                                                      |
+|                       |                                                                               |
+| for `EXPONENTIAL`     | raises a constant to the value of a single signal: `(a^x)`                    |
+| `base`                | base (`a`; optional; if not provided, defaults to euler's number `e`)         |
+|                       |                                                                               |
+| for `SIGMOID`:        | logistic function defined by `1.0 / (1 + e^-x)`                               |
 
-Currently, only an N-order Polynomial function is implemented. Other function types could include logistic, expoentials, sigmoid, etc. Open an issue (or pull request) if you would like to see more functions added.
 
-The `coefficients`(here `coeff`) are specified in the following order (`N`)
+### Polynomial
+The `coefficients` (here `coeff`) are specified in the following order (`N`)
 
 ```
 y = coeff[0] * x^(N) + coeff[1] * x^(N-1) + ... + coeff[N-1] * x^(1) + coeff[N] * x^(0);
 ```
 
-Note: The function device only accepts a single signal. Multi-variate functions are not supported  currently - if they are implemented, a new device type should be created.
+Note: The function device only accepts a single signal. Multi-variate polynomial functions are not currently supported.
 
 #### Example
 
@@ -802,9 +816,89 @@ Implement the function `y = 1*x + 100`
   order: 1
   coefficients: [1, 100]
   signals:
-  - observed_device_name: sig_gen_1signal
+  - observed_device_name: sig_gen_1
     request_signal_name: output
 ```
+
+
+### Summation
+Specify two or more signals to sum together
+
+#### Example
+
+Implement the function `y = x1 + x2`
+
+```yaml
+- device_class: Function
+  name: fun_2
+  function_type: SUMMATION
+  signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name: output
+  - observed_device_name: sig_gen_2
+    request_signal_name: output
+```
+
+### Multiplication
+Specify two or more signals to multiply together
+
+#### Example
+
+Implement the function `y = x1 * x2 * x3`
+
+```yaml
+- device_class: Function
+  name: fun_3
+  function_type: MULTIPLICATION 
+  signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name: output
+  - observed_device_name: sig_gen_2
+    request_signal_name: output
+  - observed_device_name: sig_gen_3
+    request_signal_name: output
+```
+
+
+### Exponential
+Raise a constant to the power of the signal
+
+#### Example
+Implement the function `y = e^x`
+
+```yaml
+- device_class: Function
+  name: fun_4
+  function_type: EXPONENTIAL
+  - observed_device_name: sig_gen_1
+    request_signal_name: output
+```
+
+Implement the function `y = 2.0^x`
+```yaml
+- device_class: Function
+  name: fun_5
+  function_type: EXPONENTIAL
+  base: 2.0
+  - observed_device_name: sig_gen_1
+    request_signal_name: output
+```
+
+
+### Sigmoid
+Return the sigmoid logistic function
+
+#### Example
+Implement the sigmoid logistic function `y = 1.0 / (1.0 + e^-x)`
+
+```yaml
+- device_class: Function
+  name: fun_6
+  function_type: SIGMOID
+  - observed_device_name: sig_gen_1
+    request_signal_name: output
+```
+
 
 ## Pid
 
@@ -886,18 +980,28 @@ if signal is falling
 
 | Parameter               | Description                                               |
 | ----------------------- | --------------------------------------------------------- |
-| `signal_generator_type` | The type of signal to generate {`SINE_WAVE`, `SAW_TOOTH`} |
+| `signal_generator_type` | The type of signal to generate {`SINE_WAVE`, `SAW_TOOTH`, `GAUSSIAN_RANDOM`, `UNIFORM_RANDOM`} |
 |                         |                                                           |
-| for `SINE_WAVE`,        |                                                           |
-| `angular_frequency`     | obvious                                                   |
-| `phase`                 | obvious                                                   |
-| `amplitude`             | obvious                                                   |
-| `offset`                | obvious                                                   |
+| for `SINE_WAVE`:        |                                                           |
+| `angular_frequency`     | sine wave angular frequency                               |
+| `phase`                 | sine wave phase                                           |
+| `amplitude`             | sine wave amplitude                                       |
+| `offset`                | sine wave offset                                          |
 |                         |                                                           |
-| for `SAW_TOOTH`,        |                                                           |
+| for `SAW_TOOTH`:        |                                                           |
 | `max`                   | max value of the sawtooth wave                            |
 | `min`                   | min value of the sawtooth wave                            |
 | `slope`                 | The rate of change in EU/sec. May be positive or negative |
+|                         |                                                           |
+| for `GAUSSIAN_RANDOM`:  |                                                           |
+| `mean`                  | mean signal value                                         |
+| `sigma`                 | standard deviation                                        |
+| `seed`                  | specify random seed as an optional unsigned integer; each signal generator uses its own random seed; if no random seed is provided, defaults to 1 |
+|                         |                                                           |
+| for `UNIFORM_RANDOM`:   |                                                           |
+| `max`                   | maximum signal value                                      | 
+| `min`                   | minimum signal value                                      |
+| `seed`                  | specify random seed as an optional unsigned integer; each signal generator uses its own random seed; if no random seed is provided, defaults to 1 |
 
 The `SINE_WAVE` signal generator output is computed as:
 
@@ -912,7 +1016,7 @@ The `SAW_TOOTH` signal generator output is computed as:
   * apply slope each process update
   * when the 'upper' limit is reached, reset the output 'lower' limit
 
-#### Example
+#### Examples
 
 ``` yaml
 - device_class: SignalGenerator
@@ -926,13 +1030,30 @@ The `SAW_TOOTH` signal generator output is computed as:
 
 ``` yaml
 - device_class: SignalGenerator
-  name: sig_gen_2signal
+  name: sig_gen_2
   signal_generator_type: SAW_TOOTH
   max: 1
   min: 0
   slope: 1
 ```
 
+```yaml
+- device_class: SignalGenerator
+  name: sig_gen_3
+  signal_generator_type: GAUSSIAN_RANDOM
+  mean: 0.0
+  sigma: 0.2
+  seed: 50
+```
+
+```yaml
+- device_class: SignalGenerator
+  name: sig_gen_4
+  signal_generator_type: UNIFORM_RANDOM
+  min: -5.0
+  max: 10.0
+  # seed is optional
+```
 
 
 ## VirtualFts

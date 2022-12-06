@@ -22,8 +22,12 @@ fastcat::FunctionType fastcat::FunctionTypeFromString(const std::string& functio
     return SUMMATION;
   } else if(function_type.compare("MULTIPLICATION") == 0) {
     return MULTIPLICATION;
-  } else if(function_type.compare("INVERSION") == 0) {
-    return INVERSION;
+  } else if(function_type.compare("POWER") == 0) {
+    return POWER;
+  } else if(function_type.compare("EXPONENTIAL") == 0) {
+    return EXPONENTIAL;
+  } else if(function_type.compare("SIGMOID") == 0) {
+    return SIGMOID;
   } else {
     return BAD_FUNCTION_TYPE;
   }
@@ -49,7 +53,7 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
 
     case POLYNOMIAL: { 
 
-      if (!ParseVal(node, "order", order_)) {
+      if (!ParseVal(node, "order", polynomial_params_.order)) {
         return false;
       }
      
@@ -59,22 +63,24 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
       }
      
       for (auto coeff = coeff_node.begin(); coeff != coeff_node.end(); ++coeff) {
-        coefficients_.push_back((*coeff).as<double>());
+        polynomial_coefficients_.push_back((*coeff).as<double>());
       }
      
-      if (order_ != static_cast<int>(coefficients_.size()) - 1) {
+      if (polynomial_params_.order != static_cast<int>(polynomial_coefficients_.size()) - 1) {
         ERROR("for a polynomial of %d-order, expecting %d coefficients. %lu found",
-              order_, order_ + 1, coefficients_.size());
+              polynomial_params_.order, polynomial_params_.order + 1, 
+              polynomial_coefficients_.size()
+        );
         return false;
       }
       // print the coefficients
       std::string coeff_str("y = ");
-      for (int i = 0; i <= order_; ++i) {
+      for (int i = 0; i <= polynomial_params_.order; ++i) {
         char term[64];
-        if (i == order_) {
-          snprintf(term, 64, "(%f)*x^%d ", coefficients_[i], order_ - i);
+        if (i == polynomial_params_.order) {
+          snprintf(term, 64, "(%f)*x^%d ", polynomial_coefficients_[i], polynomial_params_.order - i);
         } else {
-          snprintf(term, 64, "(%f)*x^%d + ", coefficients_[i], order_ - i);
+          snprintf(term, 64, "(%f)*x^%d + ", polynomial_coefficients_[i], polynomial_params_.order - i);
         }
         coeff_str.append(term);
       }
@@ -91,10 +97,41 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
     case SUMMATION:    
       break;
 
-    case MULTIPLICATION:
+    case MULTIPLICATION: {
+      if (signals_.size() < 2) {
+        ERROR("Expecting atleast two signals for Function");
+        return false;
+      } 
       break;
+    }
 
-    case INVERSION: {
+    case POWER: {
+      if (signals_.size() != 1) {
+        ERROR("Expecting exactly one signal for Function");
+        return false;
+      } 
+      if (!ParseVal(node, "exponent", power_params_.exponent)) {
+        return false;
+      }
+      break;
+    }
+
+    case EXPONENTIAL: {
+      if (signals_.size() != 1) {
+        ERROR("Expecting exactly one signal for Function");
+        return false;
+      } 
+      if (!ParseVal(node, "base", exponential_params_.base)) {
+        WARNING(
+          "No 'base' specified for Function with exponenent type; "
+          "using default value of 'e'"
+        );
+        exponential_params_.base = exp(1.0);
+      }
+      break;
+    }
+
+    case SIGMOID: {
       if (signals_.size() != 1) {
         ERROR("Expecting exactly one signal for Function");
         return false;
@@ -126,9 +163,10 @@ bool fastcat::Function::Read()
   switch(function_type_) {
     case POLYNOMIAL: {
       state_->function_state.output = 0.0;
-      for (int i = 0; i <= order_; ++i) {
+      for (int i = 0; i <= polynomial_params_.order; ++i) {
         state_->function_state.output +=
-            pow(signals_[0].value, order_ - i) * coefficients_[i];
+          pow(signals_[0].value, polynomial_params_.order - i) * 
+          polynomial_coefficients_[i];
       }
       break;
     }
@@ -146,8 +184,18 @@ bool fastcat::Function::Read()
       }
       break;
     }
-    case INVERSION: {
-      state_->function_state.output = 1.0 / signals_[0].value;
+    case POWER: {
+      state_->function_state.output = 
+        pow(signals_[0].value, power_params_.exponent);
+      break;
+    }
+    case EXPONENTIAL: {
+      state_->function_state.output = 
+        pow(exponential_params_.base, signals_[0].value);
+      break;
+    }
+    case SIGMOID: {
+      state_->function_state.output = 1.0 / (1.0 + exp(-signals_[0].value));
       break;
     }
     default: {
