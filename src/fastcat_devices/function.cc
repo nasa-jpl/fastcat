@@ -37,7 +37,9 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
   }
   function_type_ = fastcat::FunctionTypeFromString(function_type_string_);
   switch(function_type_) {
+
     case POLYNOMIAL: 
+
       if (!ParseVal(node, "order", order_)) {
         return false;
       }
@@ -100,9 +102,10 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
 bool fastcat::Function::Read()
 {
   for(auto& signal : signals_) {
-  if (!UpdateSignal(signal)) {
-    ERROR("Could not extract signal");
-    return false;
+    if (!UpdateSignal(signal)) {
+      ERROR("Could not extract signal");
+      return false;
+    }
   }
 
   switch(function_type_) {
