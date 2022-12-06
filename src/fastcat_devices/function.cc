@@ -47,7 +47,7 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
  
   switch(function_type_) {
 
-    case POLYNOMIAL: 
+    case POLYNOMIAL: { 
 
       if (!ParseVal(node, "order", order_)) {
         return false;
@@ -84,7 +84,9 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
         ERROR("Expecting exactly one signal for Function");
         return false;
       } 
+    
       break;
+    }
 
     case SUMMATION:    
       break;
@@ -92,19 +94,23 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
     case MULTIPLICATION:
       break;
 
-    case INVERSION:
+    case INVERSION: {
       if (signals_.size() != 1) {
         ERROR("Expecting exactly one signal for Function");
         return false;
       } 
       break;
-    case BAD_FUNCTION_TYPE:
+    }
+
+    case BAD_FUNCTION_TYPE: {
 
       ERROR("Could not determine function type: %s", 
         function_type_string_.c_str());
 
       return false;
+    }
   }
+
   return true;
 }
 
@@ -118,31 +124,36 @@ bool fastcat::Function::Read()
   }
 
   switch(function_type_) {
-    case POLYNOMIAL:
+    case POLYNOMIAL: {
       state_->function_state.output = 0.0;
       for (int i = 0; i <= order_; ++i) {
         state_->function_state.output +=
             pow(signals_[0].value, order_ - i) * coefficients_[i];
       }
       break;
-    case SUMMATION:
+    }
+    case SUMMATION: {
       state_->function_state.output = 0.0;
       for(auto& signal : signals_) {
         state_->function_state.output += signal.value;
       }
       break;
-    case MULTIPLICATION:
+    }
+    case MULTIPLICATION: {
       state_->function_state.output = 1.0;
       for(auto& signal : signals_) {
         state_->function_state.output *= signal.value;
       }
       break;
-    case INVERSION:
+    }
+    case INVERSION: {
       state_->function_state.output = 1.0 / signals_[0].value;
       break;
-    default:
+    }
+    default: {
       ERROR("Unhandled function_type");
       return false;
+    }
   }
 
   return true;
