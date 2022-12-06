@@ -41,7 +41,7 @@ typedef struct {
   uint64_t seed = 1;
   double mean;
   double sigma;
-  std::normal_distribition<double> distribution;
+  std::normal_distribution<double> distribution;
 } GaussianRandomParams;
 
 typedef struct {
