@@ -15,7 +15,7 @@ namespace fastcat
 enum SignalGeneratorType { 
   SINE_WAVE, 
   SAW_TOOTH, 
-  GUASSIAN_RANDOM, 
+  GAUSSIAN_RANDOM, 
   UNIFORM_RANDOM, 
   BAD_SIGNAL_GENERATOR_TYPE 
 };
