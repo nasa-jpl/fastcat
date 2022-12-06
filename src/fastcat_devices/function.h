@@ -10,7 +10,7 @@
 
 namespace fastcat
 {
-enum FunctionType { POLYNOMIAL, SUMMATION, BAD_FUNCTION_TYPE };
+enum FunctionType { POLYNOMIAL, SUMMATION, MULTIPLICATION, INVERSION, BAD_FUNCTION_TYPE };
 FunctionType FunctionTypeFromString(const std::string&);
 
 class Function : public DeviceBase

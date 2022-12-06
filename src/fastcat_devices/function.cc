@@ -119,17 +119,26 @@ bool fastcat::Function::Read()
 
   switch(function_type_) {
     case POLYNOMIAL:
-      state_->function_state.output = 0;
+      state_->function_state.output = 0.0;
       for (int i = 0; i <= order_; ++i) {
         state_->function_state.output +=
             pow(signals_[0].value, order_ - i) * coefficients_[i];
       }
       break;
     case SUMMATION:
-      state_->function_state.output = 0;
+      state_->function_state.output = 0.0;
       for(auto& signal : signals_) {
         state_->function_state.output += signal.value;
       }
+      break;
+    case MULTIPLICATION:
+      state_->function_state.output = 1.0;
+      for(auto& signal : signals_) {
+        state_->function_state.output *= signal.value;
+      }
+      break;
+    case INVERSION:
+      state_->function_state.output = 1.0 / signals_[0].value;
       break;
     default:
       ERROR("Unhandled function_type");
