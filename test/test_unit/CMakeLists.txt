@@ -7,6 +7,11 @@ set(TEST_SOURCES
     test_signal_generator.cc
     test_transform_utils.cc
     test_yaml_parser.cc
+    test_linear_interpolation.cc
+
+    test_jsd_device_base.cc
+
+    test_trap.cc
     )
 
 foreach(TEST_SOURCE ${TEST_SOURCES})

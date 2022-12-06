@@ -1,0 +1,8 @@
+device_class: LinearInterpolation
+name:         my_lin_interp_1 
+domain:       [1, 2, 3,  4,  4,  5]
+range:        [1, 4, 9, 16, 16, 25]
+enable_out_of_bounds_fault: false
+signals:
+- observed_device_name: sig_gen_1
+  request_signal_name:  output

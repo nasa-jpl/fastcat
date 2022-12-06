@@ -65,6 +65,8 @@ add_library(fastcat STATIC
     ${CMAKE_BINARY_DIR}/fastcat/autogen/signal_handling.cc
     transform_utils.cc
 
+    jsd/jsd_device_base.cc
+
     jsd/actuator.cc
     jsd/actuator_fsm_helpers.cc
     jsd/egd.cc
@@ -107,6 +109,7 @@ add_library(fastcat STATIC
     fastcat_devices/fts.cc
     fastcat_devices/virtual_fts.cc
     fastcat_devices/faulter.cc
+    fastcat_devices/linear_interpolation.cc
     )
 
 target_include_directories(

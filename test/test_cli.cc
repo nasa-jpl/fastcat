@@ -127,6 +127,14 @@ void print_header(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%s_target_reached, ", state->name.c_str());
         fprintf(file, "%s_egd_actual_position, ", state->name.c_str());
         fprintf(file, "%s_egd_cmd_position, ", state->name.c_str());
+
+        fprintf(file, "%s_motor_on, ",  state->name.c_str());
+        fprintf(file, "%s_servo_enabled, ", state->name.c_str());
+        break;
+      case fastcat::LINEAR_INTERPOLATION_STATE:
+        fprintf(file, "%s_output, ", state->name.c_str());
+        fprintf(file, "%s_is_saturated, ", state->name.c_str());
+
         break;
       default:
         break;
@@ -250,7 +258,15 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
 
         fprintf(file, "%i, ", state->actuator_state.egd_actual_position);
         fprintf(file, "%i, ", state->actuator_state.egd_cmd_position);
+
+        fprintf(file, "%u, ", state->actuator_state.motor_on);
+        fprintf(file, "%u, ", state->actuator_state.servo_enabled);
         break;
+      case fastcat::LINEAR_INTERPOLATION_STATE:
+        fprintf(file, "%lf, ", state->linear_interpolation_state.output);
+        fprintf(file, "%u, ", state->linear_interpolation_state.is_saturated);
+        break;
+
       default:
         break;
     }
@@ -446,7 +462,7 @@ int main(int argc, char* argv[])
 
   jsd_timer_t* timer = jsd_timer_alloc();
   jsd_timer_init_ex(timer, 1e9 / loop_rate, JSD_TIMER_ANY_CPU, false, false);
-  cli_start_time = jsd_get_time_sec();
+  cli_start_time = jsd_time_get_time_sec();
 
   std::vector<fastcat::DeviceState> states;
 

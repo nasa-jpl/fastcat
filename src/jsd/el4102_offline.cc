@@ -19,6 +19,12 @@ fastcat::FaultType fastcat::El4102Offline::Process()
 
 bool fastcat::El4102Offline::Write(DeviceCmd& cmd)
 {
+  // If device supports async SDO requests
+  AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
+  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+    return (sdoResult == SDO_RET_VAL_SUCCESS);
+  }
+
   // The use of ERROR statements, which are not real-time safe, is deemed
   // acceptable in this function. Their execution would imply the existence of
   // a serious issue in the application's side that should be addressed.

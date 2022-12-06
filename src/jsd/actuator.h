@@ -6,7 +6,7 @@
 // Include c then c++ libraries
 
 // Include external then project includes
-#include "fastcat/device_base.h"
+#include "fastcat/jsd/jsd_device_base.h"
 #include "fastcat/trap.h"
 #include "jsd/jsd_egd_pub.h"
 
@@ -17,8 +17,11 @@ typedef enum {
   ACTUATOR_SMS_HALTED,
   ACTUATOR_SMS_HOLDING,
   ACTUATOR_SMS_PROF_POS,
+  ACTUATOR_SMS_PROF_POS_DISENGAGING,
   ACTUATOR_SMS_PROF_VEL,
+  ACTUATOR_SMS_PROF_VEL_DISENGAGING,
   ACTUATOR_SMS_PROF_TORQUE,
+  ACTUATOR_SMS_PROF_TORQUE_DISENGAGING,
   ACTUATOR_SMS_CS,
   ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP,
   ACTUATOR_SMS_CAL_AT_HARDSTOP,
@@ -30,7 +33,7 @@ typedef enum {
   ACTUATOR_TYPE_PRISMATIC,
 } ActuatorType;
 
-class Actuator : public DeviceBase
+class Actuator : public JsdDeviceBase
 {
  public:
   Actuator();
@@ -40,7 +43,8 @@ class Actuator : public DeviceBase
   bool      Write(DeviceCmd& cmd) override;
   void      Fault() override;
   void      Reset() override;
-  bool      SetOutputPosition(double position) override;
+  bool      SetOutputPosition(double position);
+  bool      HasAbsoluteEncoder();
 
  protected:
   double  CntsToEu(int32_t cnts);
@@ -84,18 +88,22 @@ class Actuator : public DeviceBase
   FaultType ProcessCalMoveToHardstop();
   FaultType ProcessCalAtHardstop();
   FaultType ProcessCalMoveToSoftstop();
+  FaultType ProcessProfPosDisengaging();
+  FaultType ProcessProfVelDisengaging();
+  FaultType ProcessProfTorqueDisengaging();
 
   virtual void EgdRead();
   virtual void EgdSetConfig();
   virtual void EgdProcess();
+  virtual void EgdClearErrors();
   virtual void EgdReset();
   virtual void EgdHalt();
   virtual void EgdSetPeakCurrent(double current);
-  virtual void EgdSetUnitMode(int32_t mode);
+  virtual void EgdSetUnitMode(int32_t mode, uint16_t app_id);
   virtual void EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd);
   virtual void EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd);
   virtual void EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd);
-  virtual void EgdSetGainSchedulingMode(jsd_egd_gain_scheduling_mode_t mode);
+  virtual void EgdSetGainSchedulingMode(jsd_egd_gain_scheduling_mode_t mode, uint16_t app_id);
   virtual void EgdSetGainSchedulingIndex(uint16_t index);
 
   std::string  actuator_type_str_;
@@ -131,6 +139,7 @@ class Actuator : public DeviceBase
 
   jsd_slave_config_t jsd_slave_config_;
   jsd_egd_state_t    jsd_egd_state_;
+  DeviceCmd          last_cmd_;
 
   ActuatorStateMachineState actuator_sms_;
   double                    last_transition_time_;
@@ -146,6 +155,8 @@ class Actuator : public DeviceBase
                         jsd_egd_gain_scheduling_mode_t& gs_mode);
 
   bool prof_pos_hold_;
+
+  bool actuator_absolute_encoder_ = false;
 };
 
 }  // namespace fastcat
