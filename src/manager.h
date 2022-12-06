@@ -70,7 +70,7 @@ class Manager
    *
    *  @return void
    */
-  void QueueCommand(DeviceCmd& cmd, int request_id);
+  void QueueCommand(DeviceCmd& cmd);
 
   /** @brief Returns list of device states
    *  
