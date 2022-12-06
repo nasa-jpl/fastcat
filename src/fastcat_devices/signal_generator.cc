@@ -9,16 +9,23 @@
 #include "jsd/jsd_print.h"
 
 
-fastcat::SignalGeneratorType fastcat::SignalGeneratorTypeFromString(const std::string& signal_generator_type) {
+fastcat::SignalGeneratorType fastcat::SignalGeneratorTypeFromString(
+    const std::string& signal_generator_type) {
+  std::cout << signal_generator_type << std::endl;
   if(signal_generator_type.compare("SINE_WAVE") == 0) {
+    std::cout << "SINE_WAVE" << std::endl;
     return SINE_WAVE;
   } else if(signal_generator_type.compare("SAW_TOOTH") == 0) {
+    std::cout << "SAW_TOOTH" << std::endl;
     return SAW_TOOTH;;
   } else if(signal_generator_type.compare("UNIFORM_RANDOM") == 0) {
+    std::cout << "UNIFORM_RANDOM" << std::endl;
     return UNIFORM_RANDOM;
   } else if(signal_generator_type.compare("GAUSSIAN_RANDOM") == 0) {
+    std::cout << "GAUSSIAN_RANDOM" << std::endl;
     return GAUSSIAN_RANDOM;
   } else {
+    std::cout << "BAD" << std::endl;
     return BAD_SIGNAL_GENERATOR_TYPE;
   }
 }
