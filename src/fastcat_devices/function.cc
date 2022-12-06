@@ -39,6 +39,7 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
   if (!ParseVal(node, "function_type", function_type_string_)) {
     return false;
   }
+  
   function_type_ = fastcat::FunctionTypeFromString(function_type_string_);
   if (!ConfigSignalsFromYaml(node, signals_, false)) {
     return false;
