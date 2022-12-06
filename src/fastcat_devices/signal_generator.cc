@@ -177,13 +177,13 @@ bool fastcat::SignalGenerator::Read()
       break;
     }
 
-    switch GAUSSIAN_RANDOM: {
+    case GAUSSIAN_RANDOM: {
       state_->signal_generator_state.output = 
         gaussian_random_.distribution(generator_);
       break;
     }
 
-    switch UNIFORM_RANDOM: {
+    case UNIFORM_RANDOM: {
        state_->signal_generator_state.output = 
         uniform_random_.distribution(generator_);
       break;
