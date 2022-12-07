@@ -99,7 +99,7 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
 
     case MULTIPLICATION: {
       if (signals_.size() < 2) {
-        ERROR("Expecting atleast two signals for Function");
+        ERROR("Expecting at least two signals for Function");
         return false;
       } 
       break;
