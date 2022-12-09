@@ -42,6 +42,13 @@ class Actuator : public DeviceBase
   void      Reset() override;
   bool      SetOutputPosition(double position) override;
 
+  double    GetActPosMax() override;
+  double    GetActPosMin() override;
+  double    GetActVelMax() override;
+  double    GetActAccMax() override;
+  double    GetActCurPeak() override;
+  double    GetActCurCont() override;
+
  protected:
   double  CntsToEu(int32_t cnts);
   int32_t EuToCnts(double eu);

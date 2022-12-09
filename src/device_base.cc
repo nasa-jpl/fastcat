@@ -61,3 +61,34 @@ bool fastcat::DeviceBase::SetOutputPosition(double /* position */)
   return false;
 }
 
+double fastcat::DeviceBase::GetActPosMax() {
+  ERROR("GetActPosMax not defined for Device: %s", name_.c_str());
+  return 0.0;
+}
+
+double fastcat::DeviceBase::GetActPosMin() {
+  ERROR("GetActPosMin not defined for Device: %s", name_.c_str());
+  return 0.0;
+}
+
+double fastcat::DeviceBase::GetActVelMax() {
+  ERROR("GetActVelMax not defined for Device: %s", name_.c_str());
+  return 0.0;
+}
+
+double fastcat::DeviceBase::GetActAccMax() {
+  ERROR("GetActAccMax not defined for Device: %s", name_.c_str());
+  return 0.0;
+}
+
+double fastcat::DeviceBase::GetActCurPeak() {
+  ERROR("GetActCurPeak not defined for Device: %s", name_.c_str());
+  return 0.0;
+}
+
+double fastcat::DeviceBase::GetActCurCont() {
+  ERROR("GetActCurCont not defined for Device: %s", name_.c_str());
+  return 0.0;
+}
+
+

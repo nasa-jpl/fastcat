@@ -21,13 +21,20 @@ class DeviceBase
   // Pure virtual methods
   virtual bool ConfigFromYaml(YAML::Node node) = 0;
   virtual bool Read()                          = 0;
-
+  
   // Non-pure virtual methods with default implementation
   virtual FaultType Process();
   virtual bool      Write(DeviceCmd& cmd);
   virtual void      Fault();
   virtual void      Reset();
   virtual bool      SetOutputPosition(double position);
+  
+  virtual double    GetActPosMax();
+  virtual double    GetActPosMin();
+  virtual double    GetActVelMax();  
+  virtual double    GetActAccMax();
+  virtual double    GetActCurPeak();
+  virtual double    GetActCurCont();
 
   // non-virtual methods
   void RegisterCmdQueue(std::shared_ptr<std::queue<DeviceCmd>> cmd_queue);

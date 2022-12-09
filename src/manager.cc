@@ -306,6 +306,49 @@ fastcat::Manager::GetDeviceStatePointers()
 }
 
 double fastcat::Manager::GetTargetLoopRate() { return target_loop_rate_hz_; }
+
+std::vector<std::string> fastcat::Manager::GetActuatorsName()
+{
+  std::shared_ptr<DeviceState> dev_state;
+  std::string                  dev_name;
+  std::vector<std::string> acts_name;
+  for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
+       ++device){        
+    dev_state = (*device)->GetState();
+    dev_name  = (*device)->GetName();
+
+    if (dev_state->type == ACTUATOR_STATE) {
+      acts_name.push_back(dev_name);      
+    }
+  }
+  return acts_name;  
+}
+
+std::vector<std::vector<double>> fastcat::Manager::GetActuatorsParam()
+{
+  std::shared_ptr<DeviceState> dev_state;
+  std::string                  dev_name;
+  std::vector<std::vector<double>> acts_param;  
+  std::vector<double>          act_param;
+  std::vector<double>          pos_min;
+  for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
+       ++device){        
+    dev_state = (*device)->GetState();
+    dev_name  = (*device)->GetName();
+
+    if (dev_state->type != ACTUATOR_STATE) {
+      continue;
+    }
+    MSG("For act: %s", dev_name.c_str());
+    act_param.clear();
+    act_param.push_back((*device)->GetActPosMax());    
+    act_param.push_back((*device)->GetActPosMin());
+    
+    acts_param.push_back(act_param);
+  }
+  return acts_param;  
+}
+
 bool   fastcat::Manager::IsFaulted() { return faulted_; }
 
 bool fastcat::Manager::RecoverBus(std::string ifname)

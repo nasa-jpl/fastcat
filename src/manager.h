@@ -88,6 +88,16 @@ class Manager
    */
   double                                          GetTargetLoopRate();
 
+  /** @brief Public getter to the YAML actuators names
+   *  @return vectors 
+   */
+  std::vector<std::string>GetActuatorsName();
+
+  /** @brief Public getter to the YAML actuators parameters
+   *  @return vectors 
+   */
+  std::vector<std::vector<double>>GetActuatorsParam();
+
   /** @brief Public getter retrieve fault status
    *  @return true if bus is faulted
    */
