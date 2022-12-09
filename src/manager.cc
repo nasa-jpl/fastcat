@@ -343,7 +343,10 @@ std::vector<std::vector<double>> fastcat::Manager::GetActuatorsParam()
     act_param.clear();
     act_param.push_back((*device)->GetActPosMax());    
     act_param.push_back((*device)->GetActPosMin());
-    
+    act_param.push_back((*device)->GetActVelMax());
+    act_param.push_back((*device)->GetActAccMax());
+    act_param.push_back((*device)->GetActCurPeak());
+    act_param.push_back((*device)->GetActCurCont());    
     acts_param.push_back(act_param);
   }
   return acts_param;  
