@@ -335,7 +335,7 @@ fastcat::Manager::GetDeviceStatePointers()
 
 double fastcat::Manager::GetTargetLoopRate() { return target_loop_rate_hz_; }
 
-void fastcat::Manager::GetActuatorsName(std::vector<std::string>& names)
+void fastcat::Manager::GetActuatorsName(std::vector<std::string> &names)
 {
   std::shared_ptr<DeviceState> dev_state;
   std::string                  dev_name;
@@ -351,12 +351,12 @@ void fastcat::Manager::GetActuatorsName(std::vector<std::string>& names)
   }  
 }
 
-void fastcat::Manager::GetActuatorsParams(std::vector<std::vector<std::double>>& params)
+void fastcat::Manager::GetActuatorsParams(std::vector<std::shared_ptr<std::vector<double>>> &params)
 {
   std::shared_ptr<DeviceState> dev_state;
   std::string                  dev_name;
   std::shared_ptr<Actuator>    actuator;  
-  std::vector<double>          act_params;
+  std::shared_ptr<std::vector<double>> act_params;
   
   params.clear();
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
@@ -370,13 +370,13 @@ void fastcat::Manager::GetActuatorsParams(std::vector<std::vector<std::double>>&
 
     actuator = std::dynamic_pointer_cast<Actuator>(*device);
 
-    act_pact_paramsaram.clear();
-    act_params.push_back(actuator->GetHighPosCmdLimit());    
-    act_params.push_back(actuator->GetLowPosCmdLimit());    
-    act_params.push_back(actuator->GetMaxSpeed());    
-    act_params.push_back(actuator->GetMaxAccel());    
-    act_params.push_back(actuator->GetPeakCurLimit());    
-    act_params.push_back(actuator->GetContCurLimit());    
+    act_params->clear();
+    act_params->push_back(actuator->GetHighPosCmdLimit());    
+    act_params->push_back(actuator->GetLowPosCmdLimit());    
+    act_params->push_back(actuator->GetMaxSpeed());    
+    act_params->push_back(actuator->GetMaxAccel());    
+    act_params->push_back(actuator->GetPeakCurLimit());    
+    act_params->push_back(actuator->GetContCurLimit());    
     params.push_back(act_params);
   }    
 }

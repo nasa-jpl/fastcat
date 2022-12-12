@@ -93,12 +93,12 @@ class Manager
   /** @brief Public getter to the YAML actuators names
    *  @return  
    */  
-  void GetActuatorsName(std::vector<std::string>>& names);
+  void GetActuatorsName(std::vector<std::string> &names);
 
   /** @brief Public getter to the YAML actuators parameters
    *  @return vectors 
    */
-  void GetActuatorsParams(std::vector<std::vector<double>>& params);
+  void GetActuatorsParams(std::vector<std::shared_ptr<std::vector<double>>> &params);
 
   /** @brief Public getter retrieve fault status
    *  @return true if bus is faulted
