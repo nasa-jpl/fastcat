@@ -19,15 +19,19 @@ class ActuatorOffline : public Actuator
   void EgdRead() override;
   void EgdSetConfig() override;
   void EgdProcess() override;
+  void EgdClearErrors() override;
   void EgdReset() override;
   void EgdHalt() override;
   void EgdSetPeakCurrent(double current) override;
-  void EgdSetUnitMode(int32_t mode) override;
+  void EgdSetUnitMode(int32_t mode, uint16_t app_id) override;
   void EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd) override;
   void EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd) override;
   void EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd) override;
-  void EgdSetGainSchedulingMode(jsd_egd_gain_scheduling_mode_t mode) override;
+  void EgdSetGainSchedulingMode(jsd_egd_gain_scheduling_mode_t mode, uint16_t app_id) override;
   void EgdSetGainSchedulingIndex(uint16_t index) override;
+
+  double motor_on_start_time_;
+  uint8_t last_motor_on_state_;
 };
 
 }  // namespace fastcat

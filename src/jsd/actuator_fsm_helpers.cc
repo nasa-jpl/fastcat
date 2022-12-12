@@ -8,6 +8,7 @@
 
 // Include external then project includes
 #include "jsd/jsd.h"
+#include "jsd/jsd_time.h"
 
 bool fastcat::Actuator::CheckStateMachineMotionCmds()
 {
@@ -29,8 +30,11 @@ bool fastcat::Actuator::CheckStateMachineMotionCmds()
       EgdReset();  // This will open the brake, then fallthrough
     case ACTUATOR_SMS_HOLDING:
     case ACTUATOR_SMS_PROF_POS:
+    case ACTUATOR_SMS_PROF_POS_DISENGAGING:
     case ACTUATOR_SMS_PROF_VEL:
+    case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
     case ACTUATOR_SMS_PROF_TORQUE:
+    case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
     case ACTUATOR_SMS_CS:
       // All of these commands can be safely preempted with CS cmds
       break;
@@ -59,8 +63,11 @@ bool fastcat::Actuator::CheckStateMachineGainSchedulingCmds()
     case ACTUATOR_SMS_HALTED:
     case ACTUATOR_SMS_HOLDING:
     case ACTUATOR_SMS_PROF_POS:
+    case ACTUATOR_SMS_PROF_POS_DISENGAGING:
     case ACTUATOR_SMS_PROF_VEL:
+    case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
     case ACTUATOR_SMS_PROF_TORQUE:
+    case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
     case ACTUATOR_SMS_CS:
       break;
 
@@ -194,6 +201,14 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
     return false;
   }
 
+  // Only transition to disengaging if its needed
+  if(state_->actuator_state.servo_enabled){
+    MSG("Bypassing wait since brakes are disengaged");
+  }else{
+    TransitionToState(ACTUATOR_SMS_PROF_POS_DISENGAGING);
+    last_cmd_ = cmd;
+    return true;
+  }
 
   trap_generate(
       &trap_, state_->time,
@@ -222,6 +237,15 @@ bool fastcat::Actuator::HandleNewProfVelCmd(DeviceCmd& cmd)
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing Prof Vel Command");
     return false;
+  }
+
+  // Only transition to disengaging if its needed
+  if(state_->actuator_state.servo_enabled){
+    MSG("Bypassing wait since brakes are disengaged");
+  }else{
+    TransitionToState(ACTUATOR_SMS_PROF_VEL_DISENGAGING);
+    last_cmd_ = cmd;
+    return true;
   }
 
 
@@ -253,6 +277,14 @@ bool fastcat::Actuator::HandleNewProfTorqueCmd(DeviceCmd& cmd)
     return false;
   }
 
+  // Only transition to disengaging if its needed
+  if(state_->actuator_state.servo_enabled){
+    MSG("Bypassing wait since brakes are disengaged");
+  }else{
+    TransitionToState(ACTUATOR_SMS_PROF_VEL_DISENGAGING);
+    last_cmd_ = cmd;
+    return true;
+  }
 
   trap_generate_vel(
       &trap_, state_->time, 0, 0, cmd.actuator_prof_torque_cmd.target_torque_amps,
@@ -278,8 +310,11 @@ bool fastcat::Actuator::HandleNewHaltCmd()
 
     case ACTUATOR_SMS_HOLDING:
     case ACTUATOR_SMS_PROF_POS:
+    case ACTUATOR_SMS_PROF_POS_DISENGAGING:
     case ACTUATOR_SMS_PROF_VEL:
+    case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
     case ACTUATOR_SMS_PROF_TORQUE:
+    case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
     case ACTUATOR_SMS_CS:
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
@@ -306,8 +341,11 @@ bool fastcat::Actuator::HandleNewSetOutputPositionCmd(DeviceCmd& cmd)
       break;
 
     case ACTUATOR_SMS_PROF_POS:
+    case ACTUATOR_SMS_PROF_POS_DISENGAGING:
     case ACTUATOR_SMS_PROF_VEL:
+    case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
     case ACTUATOR_SMS_PROF_TORQUE:
+    case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
     case ACTUATOR_SMS_CS:
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
@@ -337,8 +375,11 @@ bool fastcat::Actuator::HandleNewSetUnitModeCmd(DeviceCmd& cmd)
       break;
 
     case ACTUATOR_SMS_PROF_POS:
+    case ACTUATOR_SMS_PROF_POS_DISENGAGING:
     case ACTUATOR_SMS_PROF_VEL:
+    case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
     case ACTUATOR_SMS_PROF_TORQUE:
+    case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
     case ACTUATOR_SMS_CS:
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
@@ -352,7 +393,9 @@ bool fastcat::Actuator::HandleNewSetUnitModeCmd(DeviceCmd& cmd)
       return false;
   }
 
-  EgdSetUnitMode(cmd.actuator_set_unit_mode_cmd.mode);
+  EgdSetUnitMode(
+      cmd.actuator_sdo_set_unit_mode_cmd.mode,
+      cmd.actuator_sdo_set_unit_mode_cmd.app_id);
 
   return true;
 }
@@ -372,8 +415,11 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
     case ACTUATOR_SMS_HOLDING:
       break;
     case ACTUATOR_SMS_PROF_POS:
+    case ACTUATOR_SMS_PROF_POS_DISENGAGING:
     case ACTUATOR_SMS_PROF_VEL:
+    case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
     case ACTUATOR_SMS_PROF_TORQUE:
+    case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
     case ACTUATOR_SMS_CS:
       TransitionToState(ACTUATOR_SMS_FAULTED);
       ERROR("Act %s: %s", name_.c_str(),
@@ -493,7 +539,6 @@ fastcat::FaultType fastcat::Actuator::ProcessHalted()
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
-
   return NO_FAULT;
 }
 
@@ -695,4 +740,130 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
 fastcat::FaultType fastcat::Actuator::ProcessCalMoveToSoftstop()
 {
   return ProcessProfPos();
+}
+
+fastcat::FaultType fastcat::Actuator::ProcessProfPosDisengaging()
+{
+  if (IsMotionFaultConditionMet()) {
+    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    return ALL_DEVICE_FAULT;
+  }
+
+  double target_position = 0;
+  if (last_cmd_.actuator_prof_pos_cmd.relative) {
+    target_position = last_cmd_.actuator_prof_pos_cmd.target_position +
+                      state_->actuator_state.actual_position;
+  } else {
+    target_position = last_cmd_.actuator_prof_pos_cmd.target_position;
+  }
+
+  if(state_->actuator_state.servo_enabled){
+    // If brakes are disengaged, setup the traps and transition to the execution state
+    trap_generate(
+        &trap_, state_->time,
+        state_->actuator_state.actual_position,
+        target_position,
+        state_->actuator_state.cmd_velocity,
+        last_cmd_.actuator_prof_pos_cmd.end_velocity,
+        last_cmd_.actuator_prof_pos_cmd.profile_velocity, // consider abs()
+        last_cmd_.actuator_prof_pos_cmd.profile_accel);
+
+    TransitionToState(ACTUATOR_SMS_PROF_POS);
+
+  }else{
+    // Otherwise, command the current position to trigger the transition and wait
+
+    jsd_egd_motion_command_csp_t jsd_cmd;
+
+    jsd_cmd.target_position    = PosEuToCnts(state_->actuator_state.actual_position);
+    jsd_cmd.position_offset    = 0;
+    jsd_cmd.velocity_offset    = 0;
+    jsd_cmd.torque_offset_amps = 0;
+
+    EgdCSP(jsd_cmd);
+
+    // Check runout timer here, brake engage/disengage time cannot exceed 1 second
+    // per MAN-G-CR Section BP - Brake Parameters
+    if( (jsd_time_get_time_sec() - last_transition_time_) > (1.0 + 2*loop_period_)){
+      ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting", name_.c_str());
+      return ALL_DEVICE_FAULT;
+    }
+  }
+
+  return NO_FAULT;
+}
+
+fastcat::FaultType fastcat::Actuator::ProcessProfVelDisengaging()
+{
+  if (IsMotionFaultConditionMet()) {
+    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    return ALL_DEVICE_FAULT;
+  }
+
+  if(state_->actuator_state.servo_enabled){
+    // If brakes are disengaged, setup the traps and transition to the execution state
+  trap_generate_vel(
+      &trap_, state_->time,
+      state_->actuator_state.actual_position,
+      state_->actuator_state.cmd_velocity,
+      last_cmd_.actuator_prof_vel_cmd.target_velocity,
+      last_cmd_.actuator_prof_vel_cmd.profile_accel,
+      last_cmd_.actuator_prof_vel_cmd.max_duration);
+
+  TransitionToState(ACTUATOR_SMS_PROF_VEL);
+
+  }else{
+    // Otherwise, command the current position to trigger the transition and wait
+    jsd_egd_motion_command_csv_t jsd_cmd;
+
+    jsd_cmd.target_velocity    = 0;
+    jsd_cmd.velocity_offset    = 0;
+    jsd_cmd.torque_offset_amps = 0;
+
+    EgdCSV(jsd_cmd);
+
+    // Check runout timer here, brake engage/disengage time cannot exceed 1 second
+    // per MAN-G-CR Section BP - Brake Parameters
+    if( (jsd_time_get_time_sec() - last_transition_time_) > (1.0 + 2*loop_period_)){
+      ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting", name_.c_str());
+      return ALL_DEVICE_FAULT;
+    }
+  }
+
+  return NO_FAULT;
+}
+
+fastcat::FaultType fastcat::Actuator::ProcessProfTorqueDisengaging()
+{
+  if (IsMotionFaultConditionMet()) {
+    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    return ALL_DEVICE_FAULT;
+  }
+
+  if(state_->actuator_state.servo_enabled){
+    // If brakes are disengaged, setup the traps and transition to the execution state
+    trap_generate_vel(
+        &trap_, state_->time, 0, 0, last_cmd_.actuator_prof_torque_cmd.target_torque_amps,
+        torque_slope_amps_per_sec_, last_cmd_.actuator_prof_torque_cmd.max_duration);
+
+    TransitionToState(ACTUATOR_SMS_PROF_TORQUE);
+
+  }else{
+    // Otherwise, command the current position to trigger the transition and wait
+    jsd_egd_motion_command_cst_t jsd_cmd;
+
+    jsd_cmd.target_torque_amps = 0;
+    jsd_cmd.torque_offset_amps = 0;
+
+    EgdCST(jsd_cmd);
+
+    // Check runout timer here, brake engage/disengage time cannot exceed 1 second
+    // per MAN-G-CR Section BP - Brake Parameters
+    if( (jsd_time_get_time_sec() - last_transition_time_) > (1.0 + 2*loop_period_)){
+      ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting", name_.c_str());
+      return ALL_DEVICE_FAULT;
+    }
+  }
+
+  return NO_FAULT;
 }

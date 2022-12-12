@@ -35,6 +35,7 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | SchmittTrigger  | Simple software debounce trigger, parameterized with upper and lower thresholds |
 | SignalGenerator | Generates a parameterized signal (e.g. sine wave or sawtooth) useful for testing devices and configurations |
 | VirtualFts      | Reads in 6 signals (corresponding to a wrench) and applies the adjoint wrench transformation to different 6DOF pose |
+| LinearInterpolation | Passes a signal through a user-specified table using linear interpolation |
 
 ---
 
@@ -463,8 +464,8 @@ if fabs(f{x,y,z}) > max_force_{x,y,z}) then fault
   max_force_y:  25
   max_force_z:  100
   max_torque_x: 2
-  max_torque_x: 2
-  max_torque_x: 10
+  max_torque_y: 2
+  max_torque_z: 10
 ```
 
 This `calibration: 0` yields `SI-580-20` with units of Newtons and Newton-Meters. 
@@ -774,21 +775,35 @@ Note: Exactly 6 signals must be specified in the signals list.
 
 ## Function
 
-| Parameter       | Description                                                  |
-| --------------- | ------------------------------------------------------------ |
-| `function_type` | type of function {`POLYNOMINAL`}                             |
-| `order`         | `POLYNOMINAL` only. Order of polynominal function            |
-| `coefficients`  | `POLYNOMINAL` only. The coefficients, length must be equal to `order + 1` . Starts with highest-power term. |
+| Parameter             | Description                                                  |
+| --------------------- | ------------------------------------------------------------ |
+| `function_type`       | type of function {`POLYNOMINAL`, `SUMMATION`, `MULTIPLICATION`, `POWER`, `EXPONENTIAL`, `SIGMOID`}  |
+|                       |                                                                               |
+| for `POLYNOMIAL`:     |                                                                               |
+| `order`               | order of polynomial                                                           |
+| `coefficients`        | Polynomial coefficients; length must be equal to `order + 1` . Starts with highest-power term. |
+|                       |                                                                               |
+| for `SUMMATION`:      | no additional parameters, specify `signals` field only, signals will be added together                        |
+|                       |                                                                               |
+| for `MULTIPLICATION`: | no additional parameters, specify `signals` field only, signals will be multiplied together |   
+|                       |                                                                               |
+| for `POWER`:          | raises a single signal to a constant power: `(x^a)`                           |
+| `exponent`            | exponent                                                                      |
+|                       |                                                                               |
+| for `EXPONENTIAL`     | raises a constant to the value of a single signal: `(a^x)`                    |
+| `base`                | base (`a`; optional; if not provided, defaults to euler's number `e`)         |
+|                       |                                                                               |
+| for `SIGMOID`:        | logistic function defined by `1.0 / (1 + e^-x)`                               |
 
-Currently, only an N-order Polynomial function is implemented. Other function types could include logistic, expoentials, sigmoid, etc. Open an issue (or pull request) if you would like to see more functions added.
 
-The `coefficients`(here `coeff`) are specified in the following order (`N`)
+### Polynomial
+The `coefficients` (here `coeff`) are specified in the following order (`N`)
 
 ```
 y = coeff[0] * x^(N) + coeff[1] * x^(N-1) + ... + coeff[N-1] * x^(1) + coeff[N] * x^(0);
 ```
 
-Note: The function device only accepts a single signal. Multi-variate functions are not supported  currently - if they are implemented, a new device type should be created.
+Note: The function device only accepts a single signal. Multi-variate polynomial functions are not currently supported.
 
 #### Example
 
@@ -801,9 +816,89 @@ Implement the function `y = 1*x + 100`
   order: 1
   coefficients: [1, 100]
   signals:
-  - observed_device_name: sig_gen_1signal
+  - observed_device_name: sig_gen_1
     request_signal_name: output
 ```
+
+
+### Summation
+Specify two or more signals to sum together
+
+#### Example
+
+Implement the function `y = x1 + x2`
+
+```yaml
+- device_class: Function
+  name: fun_2
+  function_type: SUMMATION
+  signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name: output
+  - observed_device_name: sig_gen_2
+    request_signal_name: output
+```
+
+### Multiplication
+Specify two or more signals to multiply together
+
+#### Example
+
+Implement the function `y = x1 * x2 * x3`
+
+```yaml
+- device_class: Function
+  name: fun_3
+  function_type: MULTIPLICATION 
+  signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name: output
+  - observed_device_name: sig_gen_2
+    request_signal_name: output
+  - observed_device_name: sig_gen_3
+    request_signal_name: output
+```
+
+
+### Exponential
+Raise a constant to the power of the signal
+
+#### Example
+Implement the function `y = e^x`
+
+```yaml
+- device_class: Function
+  name: fun_4
+  function_type: EXPONENTIAL
+  - observed_device_name: sig_gen_1
+    request_signal_name: output
+```
+
+Implement the function `y = 2.0^x`
+```yaml
+- device_class: Function
+  name: fun_5
+  function_type: EXPONENTIAL
+  base: 2.0
+  - observed_device_name: sig_gen_1
+    request_signal_name: output
+```
+
+
+### Sigmoid
+Return the sigmoid logistic function
+
+#### Example
+Implement the sigmoid logistic function `y = 1.0 / (1.0 + e^-x)`
+
+```yaml
+- device_class: Function
+  name: fun_6
+  function_type: SIGMOID
+  - observed_device_name: sig_gen_1
+    request_signal_name: output
+```
+
 
 ## Pid
 
@@ -885,18 +980,28 @@ if signal is falling
 
 | Parameter               | Description                                               |
 | ----------------------- | --------------------------------------------------------- |
-| `signal_generator_type` | The type of signal to generate {`SINE_WAVE`, `SAW_TOOTH`} |
+| `signal_generator_type` | The type of signal to generate {`SINE_WAVE`, `SAW_TOOTH`, `GAUSSIAN_RANDOM`, `UNIFORM_RANDOM`} |
 |                         |                                                           |
-| for `SINE_WAVE`,        |                                                           |
-| `angular_frequency`     | obvious                                                   |
-| `phase`                 | obvious                                                   |
-| `amplitude`             | obvious                                                   |
-| `offset`                | obvious                                                   |
+| for `SINE_WAVE`:        |                                                           |
+| `angular_frequency`     | sine wave angular frequency                               |
+| `phase`                 | sine wave phase                                           |
+| `amplitude`             | sine wave amplitude                                       |
+| `offset`                | sine wave offset                                          |
 |                         |                                                           |
-| for `SAW_TOOTH`,        |                                                           |
+| for `SAW_TOOTH`:        |                                                           |
 | `max`                   | max value of the sawtooth wave                            |
 | `min`                   | min value of the sawtooth wave                            |
 | `slope`                 | The rate of change in EU/sec. May be positive or negative |
+|                         |                                                           |
+| for `GAUSSIAN_RANDOM`:  |                                                           |
+| `mean`                  | mean signal value                                         |
+| `sigma`                 | standard deviation                                        |
+| `seed`                  | specify random seed as an optional unsigned integer; each signal generator uses its own random seed; if no random seed is provided, defaults to 1 |
+|                         |                                                           |
+| for `UNIFORM_RANDOM`:   |                                                           |
+| `max`                   | maximum signal value                                      | 
+| `min`                   | minimum signal value                                      |
+| `seed`                  | specify random seed as an optional unsigned integer; each signal generator uses its own random seed; if no random seed is provided, defaults to 1 |
 
 The `SINE_WAVE` signal generator output is computed as:
 
@@ -911,7 +1016,7 @@ The `SAW_TOOTH` signal generator output is computed as:
   * apply slope each process update
   * when the 'upper' limit is reached, reset the output 'lower' limit
 
-#### Example
+#### Examples
 
 ``` yaml
 - device_class: SignalGenerator
@@ -925,16 +1030,33 @@ The `SAW_TOOTH` signal generator output is computed as:
 
 ``` yaml
 - device_class: SignalGenerator
-  name: sig_gen_2signal
+  name: sig_gen_2
   signal_generator_type: SAW_TOOTH
   max: 1
   min: 0
   slope: 1
 ```
 
+```yaml
+- device_class: SignalGenerator
+  name: sig_gen_3
+  signal_generator_type: GAUSSIAN_RANDOM
+  mean: 0.0
+  sigma: 0.2
+  seed: 50
+```
+
+```yaml
+- device_class: SignalGenerator
+  name: sig_gen_4
+  signal_generator_type: UNIFORM_RANDOM
+  min: -5.0
+  max: 10.0
+  # seed is optional
+```
 
 
-## VirtualFtsRepeat 
+## VirtualFts
 
 | Parameter    | Description                                                  |
 | ------------ | ------------------------------------------------------------ |
@@ -959,7 +1081,7 @@ Note: The Euler angles are specified in [Roll, Pitch, Yaw] order but are actuall
 #### Example
 
 ``` yaml
-signal- device_class: VirtualFts
+- device_class: VirtualFts
   name: virtual_fts_1
   position: [1, 0, 1]
   quaternion: [0.7071, 0.35355, 0, 0.35355]
@@ -984,3 +1106,34 @@ signal- device_class: VirtualFts
     request_signal_name: raw_tz
 ```
 
+
+## LinearInterpolation
+
+| Parameter   | Description |
+| ----------- | ----------- |
+| domain      | Variable-length array of domain values |
+| range       | Variable-length array of range values |
+| enable_output_bounds_fault | controls fault behavior |
+
+The LinearInterpolation provides a general method for converting a signal by interpolation table. Within the domain, the output is linearly interpolated between adjacent pivot points where the input is between the pivot points (e.g. domain[i] < intput < domain[i+1])
+```
+  output = range[i] + (range[i+1] - range[i]) / (domain[i+1] - domain[i]) * (input - domain[i])
+```
+If the input falls outside the valid domain specified by the input YAML, the output signal saturates and does not attempt extrapolation. the state feedback value `is_saturated` is also set to indicate this has happened. 
+
+If `enable_output_bounds_fault` is `true` then a Fastcat fault is emitted when the device saturates. Otherwise, no faults are emitted by a LinearInterpolation device and it will silently saturate.
+
+### Example
+
+This example implements an absolute value function over the range of [-9, 9] 
+
+``` yaml
+- device_class: LinearInterpolation
+  name:         my_lin_interp_1 
+  domain:       [-9, 0, 9]
+  range:        [ 9, 0, 9]
+  enable_out_of_bounds_fault: false
+  signals:
+  - observed_device_name: sig_gen_1
+    request_signal_name:  output
+```

@@ -42,6 +42,7 @@ for cmd in data['commands']:
 [[[end]]]
 
 
+
 //////////////////////////////////
 // Fastcat Commands
 //////////////////////////////////
@@ -165,6 +166,11 @@ typedef struct{
   double position;
 } ActuatorPosData;
 
+
+typedef struct{
+  jsd_sdo_req_t response;
+  std::string   device_name;
+} SdoResponse;
 
 } // fastcat namespace
 

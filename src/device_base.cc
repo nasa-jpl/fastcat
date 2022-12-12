@@ -18,18 +18,11 @@ std::shared_ptr<fastcat::DeviceState> fastcat::DeviceBase::GetState()
   return state_;
 }
 
-void fastcat::DeviceBase::SetSlaveId(uint16_t slave_id)
-{
-  MSG_DEBUG("Setting slave id to %u", slave_id);
-  slave_id_ = slave_id;
-}
-
-uint16_t fastcat::DeviceBase::GetSlaveId() { return slave_id_; }
-void     fastcat::DeviceBase::SetContext(void* context) { context_ = context; }
-void     fastcat::DeviceBase::SetLoopPeriod(double loop_period)
+void fastcat::DeviceBase::SetLoopPeriod(double loop_period)
 {
   loop_period_ = loop_period;
 }
+
 
 void fastcat::DeviceBase::SetTime(double time){
   state_->time = time;
@@ -54,12 +47,6 @@ void fastcat::DeviceBase::Reset()
 }
 
 fastcat::FaultType fastcat::DeviceBase::Process() { return NO_FAULT; }
-
-bool fastcat::DeviceBase::SetOutputPosition(double /* position */)
-{
-  ERROR("SetOutputPosition not defined for Device: %s", name_.c_str());
-  return false;
-}
 
 double fastcat::DeviceBase::GetActPosMax() {
   ERROR("GetActPosMax not defined for Device: %s", name_.c_str());
@@ -90,5 +77,4 @@ double fastcat::DeviceBase::GetActCurCont() {
   ERROR("GetActCurCont not defined for Device: %s", name_.c_str());
   return 0.0;
 }
-
 

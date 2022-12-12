@@ -26,6 +26,13 @@ fastcat::FaultType fastcat::Jed0101Offline::Process()
 
 bool fastcat::Jed0101Offline::Write(DeviceCmd& cmd)
 {
+
+  // If device supports async SDO requests
+  AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
+  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+    return (sdoResult == SDO_RET_VAL_SUCCESS);
+  }
+
   if (cmd.type == JED0101_SET_CMD_VALUE_CMD) {
     state_->jed0101_state.cmd = cmd.jed0101_set_cmd_value_cmd.cmd;
   } else {

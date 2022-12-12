@@ -6,12 +6,12 @@
 // Include c then c++ libraries
 
 // Include external then project includes
-#include "fastcat/device_base.h"
+#include "fastcat/jsd/jsd_device_base.h"
 #include "jsd/jsd_egd_pub.h"
 
 namespace fastcat
 {
-class Egd : public DeviceBase
+class Egd : public JsdDeviceBase
 {
  public:
   Egd();
