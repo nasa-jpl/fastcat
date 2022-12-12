@@ -335,30 +335,30 @@ fastcat::Manager::GetDeviceStatePointers()
 
 double fastcat::Manager::GetTargetLoopRate() { return target_loop_rate_hz_; }
 
-std::vector<std::string> fastcat::Manager::GetActuatorsName()
+void fastcat::Manager::GetActuatorsName(std::vector<std::string>& names)
 {
   std::shared_ptr<DeviceState> dev_state;
   std::string                  dev_name;
-  std::vector<std::string> acts_name;
+  names.clear();  
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
        ++device){        
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
     if (dev_state->type == ACTUATOR_STATE) {
-      acts_name.push_back(dev_name);      
+      names.push_back(dev_name);      
     }
-  }
-  return acts_name;  
+  }  
 }
 
-std::vector<std::vector<double>> fastcat::Manager::GetActuatorsParam()
+void fastcat::Manager::GetActuatorsParams(std::vector<std::vector<std::double>>& params)
 {
   std::shared_ptr<DeviceState> dev_state;
   std::string                  dev_name;
-  std::vector<std::vector<double>> acts_param;  
-  std::vector<double>          act_param;
-  std::vector<double>          pos_min;
+  std::shared_ptr<Actuator>    actuator;  
+  std::vector<double>          act_params;
+  
+  params.clear();
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
        ++device){        
     dev_state = (*device)->GetState();
@@ -367,17 +367,18 @@ std::vector<std::vector<double>> fastcat::Manager::GetActuatorsParam()
     if (dev_state->type != ACTUATOR_STATE) {
       continue;
     }
-    MSG("For act: %s", dev_name.c_str());
-    act_param.clear();
-    act_param.push_back((*device)->GetActPosMax());    
-    act_param.push_back((*device)->GetActPosMin());
-    act_param.push_back((*device)->GetActVelMax());
-    act_param.push_back((*device)->GetActAccMax());
-    act_param.push_back((*device)->GetActCurPeak());
-    act_param.push_back((*device)->GetActCurCont());    
-    acts_param.push_back(act_param);
-  }
-  return acts_param;  
+
+    actuator = std::dynamic_pointer_cast<Actuator>(*device);
+
+    act_pact_paramsaram.clear();
+    act_params.push_back(actuator->GetHighPosCmdLimit());    
+    act_params.push_back(actuator->GetLowPosCmdLimit());    
+    act_params.push_back(actuator->GetMaxSpeed());    
+    act_params.push_back(actuator->GetMaxAccel());    
+    act_params.push_back(actuator->GetPeakCurLimit());    
+    act_params.push_back(actuator->GetContCurLimit());    
+    params.push_back(act_params);
+  }    
 }
 
 bool   fastcat::Manager::IsFaulted() { return faulted_; }

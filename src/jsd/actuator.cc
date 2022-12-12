@@ -541,30 +541,30 @@ bool fastcat::Actuator::SetOutputPosition(double position)
   return true;
 }
 
-double fastcat::Actuator::GetActPosMax()
+double fastcat::Actuator::GetHighPosCmdLimit()
 {
   return high_pos_cmd_limit_eu_;
 }
-double fastcat::Actuator::GetActPosMin()
+double fastcat::Actuator::GetLowPosCmdLimit()
 {
   return low_pos_cmd_limit_eu_;
 }
-double fastcat::Actuator::GetActVelMax()
+double fastcat::Actuator::GetMaxSpeed()
 {
   return max_speed_eu_per_sec_;
 }
-double fastcat::Actuator::GetActAccMax()
+double fastcat::Actuator::GetMaxAccel()
 {
   return max_accel_eu_per_sec2_;
 }
-double fastcat::Actuator::GetActCurPeak()
+double fastcat::Actuator::GetPeakCurLimit()
 {
   return peak_current_limit_amps_;
 }
-double fastcat::Actuator::GetActCurCont()
+double fastcat::Actuator::GetContCurLimit()
 {
   return continuous_current_limit_amps_;
-
+}
 bool fastcat::Actuator::HasAbsoluteEncoder()
 {
   return actuator_absolute_encoder_;

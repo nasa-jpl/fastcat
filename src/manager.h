@@ -91,14 +91,14 @@ class Manager
   double                                          GetTargetLoopRate();
 
   /** @brief Public getter to the YAML actuators names
-   *  @return vectors 
-   */
-  std::vector<std::string>GetActuatorsName();
+   *  @return  
+   */  
+  void GetActuatorsName(std::vector<std::string>>& names);
 
   /** @brief Public getter to the YAML actuators parameters
    *  @return vectors 
    */
-  std::vector<std::vector<double>>GetActuatorsParam();
+  void GetActuatorsParams(std::vector<std::vector<double>>& params);
 
   /** @brief Public getter retrieve fault status
    *  @return true if bus is faulted
@@ -196,7 +196,7 @@ class Manager
   std::vector<DeviceState>                           states_;
   std::map<std::string, ActuatorPosData>             actuator_pos_map_;
   std::unordered_map<std::string, bool>              unique_device_map_;
-  std::shared_ptr<std::queue<SdoResponse>>           sdo_response_queue_;
+  std::shared_ptr<std::queue<SdoResponse>>           sdo_response_queue_;  
 };
 }  // namespace fastcat
 

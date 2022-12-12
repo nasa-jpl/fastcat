@@ -28,13 +28,6 @@ class DeviceBase
   virtual void      Fault();
   virtual void      Reset();
   
-  virtual double    GetActPosMax();
-  virtual double    GetActPosMin();
-  virtual double    GetActVelMax();  
-  virtual double    GetActAccMax();
-  virtual double    GetActCurPeak();
-  virtual double    GetActCurCont();
-
   // non-virtual methods
   void RegisterCmdQueue(std::shared_ptr<std::queue<DeviceCmd>> cmd_queue);
   std::string                  GetName();

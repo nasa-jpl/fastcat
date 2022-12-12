@@ -46,12 +46,12 @@ class Actuator : public JsdDeviceBase
   bool      SetOutputPosition(double position);
   bool      HasAbsoluteEncoder();
 
-  double    GetActPosMax() override;
-  double    GetActPosMin() override;
-  double    GetActVelMax() override;
-  double    GetActAccMax() override;
-  double    GetActCurPeak() override;
-  double    GetActCurCont() override;
+  double    GetHighPosCmdLimit();
+  double    GetLowPosCmdLimit();
+  double    GetMaxSpeed();
+  double    GetMaxAccel();
+  double    GetPeakCurLimit();
+  double    GetContCurLimit();
 
  protected:
   double  CntsToEu(int32_t cnts);
