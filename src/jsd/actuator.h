@@ -9,6 +9,7 @@
 #include "fastcat/jsd/jsd_device_base.h"
 #include "fastcat/trap.h"
 #include "jsd/jsd_egd_pub.h"
+#include "jsd/jsd_time.h"
 
 namespace fastcat
 {
