@@ -34,7 +34,7 @@ typedef enum {
 } ActuatorType;
 
 typedef enum {
-  ACTUATOR_FASTCAT_FAULT_OKAY,
+  ACTUATOR_FASTCAT_FAULT_OKAY = 0,
   // Faults that can occur in handling of new commands
   ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED,
   ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_MOTION,
