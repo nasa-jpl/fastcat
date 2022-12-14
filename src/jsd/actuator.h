@@ -61,6 +61,9 @@ class Actuator : public JsdDeviceBase
   bool      SetOutputPosition(double position);
   bool      HasAbsoluteEncoder();
 
+  static std::string GetFastcatFaultCodeAsString(const DeviceState& state);
+  static std::string GetJSDFaultCodeAsString(const DeviceState& state);
+
  protected:
   double  CntsToEu(int32_t cnts);
   int32_t EuToCnts(double eu);

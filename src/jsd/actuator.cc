@@ -777,3 +777,69 @@ bool fastcat::Actuator::GSModeFromString(
 
   return true;
 }
+
+std::string fastcat::Actuator::GetFastcatFaultCodeAsString(
+    const DeviceState& state)
+{
+  std::string fault_str;
+
+  if (state.type == ACTUATOR_STATE) {
+    auto fault = static_cast<ActuatorFastcatFault>(
+        state.actuator_state.fastcat_fault_code);
+
+    switch (fault) {
+      case ACTUATOR_FASTCAT_FAULT_OKAY:
+        fault_str = "FASTCAT_FAULT_OKAY";
+        break;
+      case ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED:
+        fault_str = "FASTCAT_FAULT_CMD_LIMIT_EXCEEDED";
+        break;
+      case ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_MOTION:
+        fault_str = "FASTCAT_FAULT_INVALID_CMD_DURING_MOTION";
+        break;
+      case ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_CAL:
+        fault_str = "FASTCAT_FAULT_INVALID_CMD_DURING_CAL";
+        break;
+      case ACTUATOR_FASTCAT_FAULT_INVALID_CAL_MOTION_RANGE:
+        fault_str = "FASTCAT_FAULT_INVALID_CAL_MOTION_RANGE";
+        break;
+      case ACTUATOR_FASTCAT_FAULT_STO_ENGAGED:
+        fault_str = "FASTCAT_FAULT_STO_ENGAGED";
+        break;
+      case ACTUATOR_FASTCAT_FAULT_INVALID_EGD_SMS_DURING_MOTION:
+        fault_str = "FASTCAT_FAULT_INVALID_EGD_SMS_DURING_MOTION";
+        break;
+      case ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED:
+        fault_str = "FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED";
+        break;
+      case ACTUATOR_FASTCAT_FAULT_NO_HARDSTOP_DURING_CAL:
+        fault_str = "FASTCAT_FAULT_NO_HARDSTOP_DURING_CAL";
+        break;
+      case ACTUATOR_FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED:
+        fault_str = "FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED";
+        break;
+      default:
+        fault_str = "Bad Fastcat fault code: " +
+                    std::to_string(state.actuator_state.fastcat_fault_code);
+    }
+  } else {
+    fault_str = "State is not type ACTUATOR_STATE";
+  }
+
+  return fault_str;
+}
+
+std::string fastcat::Actuator::GetJSDFaultCodeAsString(const DeviceState& state)
+{
+  std::string fault_str;
+
+  if (state.type == ACTUATOR_STATE) {
+    auto fault =
+        static_cast<jsd_egd_fault_code_t>(state.actuator_state.jsd_fault_code);
+    fault_str = std::string(jsd_egd_fault_code_to_string(fault));
+  } else {
+    fault_str = "State is not type ACTUATOR_STATE";
+  }
+
+  return fault_str;
+}
