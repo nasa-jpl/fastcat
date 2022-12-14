@@ -33,6 +33,21 @@ typedef enum {
   ACTUATOR_TYPE_PRISMATIC,
 } ActuatorType;
 
+typedef enum {
+  ACTUATOR_FASTCAT_FAULT_OKAY,
+  // Faults that can occur in handling of new commands
+  ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED,
+  ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_MOTION,
+  ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_CAL,
+  ACTUATOR_FASTCAT_FAULT_INVALID_CAL_MOTION_RANGE,
+  // Faults that can occur in processing of Actuator's state machine
+  ACTUATOR_FASTCAT_FAULT_STO_ENGAGED,
+  ACTUATOR_FASTCAT_FAULT_INVALID_EGD_SMS_DURING_MOTION,
+  ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED,
+  ACTUATOR_FASTCAT_FAULT_NO_HARDSTOP_DURING_CAL,
+  ACTUATOR_FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED,
+} ActuatorFastcatFault;
+
 class Actuator : public JsdDeviceBase
 {
  public:
@@ -157,6 +172,8 @@ class Actuator : public JsdDeviceBase
   bool prof_pos_hold_;
 
   bool actuator_absolute_encoder_ = false;
+
+  ActuatorFastcatFault fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
 };
 
 }  // namespace fastcat

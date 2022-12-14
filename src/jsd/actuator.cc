@@ -259,17 +259,18 @@ bool fastcat::Actuator::Read()
   state_->actuator_state.motor_on       = jsd_egd_state_.motor_on;
   state_->actuator_state.servo_enabled  = jsd_egd_state_.servo_enabled;
 
-  state_->actuator_state.faulted =
-      (jsd_egd_state_.fault_code != JSD_EGD_FAULT_OKAY);
-  state_->actuator_state.fault_code = 
-    static_cast<uint32_t>(jsd_egd_state_.fault_code);
-  state_->actuator_state.emcy_error_code   = jsd_egd_state_.emcy_error_code;
-
   state_->actuator_state.bus_voltage       = jsd_egd_state_.bus_voltage;
   state_->actuator_state.drive_temperature = jsd_egd_state_.drive_temperature;
 
   state_->actuator_state.actuator_state_machine_state =
       static_cast<uint32_t>(actuator_sms_);
+
+  state_->actuator_state.fastcat_fault_code =
+      static_cast<uint32_t>(fastcat_fault_);
+  state_->actuator_state.jsd_fault_code =
+      static_cast<uint32_t>(jsd_egd_state_.fault_code);
+  state_->actuator_state.emcy_error_code = jsd_egd_state_.emcy_error_code;
+  state_->actuator_state.faulted = (actuator_sms_ == ACTUATOR_SMS_FAULTED);
 
   if (compute_power_) {
     double motor_velocity =
@@ -526,6 +527,7 @@ void fastcat::Actuator::Reset()
     // Resetting here would open brakes so we explicitly do not reset the EGD
     // and instead only clear latched errors 
     EgdClearErrors();
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
     TransitionToState(ACTUATOR_SMS_HALTED);
   }
 }
@@ -568,11 +570,13 @@ bool fastcat::Actuator::PosExceedsCmdLimits(double pos_eu)
   if (pos_eu > high_pos_cmd_limit_eu_) {
     ERROR("Commanded Position (%lf) exceeds high cmd limit (%lf)", pos_eu,
           high_pos_cmd_limit_eu_);
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED;
     return true;
   }
   if (pos_eu < low_pos_cmd_limit_eu_) {
     ERROR("Commanded Position (%lf) exceeds low cmd limit: (%lf)", pos_eu,
           low_pos_cmd_limit_eu_);
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED;
     return true;
   }
   return false;
@@ -583,6 +587,7 @@ bool fastcat::Actuator::VelExceedsCmdLimits(double vel_eu)
   if (fabs(vel_eu) > max_speed_eu_per_sec_) {
     ERROR("Commanded Velocity (%lf) exceeds max speed limit (%lf)", vel_eu,
           max_speed_eu_per_sec_);
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED;
     return true;
   }
   return false;
@@ -593,6 +598,7 @@ bool fastcat::Actuator::AccExceedsCmdLimits(double acc_eu)
   if (fabs(acc_eu) > max_accel_eu_per_sec2_) {
     ERROR("Commanded Acceleration (%lf) exceeds max limit (%lf)", acc_eu,
           max_accel_eu_per_sec2_);
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED;
     return true;
   }
   return false;
@@ -610,6 +616,7 @@ bool fastcat::Actuator::CurrentExceedsCmdLimits(double current)
   if (fabs(current) > peak_current_limit_amps_) {
     ERROR("Commanded current (%lf) exceeds max peak current limit (%lf)",
           current, peak_current_limit_amps_);
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED;
     return true;
   }
 
