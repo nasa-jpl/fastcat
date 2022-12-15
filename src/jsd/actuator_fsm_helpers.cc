@@ -281,7 +281,7 @@ bool fastcat::Actuator::HandleNewProfTorqueCmd(DeviceCmd& cmd)
   if(state_->actuator_state.servo_enabled){
     MSG("Bypassing wait since brakes are disengaged");
   }else{
-    TransitionToState(ACTUATOR_SMS_PROF_VEL_DISENGAGING);
+    TransitionToState(ACTUATOR_SMS_PROF_TORQUE_DISENGAGING);
     last_cmd_ = cmd;
     return true;
   }
