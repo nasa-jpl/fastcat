@@ -46,6 +46,7 @@ bool fastcat::Actuator::CheckStateMachineMotionCmds()
       //   Can be configured to ignore the offending CSP command
       ERROR("Act %s: %s", name_.c_str(),
             "Cannot call a Motion cmd during Calibration");
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_CAL;
       return false;
       break;
 
@@ -77,6 +78,7 @@ bool fastcat::Actuator::CheckStateMachineGainSchedulingCmds()
       ERROR("Act %s: %s", name_.c_str(),
             "Cannot execute gain scheduling commands, calibration is in "
             "progress");
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_CAL;
       return false;
 
     default:
@@ -352,6 +354,7 @@ bool fastcat::Actuator::HandleNewSetOutputPositionCmd(DeviceCmd& cmd)
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       ERROR("Act %s: %s", name_.c_str(),
             "Cannot set output position, motion command is active");
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_MOTION;
       return false;
 
     default:
@@ -386,6 +389,7 @@ bool fastcat::Actuator::HandleNewSetUnitModeCmd(DeviceCmd& cmd)
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       ERROR("Act %s: %s", name_.c_str(),
             "Cannot set unit mode now, motion command is active");
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_MOTION;
       return false;
 
     default:
@@ -424,6 +428,7 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
       TransitionToState(ACTUATOR_SMS_FAULTED);
       ERROR("Act %s: %s", name_.c_str(),
             "Calibration requested during active motion command, faulting");
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_MOTION;
       return false;
       break;
 
@@ -434,6 +439,7 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
       ERROR("Act %s: %s", name_.c_str(),
             "Calibration requested but calibration already in progress, "
             "faulting");
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_CAL;
       return false;
 
     default:
@@ -461,7 +467,7 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
           "< Pos tracking error (%lf). "
           "Check Drive parameters for excessive pos tracking fault", 
         name_.c_str(), rom, pos_tracking_error_eu_);
-
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CAL_MOTION_RANGE;
     return false;
   }
 
@@ -495,11 +501,12 @@ bool fastcat::Actuator::IsIdleFaultConditionMet()
 {
   if (state_->actuator_state.sto_engaged) {
     ERROR("%s: STO Engaged", name_.c_str());
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_STO_ENGAGED;
     return true;
   }
 
-  if (state_->actuator_state.fault_code != 0) {
-    ERROR("%s: fault_code indicates active fault", name_.c_str());
+  if (state_->actuator_state.jsd_fault_code != 0) {
+    ERROR("%s: jsd_fault_code indicates active fault", name_.c_str());
     return true;
   }
   return false;
@@ -509,11 +516,12 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
 {
   if (state_->actuator_state.sto_engaged) {
     ERROR("%s: STO Engaged", name_.c_str());
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_STO_ENGAGED;
     return true;
   }
 
-  if (state_->actuator_state.fault_code != 0) {
-    ERROR("%s: fault_code indicates active fault", name_.c_str());
+  if (state_->actuator_state.jsd_fault_code != 0) {
+    ERROR("%s: jsd_fault_code indicates active fault", name_.c_str());
     return true;
   }
   if (state_->actuator_state.egd_state_machine_state ==
@@ -523,6 +531,7 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
       state_->actuator_state.egd_state_machine_state ==
           JSD_EGD_STATE_MACHINE_STATE_FAULT) {
     ERROR("%s: EGD state machine state is off nominal", name_.c_str());
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_EGD_SMS_DURING_MOTION;
     return true;
   }
   return false;
@@ -650,6 +659,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
   // add other reasons as needed...
   if (state_->actuator_state.sto_engaged) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_STO_ENGAGED;
 
     MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
     EgdSetPeakCurrent(peak_current_limit_amps_);
@@ -658,10 +668,11 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
   }
 
   // assume pos/vel tracking fault
-  if (state_->actuator_state.fault_code != 0) {
+  if (state_->actuator_state.jsd_fault_code != 0) {
     EgdHalt();
-    ERROR("Act %s: %s: %d", name_.c_str(), "Detected Hardstop, EGD fault_code",
-          state_->actuator_state.fault_code);
+    MSG("Act %s: %s: %d", name_.c_str(),
+        "Detected Hardstop, EGD jsd_fault_code",
+        state_->actuator_state.jsd_fault_code);
 
     MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
     EgdSetPeakCurrent(peak_current_limit_amps_);
@@ -685,6 +696,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(),
           "Moved Full Range and did not encounter hard stop");
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_NO_HARDSTOP_DURING_CAL;
 
     MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
     EgdSetPeakCurrent(peak_current_limit_amps_);
@@ -703,12 +715,13 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
 
   if (state_->actuator_state.egd_state_machine_state !=
           JSD_EGD_STATE_MACHINE_STATE_OPERATION_ENABLED &&
-      state_->actuator_state.fault_code != 0) {
+      state_->actuator_state.jsd_fault_code != 0) {
     // We have waited too long, fault
     if ((state_->time - last_transition_time_) > 5.0) {
       ERROR("Act %s: %s: %lf", name_.c_str(),
             "Waited too long for drive to reset in CAL_AT_HARDSTOP state",
             (state_->time - last_transition_time_));
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
     }
 
@@ -786,6 +799,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfPosDisengaging()
     // per MAN-G-CR Section BP - Brake Parameters
     if( (jsd_time_get_time_sec() - last_transition_time_) > (1.0 + 2*loop_period_)){
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting", name_.c_str());
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
     }
   }
@@ -826,6 +840,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfVelDisengaging()
     // per MAN-G-CR Section BP - Brake Parameters
     if( (jsd_time_get_time_sec() - last_transition_time_) > (1.0 + 2*loop_period_)){
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting", name_.c_str());
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
     }
   }
@@ -861,6 +876,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfTorqueDisengaging()
     // per MAN-G-CR Section BP - Brake Parameters
     if( (jsd_time_get_time_sec() - last_transition_time_) > (1.0 + 2*loop_period_)){
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting", name_.c_str());
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
     }
   }

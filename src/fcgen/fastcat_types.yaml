@@ -110,9 +110,11 @@ states:
       type: uint8_t
     - name: servo_enabled
       type: uint8_t
-    - name: fault_code
-      type: uint32_t 
+    - name: jsd_fault_code
+      type: uint32_t
       comment: "From jsd_egd_fault_code_t"
+    - name: fastcat_fault_code
+      type: uint32_t
     - name: emcy_error_code
       type: uint16_t 
     - name: bus_voltage
