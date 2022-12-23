@@ -399,6 +399,9 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       return true;
       break;
     }
+    default:
+      // no-op
+      break;
   }
   
 

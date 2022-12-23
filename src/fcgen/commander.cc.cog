@@ -179,6 +179,12 @@ bool fastcat::Commander::Read()
 
 bool fastcat::Commander::Write(DeviceCmd& cmd)
 {
+
+  if(device_fault_active_){
+    ERROR("Commander (%s) cannot be commanded with an active fault, reset first", name_.c_str());
+    return false;
+  }
+
   if (cmd.type == COMMANDER_ENABLE_CMD) {
     state_->commander_state.enable = true;
     enable_duration_ = cmd.commander_enable_cmd.duration;
