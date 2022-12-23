@@ -30,24 +30,15 @@ class CommanderTest : public ::testing::Test
 
 TEST_F(CommanderTest, ConfigFromYamlSuccess)
 {
-  // ConfigFromYaml() returns true if all necessary fields are present in the
-  // YAML file
+  // ConfigFromYaml() returns true if all necessary fields are present
   EXPECT_TRUE(c1_.ConfigFromYaml(config_node));
 }
 
 TEST_F(CommanderTest, ConfigFromYamlBadCommandType)
 {
-  // ConfigFromYaml() returns false if device_cmd_type is not POLYNOMIAL
+  // ConfigFromYaml() returns false if device_cmd_type is invalid
   config_node["device_cmd_type"] = "NOT_GOOD";
   EXPECT_FALSE(c1_.ConfigFromYaml(config_node));
-}
-
-TEST_F(CommanderTest, ConfigFromYamlIncorrectFieldType)
-{
-  // ConfigFromYaml() throws an exception if a necessary field contains data
-  // that cannot be converted to the appropriate type
-  config_node["start_enabled"] = "JPL";
-  EXPECT_ANY_THROW(c1_.ConfigFromYaml(config_node));
 }
 
 TEST_F(CommanderTest, ConfigFromYamlMissingField)
@@ -58,19 +49,6 @@ TEST_F(CommanderTest, ConfigFromYamlMissingField)
   EXPECT_FALSE(c1_.ConfigFromYaml(config_node));
 }
 
-TEST_F(CommanderTest, ReadResponseRealSignals)
-{
-  // Read() returns false when signal cannot be updated
-  EXPECT_FALSE(c2_.Read());
-
-  // Read() returns true when signals have updated successfully
-  double dummy_sig_out      = 5.0;
-  c2_.signals_[0].data_loc  = (void*)&dummy_sig_out;
-  c2_.signals_[0].data_type = fastcat::DATA_TYPE_DOUBLE;
-  EXPECT_TRUE(c2_.Read());
-}
-
-// TODO: Test case where all signals are FIXED_VALUE
 TEST_F(CommanderTest, ReadResponseFixedSignals)
 {
   // Read() returns true when all signals are FIXED_VALUE
@@ -84,7 +62,7 @@ TEST_F(CommanderTest, WriteValidCommand)
   cmd.type                          = fastcat::COMMANDER_ENABLE_CMD;
   cmd.commander_enable_cmd.duration = 30;
   EXPECT_TRUE(c2_.Write(cmd));
-  EXPECT_EQ(c2_.GetState()->commander_state.enable, false);
+  EXPECT_TRUE(c2_.GetState()->commander_state.enable);
 }
 
 TEST_F(CommanderTest, WriteInvalidCommand)
@@ -92,6 +70,7 @@ TEST_F(CommanderTest, WriteInvalidCommand)
   // Write() returns false if the command sent is not valid for Commander
   // devices
   fastcat::DeviceCmd cmd;
+  cmd.type = fastcat::BAD_DEVICE_CMD;
   EXPECT_FALSE(c2_.Write(cmd));
 }
 
@@ -100,4 +79,33 @@ TEST_F(CommanderTest, ProcessResponse)
   // Process() always returns NO_FAULT
   EXPECT_EQ(c2_.Process(), fastcat::NO_FAULT);
 }
+
+TEST_F(CommanderTest, CmdsRejectedWhenFaulted)
+{
+  // Put in faulted state
+  c2_.Fault();
+
+  // Reject Disable
+  fastcat::DeviceCmd cmd;
+  cmd.type = fastcat::COMMANDER_DISABLE_CMD;
+
+  EXPECT_FALSE(c2_.Write(cmd));
+  EXPECT_FALSE(c2_.GetState()->commander_state.enable);
+
+  // Reject Enable
+  cmd.type = fastcat::COMMANDER_ENABLE_CMD;
+  cmd.commander_enable_cmd.duration = 30;
+
+  EXPECT_FALSE(c2_.Write(cmd));
+  EXPECT_FALSE(c2_.GetState()->commander_state.enable);
+
+  // Reset, then accept Enable
+  c2_.Reset();
+  EXPECT_TRUE(c2_.Write(cmd));
+  EXPECT_TRUE(c2_.GetState()->commander_state.enable);
+
+
+}
+
+
 }  // namespace
