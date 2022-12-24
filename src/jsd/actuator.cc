@@ -311,18 +311,12 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       return true;
       break;
 
-    case ACTUATOR_HALT_CMD:
-      if (!HandleNewHaltCmd()) {
-        ERROR("Failed to handle Halt Command");
-        return false;
-      }
-      break;
-
     case ACTUATOR_SET_OUTPUT_POSITION_CMD:
       if (!HandleNewSetOutputPositionCmd(cmd)) {
         ERROR("Failed to handle Set Output Position Command");
         return false;
       }
+      return true;
       break;
 
     case ACTUATOR_SET_MAX_CURRENT_CMD:
@@ -338,7 +332,8 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       if (!HandleNewSetUnitModeCmd(cmd)) {
         ERROR("Failed to handle Set Unit Mode Command");
         return false;
-      }
+      } 
+      return true;
       break;
 
     case ACTUATOR_SDO_DISABLE_GAIN_SCHEDULING_CMD: {
@@ -457,6 +452,13 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
     case ACTUATOR_CALIBRATE_CMD:
       if (!HandleNewCalibrationCmd(cmd)) {
         ERROR("Failed to handle Calibrate Command");
+        return false;
+      }
+      break;
+
+    case ACTUATOR_HALT_CMD:
+      if (!HandleNewHaltCmd()) {
+        ERROR("Failed to handle Halt Command");
         return false;
       }
       break;
