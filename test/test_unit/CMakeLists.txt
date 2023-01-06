@@ -12,6 +12,9 @@ set(TEST_SOURCES
     test_transform_utils.cc
     test_trap.cc
     test_yaml_parser.cc
+    test_fts.cc
+    test_ati_fts.cc
+    test_virtual_fts.cc
     )
 
 foreach(TEST_SOURCE ${TEST_SOURCES})
