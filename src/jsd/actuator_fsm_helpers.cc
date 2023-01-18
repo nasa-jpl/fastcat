@@ -216,7 +216,7 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
       &trap_, state_->time,
       state_->actuator_state.actual_position,
       target_position,
-      state_->actuator_state.cmd_velocity,
+      state_->actuator_state.actual_velocity,
       cmd.actuator_prof_pos_cmd.end_velocity,
       cmd.actuator_prof_pos_cmd.profile_velocity, // consider abs()
       cmd.actuator_prof_pos_cmd.profile_accel);
@@ -254,7 +254,7 @@ bool fastcat::Actuator::HandleNewProfVelCmd(DeviceCmd& cmd)
   trap_generate_vel(
       &trap_, state_->time,
       state_->actuator_state.actual_position,
-      state_->actuator_state.cmd_velocity,
+      state_->actuator_state.actual_velocity,
       cmd.actuator_prof_vel_cmd.target_velocity,
       cmd.actuator_prof_vel_cmd.profile_accel,
       cmd.actuator_prof_vel_cmd.max_duration);
@@ -776,7 +776,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfPosDisengaging()
         &trap_, state_->time,
         state_->actuator_state.actual_position,
         target_position,
-        state_->actuator_state.cmd_velocity,
+        state_->actuator_state.actual_velocity,
         last_cmd_.actuator_prof_pos_cmd.end_velocity,
         last_cmd_.actuator_prof_pos_cmd.profile_velocity, // consider abs()
         last_cmd_.actuator_prof_pos_cmd.profile_accel);
@@ -819,7 +819,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfVelDisengaging()
   trap_generate_vel(
       &trap_, state_->time,
       state_->actuator_state.actual_position,
-      state_->actuator_state.cmd_velocity,
+      state_->actuator_state.actual_velocity,
       last_cmd_.actuator_prof_vel_cmd.target_velocity,
       last_cmd_.actuator_prof_vel_cmd.profile_accel,
       last_cmd_.actuator_prof_vel_cmd.max_duration);
