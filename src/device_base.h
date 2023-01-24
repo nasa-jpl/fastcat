@@ -38,7 +38,7 @@ class DeviceBase
 
   std::vector<Signal> signals_;
 
- protected:
+ PROTECTED:
   std::string name_;    ///< unique device name
   double loop_period_;  ///< only some devices need
 

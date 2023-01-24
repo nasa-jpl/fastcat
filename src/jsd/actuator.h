@@ -64,7 +64,7 @@ class Actuator : public JsdDeviceBase
   static std::string GetFastcatFaultCodeAsString(const DeviceState& state);
   static std::string GetJSDFaultCodeAsString(const DeviceState& state);
 
- protected:
+ PROTECTED:
   double  CntsToEu(int32_t cnts);
   int32_t EuToCnts(double eu);
   double  PosCntsToEu(int32_t cnts);
@@ -89,7 +89,6 @@ class Actuator : public JsdDeviceBase
   bool HandleNewProfVelCmd(DeviceCmd& cmd);
   bool HandleNewProfTorqueCmd(DeviceCmd& cmd);
   bool HandleNewHaltCmd();
-  bool HandleNewResetCmd();
   bool HandleNewSetOutputPositionCmd(DeviceCmd& cmd);
   bool HandleNewSetUnitModeCmd(DeviceCmd& cmd);
   bool HandleNewCalibrationCmd(DeviceCmd& cmd);
@@ -168,7 +167,7 @@ class Actuator : public JsdDeviceBase
 
   ActuatorCalibrateCmd cal_cmd_;
 
- private:
+PRIVATE:
   bool GSModeFromString(std::string                     gs_mode_string,
                         jsd_egd_gain_scheduling_mode_t& gs_mode);
 
