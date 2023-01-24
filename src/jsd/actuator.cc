@@ -541,7 +541,7 @@ void fastcat::Actuator::Fault()
   // need to clear so that old commands are not left over 
   //  for new commands
   jsd_egd_state_.cmd_position = 0;
-  //jsd_egd_state_.cmd_velocity = 0;
+  jsd_egd_state_.cmd_velocity = 0;
   jsd_egd_state_.cmd_current  = 0;
 
   TransitionToState(ACTUATOR_SMS_FAULTED);

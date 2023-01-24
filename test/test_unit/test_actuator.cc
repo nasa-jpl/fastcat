@@ -169,26 +169,28 @@ class ActuatorTest : public ::testing::Test
     // Set the jsd egd device state to known, dirty values
     // TODO setup for pos, and current values too
 
+    device_.jsd_egd_state_.cmd_position = 1234;
     device_.jsd_egd_state_.cmd_velocity = 1234;
+    device_.jsd_egd_state_.cmd_current = 1234;
+    double expected_pos = device_.PosCntsToEu(1234);
     double expected_vel = device_.CntsToEu(1234);
+    double expected_cur = 1234;
+
     device_.Read();
+    EXPECT_NEAR(device_.state_->actuator_state.cmd_position, expected_pos, 1e-2);
     EXPECT_NEAR(device_.state_->actuator_state.cmd_velocity, expected_vel, 1e-2);
+    EXPECT_NEAR(device_.state_->actuator_state.cmd_current, expected_cur, 1e-2);
 
     device_.Fault();
+    EXPECT_NEAR(device_.state_->actuator_state.cmd_position, expected_pos, 1e-2);
     EXPECT_NEAR(device_.state_->actuator_state.cmd_velocity, expected_vel, 1e-2);
+    EXPECT_NEAR(device_.state_->actuator_state.cmd_current, expected_cur, 1e-2);
+    
     device_.Read();
+    EXPECT_NEAR(device_.state_->actuator_state.cmd_position, 0, 1e-2);
     EXPECT_NEAR(device_.state_->actuator_state.cmd_velocity, 0, 1e-2);
+    EXPECT_NEAR(device_.state_->actuator_state.cmd_current, 0, 1e-2);
 
-    /*
-    fastcat::DeviceCmd cmd;
-    cmd.type = fastcat::ACTUATOR_PROF_POS_CMD;
-    cmd.actuator_prof_pos_cmd.target_position  = 0;
-    cmd.actuator_prof_pos_cmd.profile_velocity = 0.1;
-    cmd.actuator_prof_pos_cmd.end_velocity     = 0;
-    cmd.actuator_prof_pos_cmd.profile_accel    = 0.1;
-    cmd.actuator_prof_pos_cmd.relative         = 0;
-    EXPECT_FALSE(device_.Write(cmd));
-    */
   }
 
 
