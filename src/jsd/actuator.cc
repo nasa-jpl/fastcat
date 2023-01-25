@@ -304,6 +304,108 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
     return (sdoResult == SDO_RET_VAL_SUCCESS);
   }
 
+  // Honor these Non-motion Commands even when faulted
+  switch (cmd.type) {
+    case ACTUATOR_RESET_CMD:
+      Reset();
+      return true;
+      break;
+
+    case ACTUATOR_SET_OUTPUT_POSITION_CMD:
+      if (!HandleNewSetOutputPositionCmd(cmd)) {
+        ERROR("Failed to handle Set Output Position Command");
+        return false;
+      }
+      return true;
+      break;
+
+    case ACTUATOR_SET_MAX_CURRENT_CMD:
+      // This application may choose to set this during motions
+      // in order to boost current during accelration/decel
+      // phases so don't check the state machine
+      peak_current_limit_amps_ = cmd.actuator_set_max_current_cmd.current;
+      EgdSetPeakCurrent(peak_current_limit_amps_);
+      return true;
+      break;
+
+    case ACTUATOR_SDO_SET_UNIT_MODE_CMD:
+      if (!HandleNewSetUnitModeCmd(cmd)) {
+        ERROR("Failed to handle Set Unit Mode Command");
+        return false;
+      } 
+      return true;
+      break;
+
+    case ACTUATOR_SDO_DISABLE_GAIN_SCHEDULING_CMD: {
+      if (!CheckStateMachineGainSchedulingCmds()) {
+        ERROR("Failed to handle SDO Disable Gain Scheduling Command");
+        return false;
+      }
+      EgdSetGainSchedulingMode(
+          JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED,
+          cmd.actuator_sdo_disable_gain_scheduling_cmd.app_id);
+      return true;
+      break;
+    }
+
+    case ACTUATOR_SDO_ENABLE_SPEED_GAIN_SCHEDULING_CMD: {
+      if (!CheckStateMachineGainSchedulingCmds()) {
+        ERROR("Failed to handle SDO Enable Speed Gain Scheduling Command");
+        return false;
+      }
+      EgdSetGainSchedulingMode(
+          JSD_EGD_GAIN_SCHEDULING_MODE_SPEED,
+          cmd.actuator_sdo_enable_speed_gain_scheduling_cmd.app_id);
+      return true;
+      break;
+    }
+
+    case ACTUATOR_SDO_ENABLE_POSITION_GAIN_SCHEDULING_CMD: {
+      if (!CheckStateMachineGainSchedulingCmds()) {
+        ERROR("Failed to handle SDO Enable Position Gain Scheduling Command");
+        return false;
+      }
+      EgdSetGainSchedulingMode(
+          JSD_EGD_GAIN_SCHEDULING_MODE_POSITION,
+          cmd.actuator_sdo_enable_position_gain_scheduling_cmd.app_id);
+      return true;
+      break;
+    }
+
+    case ACTUATOR_SDO_ENABLE_MANUAL_GAIN_SCHEDULING_CMD: {
+      if (!CheckStateMachineGainSchedulingCmds()) {
+        ERROR("Failed to handle SDO Enable Manual Gain Scheduling Command");
+        return false;
+      }
+      EgdSetGainSchedulingMode(
+          JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW, 
+          cmd.actuator_sdo_enable_manual_gain_scheduling_cmd.app_id);
+      return true;
+      break;
+    }
+
+    case ACTUATOR_SET_GAIN_SCHEDULING_INDEX_CMD: {
+      if (!CheckStateMachineGainSchedulingCmds()) {
+        ERROR("Failed to handle Set Gain Scheduling Index Command");
+        return false;
+      }
+      EgdSetGainSchedulingIndex( 
+          cmd.actuator_set_gain_scheduling_index_cmd.gain_scheduling_index);
+      return true;
+      break;
+    }
+    default:
+      // no-op
+      break;
+  }
+  
+
+  // Return early if a fault is active
+  // So as to not honor these motion commands when faulted 
+  if(device_fault_active_){
+    return false;
+  }
+  
   switch (cmd.type) {
     case ACTUATOR_CSP_CMD:
       if (!HandleNewCSPCmd(cmd)) {
@@ -347,8 +449,11 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       }
       break;
 
-    case ACTUATOR_RESET_CMD:
-      Reset();
+    case ACTUATOR_CALIBRATE_CMD:
+      if (!HandleNewCalibrationCmd(cmd)) {
+        ERROR("Failed to handle Calibrate Command");
+        return false;
+      }
       break;
 
     case ACTUATOR_HALT_CMD:
@@ -357,89 +462,6 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         return false;
       }
       break;
-
-    case ACTUATOR_SET_OUTPUT_POSITION_CMD:
-      if (!HandleNewSetOutputPositionCmd(cmd)) {
-        ERROR("Failed to handle Set Output Position Command");
-        return false;
-      }
-      break;
-
-    case ACTUATOR_CALIBRATE_CMD:
-      if (!HandleNewCalibrationCmd(cmd)) {
-        ERROR("Failed to handle Calibrate Command");
-        return false;
-      }
-      break;
-
-    case ACTUATOR_SET_MAX_CURRENT_CMD:
-      // This application may choose to set this during motions
-      // in order to boost current during accelration/decel
-      // phases so don't check the state machine
-      peak_current_limit_amps_ = cmd.actuator_set_max_current_cmd.current;
-      EgdSetPeakCurrent(peak_current_limit_amps_);
-      break;
-
-    case ACTUATOR_SDO_SET_UNIT_MODE_CMD:
-      if (!HandleNewSetUnitModeCmd(cmd)) {
-        ERROR("Failed to handle Set Unit Mode Command");
-        return false;
-      }
-      break;
-
-    case ACTUATOR_SDO_DISABLE_GAIN_SCHEDULING_CMD: {
-      if (!CheckStateMachineGainSchedulingCmds()) {
-        ERROR("Failed to handle SDO Disable Gain Scheduling Command");
-        return false;
-      }
-      EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED,
-          cmd.actuator_sdo_disable_gain_scheduling_cmd.app_id);
-      break;
-    }
-
-    case ACTUATOR_SDO_ENABLE_SPEED_GAIN_SCHEDULING_CMD: {
-      if (!CheckStateMachineGainSchedulingCmds()) {
-        ERROR("Failed to handle SDO Enable Speed Gain Scheduling Command");
-        return false;
-      }
-      EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_SPEED,
-          cmd.actuator_sdo_enable_speed_gain_scheduling_cmd.app_id);
-      break;
-    }
-
-    case ACTUATOR_SDO_ENABLE_POSITION_GAIN_SCHEDULING_CMD: {
-      if (!CheckStateMachineGainSchedulingCmds()) {
-        ERROR("Failed to handle SDO Enable Position Gain Scheduling Command");
-        return false;
-      }
-      EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_POSITION,
-          cmd.actuator_sdo_enable_position_gain_scheduling_cmd.app_id);
-      break;
-    }
-
-    case ACTUATOR_SDO_ENABLE_MANUAL_GAIN_SCHEDULING_CMD: {
-      if (!CheckStateMachineGainSchedulingCmds()) {
-        ERROR("Failed to handle SDO Enable Manual Gain Scheduling Command");
-        return false;
-      }
-      EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW, 
-          cmd.actuator_sdo_enable_manual_gain_scheduling_cmd.app_id);
-      break;
-    }
-
-    case ACTUATOR_SET_GAIN_SCHEDULING_INDEX_CMD: {
-      if (!CheckStateMachineGainSchedulingCmds()) {
-        ERROR("Failed to handle Set Gain Scheduling Index Command");
-        return false;
-      }
-      EgdSetGainSchedulingIndex( 
-          cmd.actuator_set_gain_scheduling_index_cmd.gain_scheduling_index);
-      break;
-    }
 
     default:
       WARNING("That command type is not supported in this mode!");

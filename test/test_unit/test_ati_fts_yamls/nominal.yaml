@@ -1,0 +1,9 @@
+device_class: AtiFts
+name:         ati_fts_1
+calibration:  0
+max_force_x:  100
+max_force_y:  200
+max_force_z:  300
+max_torque_x: 10
+max_torque_y: 20
+max_torque_z: 30

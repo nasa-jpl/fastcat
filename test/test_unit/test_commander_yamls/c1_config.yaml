@@ -3,6 +3,7 @@ name: c1
 start_enabled: true
 device_cmd_name: m1
 device_cmd_type: EGD_CSP_CMD
+skip_n_loops:    0
 signals:
   - observed_device_name: FIXED_VALUE
     fixed_value:          0

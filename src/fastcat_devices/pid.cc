@@ -114,6 +114,11 @@ bool fastcat::Pid::Write(DeviceCmd& cmd)
     return false;
   }
 
+  if(device_fault_active_){
+    ERROR("Unable to Activate PID (%s) with an active fault, reset first", name_.c_str());
+    return false;
+  }
+
   state_->pid_state.active = true;
   pid_activate_cmd_        = cmd.pid_activate_cmd;
   activation_time_         = state_->time;

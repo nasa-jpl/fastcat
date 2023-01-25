@@ -1,0 +1,23 @@
+device_class: VirtualFts
+name:         virtual_fts_1
+position:     [0, 0, 0]
+quaternion:   [0.7071, 0.35355, 0, 0.35355]
+max_force_x:  100
+max_force_y:  200
+max_force_z:  300
+max_torque_x: 10
+max_torque_y: 20
+max_torque_z: 30
+signals:
+- observed_device_name: FIXED_VALUE
+  fixed_value:          10 
+- observed_device_name: FIXED_VALUE
+  fixed_value:          20 
+- observed_device_name: FIXED_VALUE
+  fixed_value:          30 
+- observed_device_name: FIXED_VALUE
+  fixed_value:          1
+- observed_device_name: FIXED_VALUE
+  fixed_value:          2 
+- observed_device_name: FIXED_VALUE
+  fixed_value:          3

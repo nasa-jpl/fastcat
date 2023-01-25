@@ -655,13 +655,6 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
 bool fastcat::Manager::WriteCommands()
 {
-  if (faulted_) {
-    // Clear device command queue
-    while (!cmd_queue_->empty()) {
-      cmd_queue_->pop();
-    }
-    return true;
-  }
 
   while (!cmd_queue_->empty()) {
     DeviceCmd cmd = cmd_queue_->front();

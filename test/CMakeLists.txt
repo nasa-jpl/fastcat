@@ -21,9 +21,6 @@ target_link_libraries(test_config ${fastcat_test_libs})
 add_executable(test_cli test_cli.cc)
 target_link_libraries(test_cli ${fastcat_test_libs})
 
-add_executable(test_filter test_filter.cc)
-target_link_libraries(test_filter ${fastcat_test_libs})
-
 find_package(GTest)
 if(GTEST_FOUND)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test_unit)

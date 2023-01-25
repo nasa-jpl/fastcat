@@ -153,10 +153,17 @@ fastcat::FaultType fastcat::Fts::Process()
 bool fastcat::Fts::Write(DeviceCmd& cmd)
 {
   if (cmd.type == FTS_TARE_CMD) {
-    for (int ii = 0; ii < FC_FTS_N_DIMS; ii++) {
-      sig_offset_[ii] = -wrench_[ii];
+
+    // Do not permit taring if there is a fault
+    if(device_fault_active_){
+      ERROR("Taring FTS is not permited with a active fault, reset first");
+      return false;
+    }else{
+      for (int ii = 0; ii < FC_FTS_N_DIMS; ii++) {
+        sig_offset_[ii] = -wrench_[ii];
+      }
+      return true;
     }
-    return true;
   }
   else if (cmd.type == FTS_ENABLE_GUARD_FAULT_CMD) {
     enable_fts_guard_fault_ = cmd.fts_enable_guard_fault_cmd.enable;

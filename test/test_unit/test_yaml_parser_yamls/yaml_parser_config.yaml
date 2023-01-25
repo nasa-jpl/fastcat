@@ -6,6 +6,6 @@ double_ex: 3.14159
 float_ex: 2.71828
 string_ex: "fastcat"
 int32_ex: -25
-uint8_ex: q
+uint8_ex: 1
 uint32_ex: 256
 bool_ex: true

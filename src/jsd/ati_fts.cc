@@ -141,13 +141,20 @@ bool fastcat::AtiFts::Write(DeviceCmd& cmd)
   }
 
   if (cmd.type == FTS_TARE_CMD) {
-    bias_[0] = -state_->fts_state.raw_fx;
-    bias_[1] = -state_->fts_state.raw_fy;
-    bias_[2] = -state_->fts_state.raw_fz;
-    bias_[3] = -state_->fts_state.raw_tx;
-    bias_[4] = -state_->fts_state.raw_ty;
-    bias_[5] = -state_->fts_state.raw_tz;
-    return true;
+
+    // Do not permit taring if there is a fault
+    if(device_fault_active_){
+      ERROR("Taring (%s) FTS is not permited with an active fault, reset first", name_.c_str());
+      return false;
+    }else{
+      bias_[0] = -state_->fts_state.raw_fx;
+      bias_[1] = -state_->fts_state.raw_fy;
+      bias_[2] = -state_->fts_state.raw_fz;
+      bias_[3] = -state_->fts_state.raw_tx;
+      bias_[4] = -state_->fts_state.raw_ty;
+      bias_[5] = -state_->fts_state.raw_tz;
+      return true;
+    }
   }
   else if (cmd.type == FTS_ENABLE_GUARD_FAULT_CMD) {
     enable_fts_guard_fault_ = cmd.fts_enable_guard_fault_cmd.enable;
