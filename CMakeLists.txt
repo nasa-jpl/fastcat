@@ -16,17 +16,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 option(BUILD_TESTS "Option to build unit and device test programs" ON)
 option(DISABLE_DEBUG_PRINTS "Option to disable debug prints, default off" OFF)
 
-#TODO don't want to make all api calls public just for tests...
-if(BUILD_TESTS)
-  add_definitions(-DPROTECTED=public)
-  add_definitions(-DPRIVATE=public)
-else()
-  add_definitions(-DPROTECTED=protected)
-  add_definitions(-DPRIVATE=private)
-endif()
-
-
-
 if(DISABLE_DEBUG_PRINTS)
     remove_definitions(-DDEBUG)
 else(DISABLE_DEBUG_PRINTS)

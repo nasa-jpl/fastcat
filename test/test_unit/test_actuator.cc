@@ -157,11 +157,11 @@ class ActuatorTest : public ::testing::Test
 
   TEST_F(ActuatorTest, NominalResetFunction) {
     EXPECT_TRUE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_+"valid.yaml")));
-    device_.Fault();
-    EXPECT_TRUE(device_.actuator_sms_ == fastcat::ACTUATOR_SMS_FAULTED);
+    device_.Fault();    
+    EXPECT_TRUE(device_.GetActuatorStateMachineState() == fastcat::ACTUATOR_SMS_FAULTED);    
 
     device_.Reset();
-    EXPECT_TRUE(device_.actuator_sms_ == fastcat::ACTUATOR_SMS_HALTED);
+    EXPECT_TRUE(device_.GetActuatorStateMachineState() == fastcat::ACTUATOR_SMS_HALTED);
   }
 
   TEST_F(ActuatorTest, FixDirtyCmdVelocityValues) {
@@ -169,27 +169,28 @@ class ActuatorTest : public ::testing::Test
     // Set the jsd egd device state to known, dirty values
     // TODO setup for pos, and current values too
 
-    device_.jsd_egd_state_.cmd_position = 1234;
-    device_.jsd_egd_state_.cmd_velocity = 1234;
-    device_.jsd_egd_state_.cmd_current = 1234;
-    double expected_pos = device_.PosCntsToEu(1234);
-    double expected_vel = device_.CntsToEu(1234);
+    device_.SetActuatorCmdPosition(1234);
+    device_.SetActuatorCmdVelocity(1234);
+    device_.SetActuatorCmdCurrent(1234);
+    
+    double expected_pos = device_.UsePosCntsToEu(1234);
+    double expected_vel = device_.UseCntsToEu(1234);
     double expected_cur = 1234;
 
     device_.Read();
-    EXPECT_NEAR(device_.state_->actuator_state.cmd_position, expected_pos, 1e-2);
-    EXPECT_NEAR(device_.state_->actuator_state.cmd_velocity, expected_vel, 1e-2);
-    EXPECT_NEAR(device_.state_->actuator_state.cmd_current, expected_cur, 1e-2);
+    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_position, expected_pos, 1e-2);
+    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_velocity, expected_vel, 1e-2);
+    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_current, expected_cur, 1e-2);
 
     device_.Fault();
-    EXPECT_NEAR(device_.state_->actuator_state.cmd_position, expected_pos, 1e-2);
-    EXPECT_NEAR(device_.state_->actuator_state.cmd_velocity, expected_vel, 1e-2);
-    EXPECT_NEAR(device_.state_->actuator_state.cmd_current, expected_cur, 1e-2);
+    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_position, expected_pos, 1e-2);
+    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_velocity, expected_vel, 1e-2);
+    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_current, expected_cur, 1e-2);
     
     device_.Read();
-    EXPECT_NEAR(device_.state_->actuator_state.cmd_position, 0, 1e-2);
-    EXPECT_NEAR(device_.state_->actuator_state.cmd_velocity, 0, 1e-2);
-    EXPECT_NEAR(device_.state_->actuator_state.cmd_current, 0, 1e-2);
+    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_position, 0, 1e-2);
+    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_velocity, 0, 1e-2);
+    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_current, 0, 1e-2);
 
   }
 
