@@ -206,7 +206,7 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
   // Only transition to disengaging if its needed
   if(state_->actuator_state.servo_enabled){
     // Only print this if we are not already in a position profile
-    if(actuator_state_ != ACTUATOR_SMS_PROF_POS){
+    if(actuator_sms_ != ACTUATOR_SMS_PROF_POS){
       MSG("Bypassing wait since brakes are disengaged");
     }
   }else{
@@ -247,7 +247,7 @@ bool fastcat::Actuator::HandleNewProfVelCmd(DeviceCmd& cmd)
   // Only transition to disengaging if its needed
   if(state_->actuator_state.servo_enabled){
     // Only print this if we are not already in a velocity profile
-    if(actuator_state_ != ACTUATOR_SMS_PROF_VEL){
+    if(actuator_sms_ != ACTUATOR_SMS_PROF_VEL){
       MSG("Bypassing wait since brakes are disengaged");
     }
   }else{
@@ -288,7 +288,7 @@ bool fastcat::Actuator::HandleNewProfTorqueCmd(DeviceCmd& cmd)
   // Only transition to disengaging if its needed
   if(state_->actuator_state.servo_enabled){
     // Only print this if we are not already in a torque profile
-    if(actuator_state_ != ACTUATOR_SMS_PROF_TORQUE){
+    if(actuator_sms_ != ACTUATOR_SMS_PROF_TORQUE){
       MSG("Bypassing wait since brakes are disengaged");
     }
   }else{
