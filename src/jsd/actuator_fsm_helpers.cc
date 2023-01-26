@@ -205,7 +205,7 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
 
   // Only transition to disengaging if its needed
   if(state_->actuator_state.servo_enabled){
-    MSG("Bypassing wait since brakes are disengaged");
+    //MSG("Bypassing wait since brakes are disengaged");
   }else{
     TransitionToState(ACTUATOR_SMS_PROF_POS_DISENGAGING);
     last_cmd_ = cmd;
@@ -243,7 +243,7 @@ bool fastcat::Actuator::HandleNewProfVelCmd(DeviceCmd& cmd)
 
   // Only transition to disengaging if its needed
   if(state_->actuator_state.servo_enabled){
-    MSG("Bypassing wait since brakes are disengaged");
+    //MSG("Bypassing wait since brakes are disengaged");
   }else{
     TransitionToState(ACTUATOR_SMS_PROF_VEL_DISENGAGING);
     last_cmd_ = cmd;
@@ -281,7 +281,7 @@ bool fastcat::Actuator::HandleNewProfTorqueCmd(DeviceCmd& cmd)
 
   // Only transition to disengaging if its needed
   if(state_->actuator_state.servo_enabled){
-    MSG("Bypassing wait since brakes are disengaged");
+    //MSG("Bypassing wait since brakes are disengaged");
   }else{
     TransitionToState(ACTUATOR_SMS_PROF_TORQUE_DISENGAGING);
     last_cmd_ = cmd;
