@@ -67,6 +67,8 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     if(BUILD_TESTS)
         enable_testing()
         include(CTest)
+        add_definitions(-DPROTECTED=public)
+        add_definitions(-DPRIVATE=public)
         add_subdirectory(test)
     else()
         message(

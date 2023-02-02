@@ -575,34 +575,6 @@ bool fastcat::Actuator::HasAbsoluteEncoder(){
   return actuator_absolute_encoder_;
 }
 
-fastcat::ActuatorStateMachineState fastcat::Actuator::GetActuatorStateMachineState(){
-  return actuator_sms_;
-}
-
-double fastcat::Actuator::GetActuatorStateCmdPosition(){
-  return state_->actuator_state.cmd_position;
-}
-
-void fastcat::Actuator::SetActuatorCmdPosition(double pos){
-  jsd_egd_state_.cmd_position = pos;
-}
-
-void fastcat::Actuator::SetActuatorCmdVelocity(double vel){
-  jsd_egd_state_.cmd_velocity = vel;
-}
-
-void fastcat::Actuator::SetActuatorCmdCurrent(double cur){
-  jsd_egd_state_.cmd_current = cur;
-}
-
-double fastcat::Actuator::UsePosCntsToEu(int32_t cnts){
-  return PosCntsToEu(cnts);
-}
-
-double fastcat::Actuator::UseCntsToEu(int32_t cnts){
-  return CntsToEu(cnts);
-}
-
 double fastcat::Actuator::CntsToEu(int32_t cnts)
 {
   return cnts / overall_reduction_;

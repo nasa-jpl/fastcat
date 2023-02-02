@@ -57,6 +57,9 @@ add_custom_target(fcgen
     ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
     )
 
+# Build a library regardless of BUILD_TESTS flag
+add_definitions(-DPROTECTED=protected)
+add_definitions(-DPRIVATE=private)
 add_library(fastcat STATIC
     trap.c
     device_base.cc
