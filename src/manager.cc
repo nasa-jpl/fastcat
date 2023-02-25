@@ -20,18 +20,17 @@
 #include "fastcat/fastcat_devices/filter.h"
 #include "fastcat/fastcat_devices/fts.h"
 #include "fastcat/fastcat_devices/function.h"
+#include "fastcat/fastcat_devices/linear_interpolation.h"
 #include "fastcat/fastcat_devices/pid.h"
 #include "fastcat/fastcat_devices/saturation.h"
 #include "fastcat/fastcat_devices/schmitt_trigger.h"
 #include "fastcat/fastcat_devices/signal_generator.h"
 #include "fastcat/fastcat_devices/virtual_fts.h"
-#include "fastcat/fastcat_devices/linear_interpolation.h"
-
-#include "fastcat/jsd/actuator.h"
 #include "fastcat/jsd/actuator_offline.h"
 #include "fastcat/jsd/ati_fts.h"
 #include "fastcat/jsd/ati_fts_offline.h"
 #include "fastcat/jsd/egd.h"
+#include "fastcat/jsd/egd_actuator.h"
 #include "fastcat/jsd/egd_offline.h"
 #include "fastcat/jsd/el2124.h"
 #include "fastcat/jsd/el2124_offline.h"
@@ -55,10 +54,8 @@
 #include "fastcat/jsd/jed0101_offline.h"
 #include "fastcat/jsd/jed0200.h"
 #include "fastcat/jsd/jed0200_offline.h"
-
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
-
 #include "jsd/jsd_print.h"
 #include "jsd/jsd_sdo_pub.h"
 #include "jsd/jsd_time.h"
@@ -419,8 +416,26 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
       device = std::make_shared<Ild1900>();
 
     } else if (0 == device_class.compare("Actuator")) {
-      device = std::make_shared<Actuator>();
-
+      std::string elmo_drive_line_string;
+      if (ParseOptVal(*device_node, "elmo_drive_line",
+                      elmo_drive_line_string)) {
+        // Convert read string to upper case
+        std::transform(elmo_drive_line_string.begin(),
+                       elmo_drive_line_string.end(),
+                       elmo_drive_line_string.begin(), ::toupper);
+        if (elmo_drive_line_string.compare("GOLD") == 0) {
+          device = std::make_shared<EgdActuator>();
+        } else if (elmo_drive_line_string.compare("PLATINUM") == 0) {
+          ERROR("Platinum drive is not implemented. Hold tight!");
+          return false;
+        } else {
+          ERROR("Unknown Elmo drive line");
+          return false;
+        }
+      } else {
+        // Assume Gold Line if line is not specified.
+        device = std::make_shared<EgdActuator>();
+      }
     } else if (0 == device_class.compare("Jed0101")) {
       device = std::make_shared<Jed0101>();
 

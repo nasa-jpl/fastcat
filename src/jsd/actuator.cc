@@ -12,6 +12,8 @@
 // Include external then project includes
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd.h"
+#include "jsd/jsd_egd_pub.h"
+#include "jsd/jsd_epd_pub.h"
 
 fastcat::Actuator::Actuator()
 {
@@ -21,7 +23,6 @@ fastcat::Actuator::Actuator()
   state_->type          = ACTUATOR_STATE;
   actuator_sms_         = ACTUATOR_SMS_HALTED;
   last_transition_time_ = jsd_time_get_time_sec();
-  last_egd_reset_time_  = jsd_time_get_time_sec();
 }
 
 bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
@@ -30,19 +31,21 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseVal(node, "actuator_type", actuator_type_str_)) {
+  std::string actuator_type_str;
+  if (!ParseVal(node, "actuator_type", actuator_type_str)) {
     return false;
   }
 
-  if (0 == actuator_type_str_.compare("revolute")) {
-    actuator_type_ = ACTUATOR_TYPE_REVOLUTE;
+  ActuatorType actuator_type;
+  if (0 == actuator_type_str.compare("revolute")) {
+    actuator_type = ACTUATOR_TYPE_REVOLUTE;
 
-  } else if (0 == actuator_type_str_.compare("prismatic")) {
-    actuator_type_ = ACTUATOR_TYPE_PRISMATIC;
+  } else if (0 == actuator_type_str.compare("prismatic")) {
+    actuator_type = ACTUATOR_TYPE_PRISMATIC;
 
   } else {
     ERROR("Failed to parse actuator_type string: %s must be %s or %s",
-          actuator_type_str_.c_str(), "revolute", "prismatic");
+          actuator_type_str.c_str(), "revolute", "prismatic");
     return false;
   }
 
@@ -50,7 +53,8 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseValCheckRange(node, "counts_per_rev", counts_per_rev_, 0, 1.0e12)) {
+  double counts_per_rev = 1.0;
+  if (!ParseValCheckRange(node, "counts_per_rev", counts_per_rev, 0, 1.0e12)) {
     return false;
   }
 
@@ -84,14 +88,17 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
                           peak_current_limit_amps_, 0, 100)) {
     return false;
   }
+
   if (!ParseValCheckRange(node, "peak_current_time_sec", peak_current_time_sec_,
                           0, 60.0)) {
     return false;
   }
+
   if (!ParseValCheckRange(node, "continuous_current_limit_amps",
                           continuous_current_limit_amps_, 0, 100)) {
     return false;
   }
+
   if (!ParseValCheckRange(node, "torque_slope_amps_per_sec",
                           torque_slope_amps_per_sec_, 0, 1000.0)) {
     return false;
@@ -116,17 +123,18 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseVal(node, "egd_brake_engage_msec", egd_brake_engage_msec_)) {
+  if (!ParseVal(node, "egd_brake_engage_msec", elmo_brake_engage_msec_)) {
     return false;
   }
-  if (!ParseVal(node, "egd_brake_disengage_msec", egd_brake_disengage_msec_)) {
+  if (!ParseVal(node, "egd_brake_disengage_msec", elmo_brake_disengage_msec_)) {
     return false;
   }
-  if (!ParseVal(node, "egd_crc", egd_crc_)) {
+
+  if (!ParseVal(node, "egd_crc", elmo_crc_)) {
     return false;
   }
   if (!ParseVal(node, "egd_drive_max_current_limit",
-                egd_drive_max_cur_limit_amps_)) {
+                elmo_drive_max_cur_limit_amps_)) {
     return false;
   }
   if (!ParseValCheckRange(node, "smooth_factor", smooth_factor_, -1, 64)) {
@@ -161,7 +169,7 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
   } else {
     // Use mode saved in driver's non-volatile memory.
     jsd_slave_config_.egd.ctrl_gain_scheduling_mode =
-        JSD_EGD_GAIN_SCHEDULING_MODE_PRELOADED;
+        JSD_ELMO_GAIN_SCHEDULING_MODE_PRELOADED;
   }
 
   if (!ParseOptVal(node, "absolute_encoder", actuator_absolute_encoder_)) {
@@ -175,15 +183,21 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     prof_pos_hold_ = false;
   }
 
-  // overall_reduction must be set before using EuToCnts/CntsToEu
-  if (actuator_type_ == ACTUATOR_TYPE_REVOLUTE) {
-    overall_reduction_ = counts_per_rev_ * gear_ratio_ / (2.0 * M_PI);
+  // Parse parameters specific to the particular Elmo drive line (e.g.
+  // Platinum).
+  if (!ParseSpecializedYamlParams(node)) {
+    return false;
+  }
 
-  } else if (actuator_type_ == ACTUATOR_TYPE_PRISMATIC) {
-    overall_reduction_ = counts_per_rev_ * gear_ratio_;
+  // overall_reduction must be set before using EuToCnts/CntsToEu
+  if (actuator_type == ACTUATOR_TYPE_REVOLUTE) {
+    overall_reduction_ = counts_per_rev * gear_ratio_ / (2.0 * M_PI);
+
+  } else if (actuator_type == ACTUATOR_TYPE_PRISMATIC) {
+    overall_reduction_ = counts_per_rev * gear_ratio_;
 
   } else {
-    ERROR("Bad actuator_type: %d", actuator_type_);
+    ERROR("Bad actuator_type: %d", actuator_type);
     return false;
   }
   MSG("Overall Reduction: %lf", overall_reduction_);
@@ -191,94 +205,29 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
   state_->name = name_;
 
   jsd_slave_config_.configuration_active = true;
-  jsd_slave_config_.product_code         = JSD_EGD_PRODUCT_CODE;
   snprintf(jsd_slave_config_.name, JSD_NAME_LEN, "%s", name_.c_str());
 
-  jsd_slave_config_.egd.drive_cmd_mode    = JSD_EGD_DRIVE_CMD_MODE_CS;
-  jsd_slave_config_.egd.max_motor_speed   = EuToCnts(max_speed_eu_per_sec_);
-  jsd_slave_config_.egd.loop_period_ms    = loop_period_ * 1000.0;
-  jsd_slave_config_.egd.torque_slope      = torque_slope_amps_per_sec_;
-  jsd_slave_config_.egd.max_profile_accel = EuToCnts(max_accel_eu_per_sec2_);
-  jsd_slave_config_.egd.max_profile_decel = EuToCnts(max_accel_eu_per_sec2_);
-  jsd_slave_config_.egd.velocity_tracking_error =
-      EuToCnts(vel_tracking_error_eu_per_sec_);
-  jsd_slave_config_.egd.position_tracking_error =
-      EuToCnts(pos_tracking_error_eu_);
-  jsd_slave_config_.egd.peak_current_limit = peak_current_limit_amps_;
-  jsd_slave_config_.egd.peak_current_time  = peak_current_time_sec_;
-  jsd_slave_config_.egd.continuous_current_limit =
-      continuous_current_limit_amps_;
-  jsd_slave_config_.egd.motor_stuck_current_level_pct  = 0;  // disable
-  jsd_slave_config_.egd.motor_stuck_velocity_threshold = 0;  // disable
-  jsd_slave_config_.egd.motor_stuck_timeout            = 0;  // disable
-  jsd_slave_config_.egd.over_speed_threshold =
-      over_speed_multiplier_ * EuToCnts(max_speed_eu_per_sec_);
-  jsd_slave_config_.egd.low_position_limit      = 0;  // disable
-  jsd_slave_config_.egd.high_position_limit     = 0;  // disable
-  jsd_slave_config_.egd.brake_engage_msec       = egd_brake_engage_msec_;
-  jsd_slave_config_.egd.brake_disengage_msec    = egd_brake_disengage_msec_;
-  jsd_slave_config_.egd.crc                     = egd_crc_;
-  jsd_slave_config_.egd.drive_max_current_limit = egd_drive_max_cur_limit_amps_;
-  jsd_slave_config_.egd.smooth_factor           = smooth_factor_;
+  // Populate jsd_slave_config_ according to the corresponding Elmo drive.
+  PopulateJsdSlaveConfig();
 
-  EgdSetConfig();
+  ElmoSetConfig();
 
   return true;
 }
 
 bool fastcat::Actuator::Read()
 {
-  EgdRead();
+  ElmoRead();
 
-  state_->actuator_state.egd_actual_position = jsd_egd_state_.actual_position;
-  state_->actuator_state.egd_cmd_position    = jsd_egd_state_.cmd_position;
-
-  state_->actuator_state.actual_position =
-      PosCntsToEu(jsd_egd_state_.actual_position);
-  state_->actuator_state.actual_velocity =
-      CntsToEu(jsd_egd_state_.actual_velocity);
-  state_->actuator_state.actual_current = jsd_egd_state_.actual_current;
-
-  state_->actuator_state.cmd_position =
-      PosCntsToEu(jsd_egd_state_.cmd_position + jsd_egd_state_.cmd_ff_position);
-  state_->actuator_state.cmd_velocity =
-      CntsToEu(jsd_egd_state_.cmd_velocity + jsd_egd_state_.cmd_ff_velocity);
-  state_->actuator_state.cmd_current =
-      (jsd_egd_state_.cmd_current + jsd_egd_state_.cmd_ff_current);
-
-  state_->actuator_state.cmd_max_current = jsd_egd_state_.cmd_max_current;
-
-  state_->actuator_state.egd_state_machine_state =
-      static_cast<uint32_t>(jsd_egd_state_.actual_state_machine_state);
-  state_->actuator_state.egd_mode_of_operation =
-      static_cast<uint32_t>(jsd_egd_state_.actual_mode_of_operation);
-
-  state_->actuator_state.sto_engaged    = jsd_egd_state_.sto_engaged;
-  state_->actuator_state.hall_state     = jsd_egd_state_.hall_state;
-  state_->actuator_state.target_reached = jsd_egd_state_.target_reached;
-  state_->actuator_state.motor_on       = jsd_egd_state_.motor_on;
-  state_->actuator_state.servo_enabled  = jsd_egd_state_.servo_enabled;
-
-  state_->actuator_state.bus_voltage       = jsd_egd_state_.bus_voltage;
-  state_->actuator_state.drive_temperature = jsd_egd_state_.drive_temperature;
-
-  state_->actuator_state.actuator_state_machine_state =
-      static_cast<uint32_t>(actuator_sms_);
-
-  state_->actuator_state.fastcat_fault_code =
-      static_cast<uint32_t>(fastcat_fault_);
-  state_->actuator_state.jsd_fault_code =
-      static_cast<uint32_t>(jsd_egd_state_.fault_code);
-  state_->actuator_state.emcy_error_code = jsd_egd_state_.emcy_error_code;
-  state_->actuator_state.faulted = (actuator_sms_ == ACTUATOR_SMS_FAULTED);
+  PopulateState();
 
   if (compute_power_) {
     double motor_velocity =
       fabs(state_->actuator_state.actual_velocity) *
       gear_ratio_ *
       motor_encoder_gear_ratio_;
-    
-    double current = fabs(jsd_egd_state_.actual_current);
+
+    double current = fabs(state_->actuator_state.actual_current);
 
     // P = R I^2 + K_T * I * \omega
     state_->actuator_state.power = current *
@@ -321,10 +270,10 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
 
     case ACTUATOR_SET_MAX_CURRENT_CMD:
       // This application may choose to set this during motions
-      // in order to boost current during accelration/decel
+      // in order to boost current during acceleration/decel
       // phases so don't check the state machine
       peak_current_limit_amps_ = cmd.actuator_set_max_current_cmd.current;
-      EgdSetPeakCurrent(peak_current_limit_amps_);
+      ElmoSetPeakCurrent(peak_current_limit_amps_);
       return true;
       break;
 
@@ -341,8 +290,8 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle SDO Disable Gain Scheduling Command");
         return false;
       }
-      EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED,
+      ElmoSetGainSchedulingMode(
+          JSD_ELMO_GAIN_SCHEDULING_MODE_DISABLED,
           cmd.actuator_sdo_disable_gain_scheduling_cmd.app_id);
       return true;
       break;
@@ -353,8 +302,8 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle SDO Enable Speed Gain Scheduling Command");
         return false;
       }
-      EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_SPEED,
+      ElmoSetGainSchedulingMode(
+          JSD_ELMO_GAIN_SCHEDULING_MODE_SPEED,
           cmd.actuator_sdo_enable_speed_gain_scheduling_cmd.app_id);
       return true;
       break;
@@ -365,8 +314,8 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle SDO Enable Position Gain Scheduling Command");
         return false;
       }
-      EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_POSITION,
+      ElmoSetGainSchedulingMode(
+          JSD_ELMO_GAIN_SCHEDULING_MODE_POSITION,
           cmd.actuator_sdo_enable_position_gain_scheduling_cmd.app_id);
       return true;
       break;
@@ -377,8 +326,8 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle SDO Enable Manual Gain Scheduling Command");
         return false;
       }
-      EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW, 
+      ElmoSetGainSchedulingMode(
+          JSD_ELMO_GAIN_SCHEDULING_MODE_MANUAL_LOW,
           cmd.actuator_sdo_enable_manual_gain_scheduling_cmd.app_id);
       return true;
       break;
@@ -389,7 +338,7 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle Set Gain Scheduling Index Command");
         return false;
       }
-      EgdSetGainSchedulingIndex( 
+      ElmoSetGainSchedulingIndex(
           cmd.actuator_set_gain_scheduling_index_cmd.gain_scheduling_index);
       return true;
       break;
@@ -530,7 +479,7 @@ fastcat::FaultType fastcat::Actuator::Process()
       break;
   }
 
-  EgdProcess();
+  ElmoProcess();
   return retval;
 }
 
@@ -539,7 +488,7 @@ void fastcat::Actuator::Fault()
   WARNING("Faulting Actuator %s", name_.c_str());
 
   TransitionToState(ACTUATOR_SMS_FAULTED);
-  EgdHalt();
+  ElmoHalt();
 }
 
 void fastcat::Actuator::Reset()
@@ -547,8 +496,8 @@ void fastcat::Actuator::Reset()
   WARNING("Resetting Actuator device %s", name_.c_str());
   if (actuator_sms_ == ACTUATOR_SMS_FAULTED) {
     // Resetting here would open brakes so we explicitly do not reset the EGD
-    // and instead only clear latched errors 
-    EgdClearErrors();
+    // and instead only clear latched errors
+    ElmoClearErrors();
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
     TransitionToState(ACTUATOR_SMS_HALTED);
   }
@@ -560,8 +509,8 @@ bool fastcat::Actuator::SetOutputPosition(double position)
       "Changing Position from: ", state_->actuator_state.actual_position,
       "to : ", position);
 
-  egd_pos_offset_cnts_ =
-      jsd_egd_state_.actual_position - (int32_t)(position * overall_reduction_);
+  elmo_pos_offset_cnts_ = state_->actuator_state.egd_actual_position -
+                          (int32_t)(position * overall_reduction_);
   return true;
 }
 
@@ -580,11 +529,11 @@ int32_t fastcat::Actuator::EuToCnts(double eu)
 
 double fastcat::Actuator::PosCntsToEu(int32_t cnts)
 {
-  return CntsToEu(cnts - egd_pos_offset_cnts_);
+  return CntsToEu(cnts - elmo_pos_offset_cnts_);
 }
 int32_t fastcat::Actuator::PosEuToCnts(double eu)
 {
-  return EuToCnts(eu) + egd_pos_offset_cnts_;
+  return EuToCnts(eu) + elmo_pos_offset_cnts_;
 }
 
 bool fastcat::Actuator::PosExceedsCmdLimits(double pos_eu)
@@ -710,88 +659,25 @@ std::string fastcat::Actuator::StateMachineStateToString(
   return str;
 }
 
-void fastcat::Actuator::EgdRead()
+bool fastcat::Actuator::ParseSpecializedYamlParams(const YAML::Node& node)
 {
-  jsd_egd_read((jsd_t*)context_, slave_id_);
-  memcpy(&jsd_egd_state_, jsd_egd_get_state((jsd_t*)context_, slave_id_),
-         sizeof(jsd_egd_state_t));
-}
-
-void fastcat::Actuator::EgdSetConfig()
-{
-  MSG_DEBUG("Setting jsd slave config");
-  jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
-}
-void fastcat::Actuator::EgdProcess()
-{
-  jsd_egd_process((jsd_t*)context_, slave_id_);
-}
-
-void fastcat::Actuator::EgdClearErrors()
-{
-  jsd_egd_clear_errors((jsd_t*)context_, slave_id_);
-}
-
-void fastcat::Actuator::EgdReset()
-{
-  MSG("Resetting EGD through JSD: %s", name_.c_str());
-  jsd_egd_reset((jsd_t*)context_, slave_id_);
-}
-
-void fastcat::Actuator::EgdHalt() { jsd_egd_halt((jsd_t*)context_, slave_id_); }
-
-void fastcat::Actuator::EgdSetPeakCurrent(double current)
-{
-  jsd_egd_set_peak_current((jsd_t*)context_, slave_id_, current);
-}
-
-void fastcat::Actuator::EgdSetUnitMode(int32_t mode, uint16_t app_id)
-{
-  MSG("Commanding new UM[1] = %d app_id = %u", mode, app_id);
-  jsd_egd_async_sdo_set_unit_mode((jsd_t*)context_, slave_id_, mode, app_id);
-}
-
-void fastcat::Actuator::EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd)
-{
-  jsd_egd_set_motion_command_csp((jsd_t*)context_, slave_id_, jsd_csp_cmd);
-}
-
-void fastcat::Actuator::EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd)
-{
-  jsd_egd_set_motion_command_csv((jsd_t*)context_, slave_id_, jsd_csv_cmd);
-}
-
-void fastcat::Actuator::EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd)
-{
-  jsd_egd_set_motion_command_cst((jsd_t*)context_, slave_id_, jsd_cst_cmd);
-}
-
-void fastcat::Actuator::EgdSetGainSchedulingMode(
-    jsd_egd_gain_scheduling_mode_t mode, 
-    uint16_t app_id)
-{
-  jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-      (jsd_t*)context_, slave_id_, mode, app_id);
-}
-
-void fastcat::Actuator::EgdSetGainSchedulingIndex(uint16_t index)
-{
-  jsd_egd_set_gain_scheduling_index(
-      (jsd_t*)context_, slave_id_, true, index);
-}
+  // This function should be overriden in the child class if needed.
+  (void)node;
+  return true;
+};
 
 bool fastcat::Actuator::GSModeFromString(
-    std::string gs_mode_string, jsd_egd_gain_scheduling_mode_t& gs_mode)
+    std::string gs_mode_string, jsd_elmo_gain_scheduling_mode_t& gs_mode)
 {
   MSG("Converting gain scheduling mode to string.");
   if (gs_mode_string.compare("DISABLED") == 0) {
-    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED;
+    gs_mode = JSD_ELMO_GAIN_SCHEDULING_MODE_DISABLED;
   } else if (gs_mode_string.compare("SPEED") == 0) {
-    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_SPEED;
+    gs_mode = JSD_ELMO_GAIN_SCHEDULING_MODE_SPEED;
   } else if (gs_mode_string.compare("POSITION") == 0) {
-    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_POSITION;
+    gs_mode = JSD_ELMO_GAIN_SCHEDULING_MODE_POSITION;
   } else if (gs_mode_string.compare("MANUAL") == 0) {
-    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW;
+    gs_mode = JSD_ELMO_GAIN_SCHEDULING_MODE_MANUAL_LOW;
   } else {
     ERROR("Gain scheduling mode %s is invalid", gs_mode_string.c_str());
     return false;
@@ -828,8 +714,8 @@ std::string fastcat::Actuator::GetFastcatFaultCodeAsString(
       case ACTUATOR_FASTCAT_FAULT_STO_ENGAGED:
         fault_str = "FASTCAT_FAULT_STO_ENGAGED";
         break;
-      case ACTUATOR_FASTCAT_FAULT_INVALID_EGD_SMS_DURING_MOTION:
-        fault_str = "FASTCAT_FAULT_INVALID_EGD_SMS_DURING_MOTION";
+      case ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION:
+        fault_str = "FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION";
         break;
       case ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED:
         fault_str = "FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED";
@@ -856,12 +742,36 @@ std::string fastcat::Actuator::GetJSDFaultCodeAsString(const DeviceState& state)
   std::string fault_str;
 
   if (state.type == ACTUATOR_STATE) {
-    auto fault =
-        static_cast<jsd_egd_fault_code_t>(state.actuator_state.jsd_fault_code);
-    fault_str = std::string(jsd_egd_fault_code_to_string(fault));
+    if (state.actuator_state.jsd_fault_code >= JSD_EPD_FAULT_OKAY) {
+      auto fault = static_cast<jsd_epd_fault_code_t>(
+          state.actuator_state.jsd_fault_code);
+      fault_str = std::string(jsd_epd_fault_code_to_string(fault));
+    } else {
+      auto fault = static_cast<jsd_egd_fault_code_t>(
+          state.actuator_state.jsd_fault_code);
+      fault_str = std::string(jsd_egd_fault_code_to_string(fault));
+    }
   } else {
     fault_str = "State is not type ACTUATOR_STATE";
   }
 
   return fault_str;
+}
+
+double fastcat::Actuator::ComputeTargetPosProfPosCmd(const DeviceCmd& cmd)
+{
+  double target_position = 0;
+  if (cmd.actuator_prof_pos_cmd.relative) {
+    target_position = cmd.actuator_prof_pos_cmd.target_position +
+                      state_->actuator_state.actual_position;
+  } else {
+    target_position = cmd.actuator_prof_pos_cmd.target_position;
+  }
+  return target_position;
+}
+
+void fastcat::Actuator::ElmoSetConfig()
+{
+  MSG_DEBUG("Setting JSD slave config");
+  jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
 }

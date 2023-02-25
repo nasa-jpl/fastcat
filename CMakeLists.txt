@@ -51,10 +51,11 @@ configure_file(
 ####### Dependencies #######
 find_package(YamlCpp REQUIRED 0.6.3)
 
+# @TODO(dloret) Update GIT_TAG when JSD pull request is merged.
 include(FetchContent)
 FetchContent_Declare(jsd
     GIT_REPOSITORY https://github.com/nasa-jpl/jsd.git
-    GIT_TAG v2.1.0
+    GIT_TAG dloret-epd-basic#v2.1.0
     )
 FetchContent_MakeAvailable(jsd)
 

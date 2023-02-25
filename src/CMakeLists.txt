@@ -69,6 +69,7 @@ add_library(fastcat STATIC
 
     jsd/actuator.cc
     jsd/actuator_fsm_helpers.cc
+    jsd/egd_actuator.cc
     jsd/egd.cc
     jsd/el3208.cc
     jsd/el3602.cc

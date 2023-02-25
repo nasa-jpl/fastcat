@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
+
 #include <cmath>
 
 #include "fastcat/config.h"
 #include "fastcat/jsd/actuator_offline.h"
 #include "fastcat/signal_handling.h"
-
 #include "jsd/jsd_print.h"
+#include "jsd/jsd_pub.h"
 
 namespace
 {

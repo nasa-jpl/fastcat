@@ -18,16 +18,17 @@ fastcat::ActuatorOffline::ActuatorOffline()
   motor_on_start_time_ = jsd_time_get_time_sec();
 }
 
-void fastcat::ActuatorOffline::EgdRead()
+void fastcat::ActuatorOffline::ElmoSetConfig()
 {
   // no-op
 }
 
-void fastcat::ActuatorOffline::EgdSetConfig()
+void fastcat::ActuatorOffline::ElmoRead()
 {
   // no-op
 }
-void fastcat::ActuatorOffline::EgdProcess()
+
+void fastcat::ActuatorOffline::ElmoProcess()
 {
   switch (actuator_sms_) {
     case ACTUATOR_SMS_FAULTED:
@@ -58,51 +59,51 @@ void fastcat::ActuatorOffline::EgdProcess()
   // 
   if(!jsd_egd_state_.servo_enabled and jsd_egd_state_.motor_on){
     double brake_on_dur = jsd_time_get_time_sec() - motor_on_start_time_;
-    if(brake_on_dur > egd_brake_disengage_msec_/1000.0){
+    if (brake_on_dur > elmo_brake_disengage_msec_ / 1000.0) {
       jsd_egd_state_.servo_enabled = 1;
     }
   }
 }
 
-void fastcat::ActuatorOffline::EgdClearErrors()
+void fastcat::ActuatorOffline::ElmoReset()
 {
   // no-op
 }
 
-void fastcat::ActuatorOffline::EgdReset()
+void fastcat::ActuatorOffline::ElmoHalt()
 {
   // no-op
 }
 
-void fastcat::ActuatorOffline::EgdHalt()
+void fastcat::ActuatorOffline::ElmoClearErrors()
 {
   // no-op
 }
 
-void fastcat::ActuatorOffline::EgdSetPeakCurrent(double /* current */)
+void fastcat::ActuatorOffline::ElmoSetPeakCurrent(double /* current */)
 {
   // no-op
 }
 
-void fastcat::ActuatorOffline::EgdSetUnitMode(int32_t mode, uint16_t app_id)
+void fastcat::ActuatorOffline::ElmoSetUnitMode(int32_t mode, uint16_t app_id)
 {
   MSG("Commanding new UM[1] = %d app_id = %u", mode, app_id);
   // no-op
 }
 
-void fastcat::ActuatorOffline::EgdSetGainSchedulingMode(
-    jsd_egd_gain_scheduling_mode_t /* mode */,
-    uint16_t /* app_id */)
+void fastcat::ActuatorOffline::ElmoSetGainSchedulingMode(
+    jsd_elmo_gain_scheduling_mode_t /* mode */, uint16_t /* app_id */)
 {
   // no-op
 }
 
-void fastcat::ActuatorOffline::EgdSetGainSchedulingIndex(uint16_t /* index */)
+void fastcat::ActuatorOffline::ElmoSetGainSchedulingIndex(uint16_t /* index */)
 {
   // no-op
 }
 
-void fastcat::ActuatorOffline::EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd)
+void fastcat::ActuatorOffline::ElmoCSP(
+    const jsd_elmo_motion_command_csp_t& jsd_csp_cmd)
 {
   jsd_egd_state_.cmd_position = jsd_csp_cmd.target_position;
   jsd_egd_state_.cmd_velocity = 0;
@@ -125,7 +126,8 @@ void fastcat::ActuatorOffline::EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd)
   jsd_egd_state_.actual_velocity = vel; // "sure, why not"
 }
 
-void fastcat::ActuatorOffline::EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd)
+void fastcat::ActuatorOffline::ElmoCSV(
+    const jsd_elmo_motion_command_csv_t& jsd_csv_cmd)
 {
   jsd_egd_state_.cmd_position = 0;
   jsd_egd_state_.cmd_velocity = jsd_csv_cmd.target_velocity;
@@ -144,7 +146,8 @@ void fastcat::ActuatorOffline::EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd)
       jsd_egd_state_.actual_velocity * loop_period_;  // integrated
 }
 
-void fastcat::ActuatorOffline::EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd)
+void fastcat::ActuatorOffline::ElmoCST(
+    const jsd_elmo_motion_command_cst_t& jsd_cst_cmd)
 {
   jsd_egd_state_.cmd_position = 0;
   jsd_egd_state_.cmd_velocity = 0;
