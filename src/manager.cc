@@ -48,6 +48,7 @@
 #include "fastcat/jsd/el3602_offline.h"
 #include "fastcat/jsd/el4102.h"
 #include "fastcat/jsd/el4102_offline.h"
+#include "fastcat/jsd/epd_actuator.h"
 #include "fastcat/jsd/ild1900.h"
 #include "fastcat/jsd/ild1900_offline.h"
 #include "fastcat/jsd/jed0101.h"
@@ -426,8 +427,7 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
         if (elmo_drive_line_string.compare("GOLD") == 0) {
           device = std::make_shared<EgdActuator>();
         } else if (elmo_drive_line_string.compare("PLATINUM") == 0) {
-          ERROR("Platinum drive is not implemented. Hold tight!");
-          return false;
+          device = std::make_shared<EpdActuator>();
         } else {
           ERROR("Unknown Elmo drive line");
           return false;
