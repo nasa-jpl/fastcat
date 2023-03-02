@@ -106,6 +106,8 @@ states:
       type: uint8_t
     - name: target_reached
       type: uint8_t
+    - name: setpoint_ack_rise
+      type: bool
     - name: motor_on
       type: uint8_t
     - name: servo_enabled

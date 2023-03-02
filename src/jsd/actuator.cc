@@ -22,7 +22,7 @@ fastcat::Actuator::Actuator()
   state_                = std::make_shared<DeviceState>();
   state_->type          = ACTUATOR_STATE;
   actuator_sms_         = ACTUATOR_SMS_HALTED;
-  last_transition_time_ = jsd_time_get_time_sec();
+  last_transition_time_ = jsd_time_get_mono_time_sec();
 }
 
 bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
@@ -217,6 +217,8 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Actuator::Read()
 {
+  cycle_mono_time_ = jsd_time_get_mono_time_sec();
+
   ElmoRead();
 
   PopulateState();
@@ -522,7 +524,7 @@ double fastcat::Actuator::CntsToEu(int32_t cnts)
 {
   return cnts / overall_reduction_;
 }
-int32_t fastcat::Actuator::EuToCnts(double eu)
+double fastcat::Actuator::EuToCnts(double eu)
 {
   return eu * overall_reduction_;
 }
@@ -533,7 +535,7 @@ double fastcat::Actuator::PosCntsToEu(int32_t cnts)
 }
 int32_t fastcat::Actuator::PosEuToCnts(double eu)
 {
-  return EuToCnts(eu) + elmo_pos_offset_cnts_;
+  return ((int32_t)EuToCnts(eu)) + elmo_pos_offset_cnts_;
 }
 
 bool fastcat::Actuator::PosExceedsCmdLimits(double pos_eu)
@@ -596,17 +598,13 @@ bool fastcat::Actuator::CurrentExceedsCmdLimits(double current)
 
 void fastcat::Actuator::TransitionToState(ActuatorStateMachineState sms)
 {
-  if (actuator_sms_ == sms) {
-    last_transition_time_ = state_->time;
-    return;
+  last_transition_time_ = cycle_mono_time_;
+  if (actuator_sms_ != sms) {
+    MSG("Requested Actuator %s state transition from %s to %s", name_.c_str(),
+        StateMachineStateToString(actuator_sms_).c_str(),
+        StateMachineStateToString(sms).c_str());
+    actuator_sms_ = sms;
   }
-
-  MSG("Requested Actuator %s state transition from %s to %s", name_.c_str(),
-      StateMachineStateToString(actuator_sms_).c_str(),
-      StateMachineStateToString(sms).c_str());
-
-  last_transition_time_ = state_->time;
-  actuator_sms_         = sms;
 }
 
 std::string fastcat::Actuator::StateMachineStateToString(
@@ -725,6 +723,9 @@ std::string fastcat::Actuator::GetFastcatFaultCodeAsString(
         break;
       case ACTUATOR_FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED:
         fault_str = "FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED";
+        break;
+      case ACTUATOR_FASTCAT_FAULT_PROF_POS_CMD_ACK_TIMEOUT_EXCEEDED:
+        fault_str = "ACTUATOR_FASTCAT_FAULT_PROF_POS_CMD_ACK_TIMEOUT_EXCEEDED";
         break;
       default:
         fault_str = "Bad Fastcat fault code: " +

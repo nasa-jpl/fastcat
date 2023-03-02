@@ -6,7 +6,6 @@
 
 // Include external then project includes
 #include "jsd/jsd.h"
-#include "jsd/jsd_egd_pub.h"
 
 void fastcat::EgdActuator::PopulateJsdSlaveConfig()
 {
@@ -26,9 +25,9 @@ void fastcat::EgdActuator::PopulateJsdSlaveConfig()
   jsd_slave_config_.egd.peak_current_time  = peak_current_time_sec_;
   jsd_slave_config_.egd.continuous_current_limit =
       continuous_current_limit_amps_;
-  jsd_slave_config_.egd.motor_stuck_current_level_pct  = 0;  // disable
-  jsd_slave_config_.egd.motor_stuck_velocity_threshold = 0;  // disable
-  jsd_slave_config_.egd.motor_stuck_timeout            = 0;  // disable
+  jsd_slave_config_.egd.motor_stuck_current_level_pct  = 0.0f;  // disable
+  jsd_slave_config_.egd.motor_stuck_velocity_threshold = 0.0f;  // disable
+  jsd_slave_config_.egd.motor_stuck_timeout            = 0.0f;  // disable
   jsd_slave_config_.egd.over_speed_threshold =
       over_speed_multiplier_ * EuToCnts(max_speed_eu_per_sec_);
   jsd_slave_config_.egd.low_position_limit   = 0;  // disable
@@ -76,6 +75,7 @@ void fastcat::EgdActuator::PopulateState()
   state_->actuator_state.sto_engaged    = jsd_egd_state_.sto_engaged;
   state_->actuator_state.hall_state     = jsd_egd_state_.hall_state;
   state_->actuator_state.target_reached = jsd_egd_state_.target_reached;
+  // TODO(dloret): set setpoint_ack_rise once added to EGD's driver.
   state_->actuator_state.motor_on       = jsd_egd_state_.motor_on;
   state_->actuator_state.servo_enabled  = jsd_egd_state_.servo_enabled;
 
@@ -309,8 +309,7 @@ fastcat::FaultType fastcat::EgdActuator::ProcessProfPosDisengaging()
 
     // Check runout timer here, brake engage/disengage time cannot exceed 1
     // second per MAN-G-CR Section BP - Brake Parameters
-    if ((jsd_time_get_time_sec() - last_transition_time_) >
-        (1.0 + 2 * loop_period_)) {
+    if ((cycle_mono_time_ - last_transition_time_) > (1.0 + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting",
             name_.c_str());
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
@@ -353,8 +352,7 @@ fastcat::FaultType fastcat::EgdActuator::ProcessProfVelDisengaging()
 
     // Check runout timer here, brake engage/disengage time cannot exceed 1
     // second per MAN-G-CR Section BP - Brake Parameters
-    if ((jsd_time_get_time_sec() - last_transition_time_) >
-        (1.0 + 2 * loop_period_)) {
+    if ((cycle_mono_time_ - last_transition_time_) > (1.0 + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting",
             name_.c_str());
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
@@ -394,8 +392,7 @@ fastcat::FaultType fastcat::EgdActuator::ProcessProfTorqueDisengaging()
 
     // Check runout timer here, brake engage/disengage time cannot exceed 1
     // second per MAN-G-CR Section BP - Brake Parameters
-    if ((jsd_time_get_time_sec() - last_transition_time_) >
-        (1.0 + 2 * loop_period_)) {
+    if ((cycle_mono_time_ - last_transition_time_) > (1.0 + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting",
             name_.c_str());
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;

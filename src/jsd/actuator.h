@@ -45,6 +45,7 @@ typedef enum {
   ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED,
   ACTUATOR_FASTCAT_FAULT_NO_HARDSTOP_DURING_CAL,
   ACTUATOR_FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED,
+  ACTUATOR_FASTCAT_FAULT_PROF_POS_CMD_ACK_TIMEOUT_EXCEEDED,
 } ActuatorFastcatFault;
 
 class Actuator : public JsdDeviceBase
@@ -65,7 +66,7 @@ class Actuator : public JsdDeviceBase
 
  protected:
   double  CntsToEu(int32_t cnts);
-  int32_t EuToCnts(double eu);
+  double  EuToCnts(double eu);
   double  PosCntsToEu(int32_t cnts);
   int32_t PosEuToCnts(double eu);
 
@@ -95,8 +96,10 @@ class Actuator : public JsdDeviceBase
   jsd_slave_config_t jsd_slave_config_;
 
   ActuatorStateMachineState actuator_sms_;
-  double                    last_transition_time_;
+  double                    last_transition_time_ = 0.0;
+  double                    cycle_mono_time_      = 0.0;
   trap_t                    trap_;
+  bool                      prof_pos_hold_ = false;
 
   ActuatorFastcatFault fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
 
@@ -177,7 +180,6 @@ class Actuator : public JsdDeviceBase
 
   ActuatorCalibrateCmd cal_cmd_;
 
-  bool prof_pos_hold_;
   bool actuator_absolute_encoder_ = false;
   int32_t elmo_pos_offset_cnts_      = 1;
 };
