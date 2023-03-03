@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#include <cassert>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -764,8 +765,8 @@ bool fastcat::Actuator::IsJsdFaultCodePresent(const DeviceState& state)
   bool fault_present = false;
 
   if (state.type == ACTUATOR_STATE) {
-    if (state.actuator_state.jsd_fault_code != JSD_EGD_FAULT_OK &&
-        state.actuator_state.jsd_fault_code != JSD_EPD_FAULT_OK) {
+    if (state.actuator_state.jsd_fault_code != JSD_EGD_FAULT_OKAY &&
+        state.actuator_state.jsd_fault_code != JSD_EPD_FAULT_OKAY) {
       fault_present = true;
     }
   } else {
