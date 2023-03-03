@@ -446,7 +446,7 @@ bool fastcat::Actuator::IsIdleFaultConditionMet()
     return true;
   }
 
-  if (state_->actuator_state.jsd_fault_code != 0) {
+  if (IsJsdFaultCodePresent(state_)) {
     ERROR("%s: jsd_fault_code indicates active fault", name_.c_str());
     return true;
   }
@@ -461,7 +461,7 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
     return true;
   }
 
-  if (state_->actuator_state.jsd_fault_code != 0) {
+  if (IsJsdFaultCodePresent(state_)) {
     ERROR("%s: jsd_fault_code indicates active fault", name_.c_str());
     return true;
   }
@@ -560,7 +560,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
   }
 
   // assume pos/vel tracking fault
-  if (state_->actuator_state.jsd_fault_code != 0) {
+  if (IsJsdFaultCodePresent(state_)) {
     ElmoHalt();
     MSG("Act %s: %s: %d", name_.c_str(),
         "Detected Hardstop, EGD jsd_fault_code",
@@ -607,7 +607,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
 
   if (state_->actuator_state.egd_state_machine_state !=
           JSD_ELMO_STATE_MACHINE_STATE_OPERATION_ENABLED &&
-      state_->actuator_state.jsd_fault_code != 0) {
+      IsJsdFaultCodePresent(state_)) {
     // We have waited too long, fault
     if ((cycle_mono_time_ - last_transition_time_) > 5.0) {
       ERROR("Act %s: %s: %lf", name_.c_str(),

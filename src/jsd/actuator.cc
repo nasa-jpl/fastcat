@@ -759,6 +759,25 @@ std::string fastcat::Actuator::GetJSDFaultCodeAsString(const DeviceState& state)
   return fault_str;
 }
 
+bool fastcat::Actuator::IsJsdFaultCodePresent(const DeviceState& state)
+{
+  bool fault_present = false;
+
+  if (state.type == ACTUATOR_STATE) {
+    if (state.actuator_state.jsd_fault_code != JSD_EGD_FAULT_OK &&
+        state.actuator_state.jsd_fault_code != JSD_EPD_FAULT_OK) {
+      fault_present = true;
+    }
+  } else {
+    ERROR(
+        "IsJsdFaultCodePresent must be called on states of type "
+        "ACTUATOR_STATE.");
+    assert(false);
+  }
+
+  return fault_present;
+}
+
 double fastcat::Actuator::ComputeTargetPosProfPosCmd(const DeviceCmd& cmd)
 {
   double target_position = 0;

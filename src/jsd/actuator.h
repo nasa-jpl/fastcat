@@ -63,6 +63,7 @@ class Actuator : public JsdDeviceBase
 
   static std::string GetFastcatFaultCodeAsString(const DeviceState& state);
   static std::string GetJSDFaultCodeAsString(const DeviceState& state);
+  static bool        IsJsdFaultCodePresent(const DeviceState& state);
 
  protected:
   double  CntsToEu(int32_t cnts);
