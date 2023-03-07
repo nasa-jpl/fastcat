@@ -2,6 +2,7 @@
 #include "fastcat/jsd/epd_actuator.h"
 
 // Include C then C++ libraries
+#include <cmath>
 #include <cstring>
 
 // Include external then project includes
@@ -11,7 +12,7 @@ void fastcat::EpdActuator::PopulateJsdSlaveConfig()
   jsd_slave_config_.product_code = JSD_EPD_PRODUCT_CODE;
 
   jsd_slave_config_.epd.max_motor_speed   = EuToCnts(max_speed_eu_per_sec_);
-  jsd_slave_config_.epd.loop_period_ms    = loop_period_ * 1000.0;
+  jsd_slave_config_.epd.loop_period_ms    = lround(loop_period_ * 1000.0);
   jsd_slave_config_.epd.torque_slope      = torque_slope_amps_per_sec_;
   jsd_slave_config_.epd.max_profile_accel = EuToCnts(max_accel_eu_per_sec2_);
   jsd_slave_config_.epd.max_profile_decel = EuToCnts(max_accel_eu_per_sec2_);
