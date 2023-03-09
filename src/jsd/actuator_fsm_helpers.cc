@@ -90,17 +90,17 @@ bool fastcat::Actuator::CheckStateMachineGainSchedulingCmds()
 
 bool fastcat::Actuator::HandleNewCSPCmd(DeviceCmd& cmd)
 {
-  // Check that the command can be honored within FSM state
-  if (!CheckStateMachineMotionCmds()) {
+  // Validate the command arguments
+  if (PosExceedsCmdLimits(cmd.actuator_csp_cmd.target_position +
+                          cmd.actuator_csp_cmd.position_offset) ||
+      VelExceedsCmdLimits(cmd.actuator_csp_cmd.velocity_offset)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing CSP Command");
     return false;
   }
 
-  // Validate the command arguments
-  if (PosExceedsCmdLimits(cmd.actuator_csp_cmd.target_position +
-                          cmd.actuator_csp_cmd.position_offset) ||
-      VelExceedsCmdLimits(cmd.actuator_csp_cmd.velocity_offset)) {
+  // Check that the command can be honored within FSM state
+  if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing CSP Command");
     return false;
@@ -121,16 +121,16 @@ bool fastcat::Actuator::HandleNewCSPCmd(DeviceCmd& cmd)
 
 bool fastcat::Actuator::HandleNewCSVCmd(DeviceCmd& cmd)
 {
-  // Check that the command can be honored within FSM state
-  if (!CheckStateMachineMotionCmds()) {
+  // Validate command arguments
+  if (VelExceedsCmdLimits(cmd.actuator_csv_cmd.target_velocity +
+                          cmd.actuator_csv_cmd.velocity_offset)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing CSV Command");
     return false;
   }
 
-  // Validate command arguments
-  if (VelExceedsCmdLimits(cmd.actuator_csv_cmd.target_velocity +
-                          cmd.actuator_csv_cmd.velocity_offset)) {
+  // Check that the command can be honored within FSM state
+  if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing CSV Command");
     return false;
@@ -150,16 +150,16 @@ bool fastcat::Actuator::HandleNewCSVCmd(DeviceCmd& cmd)
 
 bool fastcat::Actuator::HandleNewCSTCmd(DeviceCmd& cmd)
 {
-  // Check that the command can be honored within FSM state
-  if (!CheckStateMachineMotionCmds()) {
+  // Validate command arguments
+  if (CurrentExceedsCmdLimits(cmd.actuator_cst_cmd.target_torque_amps +
+                              cmd.actuator_cst_cmd.torque_offset_amps)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing CST Command");
     return false;
   }
 
-  // Validate command arguments
-  if (CurrentExceedsCmdLimits(cmd.actuator_cst_cmd.target_torque_amps +
-                              cmd.actuator_cst_cmd.torque_offset_amps)) {
+  // Check that the command can be honored within FSM state
+  if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing CST Command");
     return false;
@@ -178,13 +178,6 @@ bool fastcat::Actuator::HandleNewCSTCmd(DeviceCmd& cmd)
 
 bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
 {
-  // Check that the command can be honored within FSM state
-  if (!CheckStateMachineMotionCmds()) {
-    TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing Prof Pos Command");
-    return false;
-  }
-
   double target_position = 0;
   if (cmd.actuator_prof_pos_cmd.relative) {
     target_position = cmd.actuator_prof_pos_cmd.target_position +
@@ -198,6 +191,13 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
       VelExceedsCmdLimits(cmd.actuator_prof_pos_cmd.profile_velocity) ||
       VelExceedsCmdLimits(cmd.actuator_prof_pos_cmd.end_velocity) ||
       AccExceedsCmdLimits(cmd.actuator_prof_pos_cmd.profile_accel)) {
+    TransitionToState(ACTUATOR_SMS_FAULTED);
+    ERROR("Act %s: %s", name_.c_str(), "Failing Prof Pos Command");
+    return false;
+  }
+
+  // Check that the command can be honored within FSM state
+  if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing Prof Pos Command");
     return false;
@@ -227,15 +227,15 @@ bool fastcat::Actuator::HandleNewProfPosCmd(DeviceCmd& cmd)
 
 bool fastcat::Actuator::HandleNewProfVelCmd(DeviceCmd& cmd)
 {
-  // Check that the command can be honored within FSM state
-  if (!CheckStateMachineMotionCmds()) {
+  if (VelExceedsCmdLimits(cmd.actuator_prof_vel_cmd.target_velocity) ||
+      AccExceedsCmdLimits(cmd.actuator_prof_vel_cmd.profile_accel)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing Prof Vel Command");
     return false;
   }
 
-  if (VelExceedsCmdLimits(cmd.actuator_prof_vel_cmd.target_velocity) ||
-      AccExceedsCmdLimits(cmd.actuator_prof_vel_cmd.profile_accel)) {
+  // Check that the command can be honored within FSM state
+  if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing Prof Vel Command");
     return false;
@@ -265,15 +265,15 @@ bool fastcat::Actuator::HandleNewProfVelCmd(DeviceCmd& cmd)
 
 bool fastcat::Actuator::HandleNewProfTorqueCmd(DeviceCmd& cmd)
 {
-  // Check that the command can be honored within FSM state
-  if (!CheckStateMachineMotionCmds()) {
+  if (CurrentExceedsCmdLimits(
+          cmd.actuator_prof_torque_cmd.target_torque_amps)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing Prof Torque Command");
     return false;
   }
-
-  if (CurrentExceedsCmdLimits(
-          cmd.actuator_prof_torque_cmd.target_torque_amps)) {
+  
+  // Check that the command can be honored within FSM state
+  if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing Prof Torque Command");
     return false;
