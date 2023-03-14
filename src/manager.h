@@ -14,6 +14,7 @@
 
 #include "fastcat/device_base.h"
 #include "fastcat/jsd/jsd_device_base.h"
+#include "fastcat/jsd/actuator.h"
 
 #include "jsd/jsd.h"
 
@@ -153,6 +154,16 @@ class Manager
    */
   bool PopSdoResponseQueue(SdoResponse& res);
 
+  /** @brief get actuator parameters 
+   *
+   *  @return true if the return reference 'parameters' is valid
+   */
+  bool GetActuatorParams(
+    const std::string& name, fastcat::Actuator::ActuatorParams& param);
+
+  /** @brief names of actuator devices 
+   */
+  const std::vector<std::string>& GetActuatorNames();
 
  private:
   bool ConfigJSDBusFromYaml(YAML::Node node);
@@ -165,6 +176,7 @@ class Manager
       std::vector<std::shared_ptr<DeviceBase>>& sorted_devices,
       std::vector<std::string>                  parents);
 
+  void InitializeActuatorNames();
   bool LoadActuatorPosFile();
   bool ValidateActuatorPosFile();
   bool SetActuatorPositions();
@@ -187,6 +199,8 @@ class Manager
   std::map<std::string, ActuatorPosData>             actuator_pos_map_;
   std::unordered_map<std::string, bool>              unique_device_map_;
   std::shared_ptr<std::queue<SdoResponse>>           sdo_response_queue_;
+  
+  std::vector<std::string> actuator_names_;
 };
 }  // namespace fastcat
 

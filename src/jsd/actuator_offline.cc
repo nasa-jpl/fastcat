@@ -58,7 +58,7 @@ void fastcat::ActuatorOffline::EgdProcess()
   // 
   if(!jsd_egd_state_.servo_enabled and jsd_egd_state_.motor_on){
     double brake_on_dur = jsd_time_get_time_sec() - motor_on_start_time_;
-    if(brake_on_dur > egd_brake_disengage_msec_/1000.0){
+    if(brake_on_dur > params_.egd_brake_disengage_msec / 1000.0){
       jsd_egd_state_.servo_enabled = 1;
     }
   }
@@ -135,7 +135,7 @@ void fastcat::ActuatorOffline::EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd)
   jsd_egd_state_.cmd_ff_velocity = jsd_csv_cmd.velocity_offset;
   jsd_egd_state_.cmd_ff_current  = jsd_csv_cmd.torque_offset_amps;
 
-  // simulate actuals
+  // simulate velocity
   jsd_egd_state_.actual_velocity =
       jsd_egd_state_.cmd_velocity + jsd_egd_state_.cmd_ff_velocity;
   jsd_egd_state_.actual_current =
@@ -154,15 +154,15 @@ void fastcat::ActuatorOffline::EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd)
   jsd_egd_state_.cmd_ff_velocity = 0;
   jsd_egd_state_.cmd_ff_current  = jsd_cst_cmd.torque_offset_amps;
 
-  // simulate actuals
+  // simulate position and velocity
   jsd_egd_state_.actual_position =
       jsd_egd_state_.cmd_position + jsd_egd_state_.cmd_ff_position;
   jsd_egd_state_.actual_current =
       jsd_egd_state_.cmd_current + jsd_egd_state_.cmd_ff_current;
 
-  double pct = jsd_egd_state_.actual_current / continuous_current_limit_amps_;
+  double pct = jsd_egd_state_.actual_current / params_.continuous_current_limit_amps;
   jsd_egd_state_.actual_velocity =
-      pct * max_speed_eu_per_sec_;  // sure, why not
+      pct * params_.max_speed_eu_per_sec;
   jsd_egd_state_.actual_position +=
       jsd_egd_state_.actual_velocity * loop_period_;  // integrated
 }

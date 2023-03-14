@@ -290,7 +290,7 @@ bool fastcat::Actuator::HandleNewProfTorqueCmd(DeviceCmd& cmd)
 
   trap_generate_vel(
       &trap_, state_->time, 0, 0, cmd.actuator_prof_torque_cmd.target_torque_amps,
-      torque_slope_amps_per_sec_, cmd.actuator_prof_torque_cmd.max_duration);
+      params_.torque_slope_amps_per_sec, cmd.actuator_prof_torque_cmd.max_duration);
 
   TransitionToState(ACTUATOR_SMS_PROF_TORQUE);
   return true;
@@ -454,19 +454,19 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(DeviceCmd& cmd)
     return false;
   }
 
-  double rom = fabs(high_pos_cal_limit_eu_ - low_pos_cal_limit_eu_);
-  double cal_range = rom + pos_tracking_error_eu_;
+  double rom = fabs(params_.high_pos_cal_limit_eu - params_.low_pos_cal_limit_eu);
+  double cal_range = rom + params_.pos_tracking_error_eu;
 
   // Since the hardstop calibration feature depends on a position tracking fault,
   //   sanity check drive settings to prevent unexpected outcomes.
   //   At the very least, the Range-of-Motion must be > the position tracking fault
   //   tolerance. (In practice, ROM should be MUCH > than the full tracking tol)
-  if( rom < pos_tracking_error_eu_){
+  if(rom < params_.pos_tracking_error_eu){
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: Calibration cannot succeed when Range-of-motion (%lf) "
           "< Pos tracking error (%lf). "
           "Check Drive parameters for excessive pos tracking fault", 
-        name_.c_str(), rom, pos_tracking_error_eu_);
+        name_.c_str(), rom, params_.pos_tracking_error_eu);
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CAL_MOTION_RANGE;
     return false;
   }
@@ -558,7 +558,7 @@ fastcat::FaultType fastcat::Actuator::ProcessHolding()
     return ALL_DEVICE_FAULT;
   }
 
-  if ((state_->time - last_transition_time_) > holding_duration_sec_) {
+  if ((state_->time - last_transition_time_) > params_.holding_duration_sec) {
     EgdHalt();
     TransitionToState(ACTUATOR_SMS_HALTED);
   }
@@ -661,8 +661,8 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_STO_ENGAGED;
 
-    MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
-    EgdSetPeakCurrent(peak_current_limit_amps_);
+    MSG("Restoring Current after calibration: %lf", params_.peak_current_limit_amps);
+    EgdSetPeakCurrent(params_.peak_current_limit_amps);
 
     return ALL_DEVICE_FAULT;
   }
@@ -674,8 +674,8 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
         "Detected Hardstop, EGD jsd_fault_code",
         state_->actuator_state.jsd_fault_code);
 
-    MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
-    EgdSetPeakCurrent(peak_current_limit_amps_);
+    MSG("Restoring Current after calibration: %lf", params_.peak_current_limit_amps);
+    EgdSetPeakCurrent(params_.peak_current_limit_amps);
 
     TransitionToState(ACTUATOR_SMS_CAL_AT_HARDSTOP);
   }
@@ -698,8 +698,8 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
           "Moved Full Range and did not encounter hard stop");
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_NO_HARDSTOP_DURING_CAL;
 
-    MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
-    EgdSetPeakCurrent(peak_current_limit_amps_);
+    MSG("Restoring Current after calibration: %lf", params_.peak_current_limit_amps);
+    EgdSetPeakCurrent(params_.peak_current_limit_amps);
 
     return ALL_DEVICE_FAULT;
   }
@@ -733,11 +733,11 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
   double cal_position     = 0;
   double backoff_position = 0;
   if (cal_cmd_.velocity > 0) {
-    cal_position     = high_pos_cal_limit_eu_;
-    backoff_position = high_pos_cmd_limit_eu_;
+    cal_position     = params_.high_pos_cal_limit_eu;
+    backoff_position = params_.high_pos_cmd_limit_eu;
   } else {
-    cal_position     = low_pos_cal_limit_eu_;
-    backoff_position = low_pos_cmd_limit_eu_;
+    cal_position     = params_.low_pos_cal_limit_eu;
+    backoff_position = params_.low_pos_cmd_limit_eu;
   }
   SetOutputPosition(cal_position);
 
@@ -859,7 +859,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfTorqueDisengaging()
     // If brakes are disengaged, setup the traps and transition to the execution state
     trap_generate_vel(
         &trap_, state_->time, 0, 0, last_cmd_.actuator_prof_torque_cmd.target_torque_amps,
-        torque_slope_amps_per_sec_, last_cmd_.actuator_prof_torque_cmd.max_duration);
+        params_.torque_slope_amps_per_sec, last_cmd_.actuator_prof_torque_cmd.max_duration);
 
     TransitionToState(ACTUATOR_SMS_PROF_TORQUE);
 
