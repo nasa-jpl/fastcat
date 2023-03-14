@@ -15,10 +15,7 @@ bool fastcat::El2124Offline::ConfigFromYaml(YAML::Node node)
   return ConfigFromYamlCommon(node);
 }
 
-bool fastcat::El2124Offline::Read()
-{
-  return true;
-}
+bool fastcat::El2124Offline::Read() { return true; }
 
 fastcat::FaultType fastcat::El2124Offline::Process()
 {
@@ -27,10 +24,9 @@ fastcat::FaultType fastcat::El2124Offline::Process()
 
 bool fastcat::El2124Offline::Write(DeviceCmd& cmd)
 {
-
   // If device supports async SDO requests
   AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
-  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+  if (sdoResult != SDO_RET_VAL_NOT_APPLICABLE) {
     return (sdoResult == SDO_RET_VAL_SUCCESS);
   }
 

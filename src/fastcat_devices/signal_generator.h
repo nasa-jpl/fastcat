@@ -12,12 +12,12 @@
 
 namespace fastcat
 {
-enum SignalGeneratorType { 
-  SINE_WAVE, 
-  SAW_TOOTH, 
-  GAUSSIAN_RANDOM, 
-  UNIFORM_RANDOM, 
-  BAD_SIGNAL_GENERATOR_TYPE 
+enum SignalGeneratorType {
+  SINE_WAVE,
+  SAW_TOOTH,
+  GAUSSIAN_RANDOM,
+  UNIFORM_RANDOM,
+  BAD_SIGNAL_GENERATOR_TYPE
 };
 
 SignalGeneratorType SignalGeneratorTypeFromString(const std::string&);
@@ -38,16 +38,16 @@ typedef struct {
 } SawToothParams;
 
 typedef struct {
-  uint32_t seed = 1;
-  double mean;
-  double sigma;
+  uint32_t                         seed = 1;
+  double                           mean;
+  double                           sigma;
   std::normal_distribution<double> distribution;
 } GaussianRandomParams;
 
 typedef struct {
-  uint32_t seed = 1;
-  double min;
-  double max;  
+  uint32_t                               seed = 1;
+  double                                 min;
+  double                                 max;
   std::uniform_real_distribution<double> distribution;
 } UniformRandomParams;
 
@@ -59,16 +59,16 @@ class SignalGenerator : public DeviceBase
   bool Read() override;
 
  protected:
-  std::string              signal_generator_type_string_;
-  enum SignalGeneratorType signal_generator_type_;
-  double                   start_time_ = 0;
+  std::string                signal_generator_type_string_;
+  enum SignalGeneratorType   signal_generator_type_;
+  double                     start_time_ = 0;
   std::default_random_engine generator_;
 
   union {
-    SineWaveParams sine_wave_;
-    SawToothParams saw_tooth_;
+    SineWaveParams       sine_wave_;
+    SawToothParams       saw_tooth_;
     GaussianRandomParams gaussian_random_;
-    UniformRandomParams uniform_random_;
+    UniformRandomParams  uniform_random_;
   };
 };
 

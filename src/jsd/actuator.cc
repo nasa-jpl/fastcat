@@ -50,22 +50,25 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseValCheckRange(node, "counts_per_rev", params_.counts_per_rev, 0, 1.0e12)) {
+  if (!ParseValCheckRange(node, "counts_per_rev", params_.counts_per_rev, 0,
+                          1.0e12)) {
     return false;
   }
 
-  if (!ParseValCheckRange(node, "max_speed_eu_per_sec", params_.max_speed_eu_per_sec,
-                          0, (double)INT32_MAX + 1.0)) {
+  if (!ParseValCheckRange(node, "max_speed_eu_per_sec",
+                          params_.max_speed_eu_per_sec, 0,
+                          (double)INT32_MAX + 1.0)) {
     return false;
   }
 
-  if (!ParseValCheckRange(node, "max_accel_eu_per_sec2", params_.max_accel_eu_per_sec2,
-                          0, (double)INT32_MAX + 1.0)) {
+  if (!ParseValCheckRange(node, "max_accel_eu_per_sec2",
+                          params_.max_accel_eu_per_sec2, 0,
+                          (double)INT32_MAX + 1.0)) {
     return false;
   }
 
-  if (!ParseValCheckRange(node, "over_speed_multiplier", params_.over_speed_multiplier,
-                          0.0, 1000.0)) {
+  if (!ParseValCheckRange(node, "over_speed_multiplier",
+                          params_.over_speed_multiplier, 0.0, 1000.0)) {
     return false;
   }
 
@@ -75,8 +78,9 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseValCheckRange(node, "pos_tracking_error_eu", params_.pos_tracking_error_eu,
-                          0, (double)INT32_MAX + 1.0)) {
+  if (!ParseValCheckRange(node, "pos_tracking_error_eu",
+                          params_.pos_tracking_error_eu, 0,
+                          (double)INT32_MAX + 1.0)) {
     return false;
   }
 
@@ -84,8 +88,8 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
                           params_.peak_current_limit_amps, 0, 100)) {
     return false;
   }
-  if (!ParseValCheckRange(node, "peak_current_time_sec", params_.peak_current_time_sec,
-                          0, 60.0)) {
+  if (!ParseValCheckRange(node, "peak_current_time_sec",
+                          params_.peak_current_time_sec, 0, 60.0)) {
     return false;
   }
   if (!ParseValCheckRange(node, "continuous_current_limit_amps",
@@ -111,15 +115,16 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseValCheckRange(node, "holding_duration_sec", params_.holding_duration_sec,
-                          0, 1000.0)) {
+  if (!ParseValCheckRange(node, "holding_duration_sec",
+                          params_.holding_duration_sec, 0, 1000.0)) {
     return false;
   }
 
   if (!ParseVal(node, "egd_brake_engage_msec", params_.egd_brake_engage_msec)) {
     return false;
   }
-  if (!ParseVal(node, "egd_brake_disengage_msec", params_.egd_brake_disengage_msec)) {
+  if (!ParseVal(node, "egd_brake_disengage_msec",
+                params_.egd_brake_disengage_msec)) {
     return false;
   }
   if (!ParseVal(node, "egd_crc", params_.egd_crc)) {
@@ -129,24 +134,30 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
                 params_.egd_drive_max_cur_limit_amps)) {
     return false;
   }
-  if (!ParseValCheckRange(node, "smooth_factor", params_.smooth_factor, -1, 64)) {
+  if (!ParseValCheckRange(node, "smooth_factor", params_.smooth_factor, -1,
+                          64)) {
     return false;
   }
-  
-  if (ParseOptValCheckRange(node, "torque_constant", params_.torque_constant, 0.0, 999999.0) &&
-      ParseOptValCheckRange(node, "winding_resistance", params_.winding_resistance, 0.0, 999999.0) ) {
-    
-    // Only compute power if we received both torque_constant and winding_resistance parameters
+
+  if (ParseOptValCheckRange(node, "torque_constant", params_.torque_constant,
+                            0.0, 999999.0) &&
+      ParseOptValCheckRange(node, "winding_resistance",
+                            params_.winding_resistance, 0.0, 999999.0)) {
+    // Only compute power if we received both torque_constant and
+    // winding_resistance parameters
     compute_power_ = true;
-    
+
     // Read in brake power (if provided) to add to actuator power
-    if (!ParseOptValCheckRange(node, "brake_power", params_.brake_power, 0.0, 9999.0)) {
+    if (!ParseOptValCheckRange(node, "brake_power", params_.brake_power, 0.0,
+                               9999.0)) {
       // If not found then set to zero
       params_.brake_power = 0.0;
     }
-    
-    // Read in any gear ratio between the motor and encoder for power calculation
-    if (!ParseOptValCheckRange(node, "motor_encoder_gear_ratio", params_.motor_encoder_gear_ratio, 0.0, 9999.0)) {
+
+    // Read in any gear ratio between the motor and encoder for power
+    // calculation
+    if (!ParseOptValCheckRange(node, "motor_encoder_gear_ratio",
+                               params_.motor_encoder_gear_ratio, 0.0, 9999.0)) {
       // If not found then set to 1.0
       params_.motor_encoder_gear_ratio = 1.0;
     }
@@ -164,7 +175,8 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
         JSD_EGD_GAIN_SCHEDULING_MODE_PRELOADED;
   }
 
-  if (!ParseOptVal(node, "absolute_encoder", params_.actuator_absolute_encoder)) {
+  if (!ParseOptVal(node, "absolute_encoder",
+                   params_.actuator_absolute_encoder)) {
     // If we do not find this parameter then set it to false
     params_.actuator_absolute_encoder = false;
   }
@@ -177,7 +189,8 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
 
   // overall_reduction must be set before using EuToCnts/CntsToEu
   if (actuator_type_ == ACTUATOR_TYPE_REVOLUTE) {
-    overall_reduction_ = params_.counts_per_rev * params_.gear_ratio / (2.0 * M_PI);
+    overall_reduction_ =
+        params_.counts_per_rev * params_.gear_ratio / (2.0 * M_PI);
 
   } else if (actuator_type_ == ACTUATOR_TYPE_PRISMATIC) {
     overall_reduction_ = params_.counts_per_rev * params_.gear_ratio;
@@ -194,12 +207,17 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
   jsd_slave_config_.product_code         = JSD_EGD_PRODUCT_CODE;
   snprintf(jsd_slave_config_.name, JSD_NAME_LEN, "%s", name_.c_str());
 
-  jsd_slave_config_.egd.drive_cmd_mode    = JSD_EGD_DRIVE_CMD_MODE_CS;
-  jsd_slave_config_.egd.max_motor_speed   = EuToCnts(params_.max_speed_eu_per_sec);
-  jsd_slave_config_.egd.loop_period_ms    = round(loop_period_ * 1000.0); //elmo's interpolation time period should be slower than actual command loop
-  jsd_slave_config_.egd.torque_slope      = params_.torque_slope_amps_per_sec;
-  jsd_slave_config_.egd.max_profile_accel = EuToCnts(params_.max_accel_eu_per_sec2);
-  jsd_slave_config_.egd.max_profile_decel = EuToCnts(params_.max_accel_eu_per_sec2);
+  jsd_slave_config_.egd.drive_cmd_mode = JSD_EGD_DRIVE_CMD_MODE_CS;
+  jsd_slave_config_.egd.max_motor_speed =
+      EuToCnts(params_.max_speed_eu_per_sec);
+  jsd_slave_config_.egd.loop_period_ms =
+      round(loop_period_ * 1000.0);  // elmo's interpolation time period should
+                                     // be slower than actual command loop
+  jsd_slave_config_.egd.torque_slope = params_.torque_slope_amps_per_sec;
+  jsd_slave_config_.egd.max_profile_accel =
+      EuToCnts(params_.max_accel_eu_per_sec2);
+  jsd_slave_config_.egd.max_profile_decel =
+      EuToCnts(params_.max_accel_eu_per_sec2);
   jsd_slave_config_.egd.velocity_tracking_error =
       EuToCnts(params_.vel_tracking_error_eu_per_sec);
   jsd_slave_config_.egd.position_tracking_error =
@@ -213,13 +231,14 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
   jsd_slave_config_.egd.motor_stuck_timeout            = 0;  // disable
   jsd_slave_config_.egd.over_speed_threshold =
       params_.over_speed_multiplier * EuToCnts(params_.max_speed_eu_per_sec);
-  jsd_slave_config_.egd.low_position_limit      = 0;  // disable
-  jsd_slave_config_.egd.high_position_limit     = 0;  // disable
-  jsd_slave_config_.egd.brake_engage_msec       = params_.egd_brake_engage_msec;
-  jsd_slave_config_.egd.brake_disengage_msec    = params_.egd_brake_disengage_msec;
-  jsd_slave_config_.egd.crc                     = params_.egd_crc;
-  jsd_slave_config_.egd.drive_max_current_limit = params_.egd_drive_max_cur_limit_amps;
-  jsd_slave_config_.egd.smooth_factor           = params_.smooth_factor;
+  jsd_slave_config_.egd.low_position_limit   = 0;  // disable
+  jsd_slave_config_.egd.high_position_limit  = 0;  // disable
+  jsd_slave_config_.egd.brake_engage_msec    = params_.egd_brake_engage_msec;
+  jsd_slave_config_.egd.brake_disengage_msec = params_.egd_brake_disengage_msec;
+  jsd_slave_config_.egd.crc                  = params_.egd_crc;
+  jsd_slave_config_.egd.drive_max_current_limit =
+      params_.egd_drive_max_cur_limit_amps;
+  jsd_slave_config_.egd.smooth_factor = params_.smooth_factor;
 
   EgdSetConfig();
 
@@ -273,17 +292,16 @@ bool fastcat::Actuator::Read()
   state_->actuator_state.faulted = (actuator_sms_ == ACTUATOR_SMS_FAULTED);
 
   if (compute_power_) {
-    double motor_velocity =
-      fabs(state_->actuator_state.actual_velocity) *
-      params_.gear_ratio *
-      params_.motor_encoder_gear_ratio;
-    
+    double motor_velocity = fabs(state_->actuator_state.actual_velocity) *
+                            params_.gear_ratio *
+                            params_.motor_encoder_gear_ratio;
+
     double current = fabs(jsd_egd_state_.actual_current);
 
     // P = R I^2 + K_T * I * \omega
-    state_->actuator_state.power = current *
-      (params_.winding_resistance * current +
-       params_.torque_constant * motor_velocity);
+    state_->actuator_state.power =
+        current * (params_.winding_resistance * current +
+                   params_.torque_constant * motor_velocity);
 
     // Should check, but assuming motor_on > 0 means brakes powered/disengaged
     if (state_->actuator_state.motor_on) {
@@ -298,10 +316,9 @@ bool fastcat::Actuator::Read()
 
 bool fastcat::Actuator::Write(DeviceCmd& cmd)
 {
-
   // If device supports async SDO requests
   AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
-  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+  if (sdoResult != SDO_RET_VAL_NOT_APPLICABLE) {
     return (sdoResult == SDO_RET_VAL_SUCCESS);
   }
 
@@ -324,7 +341,8 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       // This application may choose to set this during motions
       // in order to boost current during acceleration/deceleration
       // phases so don't check the state machine
-      params_.peak_current_limit_amps = cmd.actuator_set_max_current_cmd.current;
+      params_.peak_current_limit_amps =
+          cmd.actuator_set_max_current_cmd.current;
       EgdSetPeakCurrent(params_.peak_current_limit_amps);
       return true;
       break;
@@ -333,7 +351,7 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       if (!HandleNewSetUnitModeCmd(cmd)) {
         ERROR("Failed to handle Set Unit Mode Command");
         return false;
-      } 
+      }
       return true;
       break;
 
@@ -379,7 +397,7 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         return false;
       }
       EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW, 
+          JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW,
           cmd.actuator_sdo_enable_manual_gain_scheduling_cmd.app_id);
       return true;
       break;
@@ -390,7 +408,7 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle Set Gain Scheduling Index Command");
         return false;
       }
-      EgdSetGainSchedulingIndex( 
+      EgdSetGainSchedulingIndex(
           cmd.actuator_set_gain_scheduling_index_cmd.gain_scheduling_index);
       return true;
       break;
@@ -399,14 +417,13 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       // no-op
       break;
   }
-  
 
   // Return early if a fault is active
-  // So as to not honor these motion commands when faulted 
-  if(device_fault_active_){
+  // So as to not honor these motion commands when faulted
+  if (device_fault_active_) {
     return false;
   }
-  
+
   switch (cmd.type) {
     case ACTUATOR_CSP_CMD:
       if (!HandleNewCSPCmd(cmd)) {
@@ -548,7 +565,7 @@ void fastcat::Actuator::Reset()
   WARNING("Resetting Actuator device %s", name_.c_str());
   if (actuator_sms_ == ACTUATOR_SMS_FAULTED) {
     // Resetting here would open brakes so we explicitly do not reset the EGD
-    // and instead only clear latched errors 
+    // and instead only clear latched errors
     EgdClearErrors();
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
     TransitionToState(ACTUATOR_SMS_HALTED);
@@ -566,7 +583,8 @@ bool fastcat::Actuator::SetOutputPosition(double position)
   return true;
 }
 
-bool fastcat::Actuator::HasAbsoluteEncoder(){
+bool fastcat::Actuator::HasAbsoluteEncoder()
+{
   return params_.actuator_absolute_encoder;
 }
 
@@ -768,17 +786,15 @@ void fastcat::Actuator::EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd)
 }
 
 void fastcat::Actuator::EgdSetGainSchedulingMode(
-    jsd_egd_gain_scheduling_mode_t mode, 
-    uint16_t app_id)
+    jsd_egd_gain_scheduling_mode_t mode, uint16_t app_id)
 {
-  jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-      (jsd_t*)context_, slave_id_, mode, app_id);
+  jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode((jsd_t*)context_, slave_id_,
+                                                  mode, app_id);
 }
 
 void fastcat::Actuator::EgdSetGainSchedulingIndex(uint16_t index)
 {
-  jsd_egd_set_gain_scheduling_index(
-      (jsd_t*)context_, slave_id_, true, index);
+  jsd_egd_set_gain_scheduling_index((jsd_t*)context_, slave_id_, true, index);
 }
 
 bool fastcat::Actuator::GSModeFromString(
