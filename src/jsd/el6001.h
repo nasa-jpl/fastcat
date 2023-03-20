@@ -25,6 +25,8 @@ class El6001 : public JsdDeviceBase
  protected:
   bool ConfigFromYamlCommon(YAML::Node node);
 
+  int baud_rate_;
+
  private:
   jsd_slave_config_t jsd_slave_config_{0};
 };

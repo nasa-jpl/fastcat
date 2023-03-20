@@ -30,13 +30,50 @@ bool fastcat::El6001::ConfigFromYamlCommon(YAML::Node node)
   if (!ParseVal(node, "name", name_)) {
     return false;
   }
+
+  if (!ParseVal(node, "baud_rate", baud_rate_)) {
+    return false;    
+  }
+
   state_->name = name_;
 
-  jsd_slave_config_.el6001.baud_rate = JSD_EL6001_BAUD_RATE_115200;
+  switch(baud_rate_){
+    case 2400:
+      jsd_slave_config_.el6001.baud_rate = JSD_EL6001_BAUD_RATE_2400;
+      break;
+    case 4800:
+      jsd_slave_config_.el6001.baud_rate = JSD_EL6001_BAUD_RATE_4800;
+      break;
+    case 9600:
+      jsd_slave_config_.el6001.baud_rate = JSD_EL6001_BAUD_RATE_9600;
+      break;
+    case 19200:
+      jsd_slave_config_.el6001.baud_rate = JSD_EL6001_BAUD_RATE_19200;
+      break;
+    case 38400:
+      jsd_slave_config_.el6001.baud_rate = JSD_EL6001_BAUD_RATE_38400;
+      break;
+    case 57600:
+      jsd_slave_config_.el6001.baud_rate = JSD_EL6001_BAUD_RATE_57600;
+      break;
+    case 115200:
+      jsd_slave_config_.el6001.baud_rate = JSD_EL6001_BAUD_RATE_115200;
+      break;
+    case 12000:
+      jsd_slave_config_.el6001.baud_rate = JSD_EL6001_BAUD_RATE_12000;
+      break;
+    case 14400:
+      jsd_slave_config_.el6001.baud_rate = JSD_EL6001_BAUD_RATE_14400;
+      break;                                    
+    default:
+      ERROR("No matching baud rate for EL6001 device");
+      return false;
+      break;
+  }
 
   jsd_slave_config_.configuration_active = true;
   jsd_slave_config_.product_code         = JSD_EL6001_PRODUCT_CODE;
-  snprintf(jsd_slave_config_.name, JSD_NAME_LEN, "%s", name_.c_str());
+  snprintf(jsd_slave_config_.name, JSD_NAME_LEN, "%s", name_.c_str()); 
 
   return true;
 }
