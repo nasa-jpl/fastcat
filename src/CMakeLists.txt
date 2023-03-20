@@ -78,6 +78,7 @@ add_library(fastcat STATIC
     jsd/el3104.cc
     jsd/el3202.cc
     jsd/el3318.cc
+    jsd/el6001.cc
     jsd/ild1900.cc
     jsd/jed0101.cc
     jsd/jed0200.cc

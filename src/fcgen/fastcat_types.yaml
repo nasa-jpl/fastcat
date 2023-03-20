@@ -368,6 +368,13 @@ states:
       - name: adc_value_ch8
         type: int16_t
 
+  - name: el6001
+    fields:
+      - name: statusword
+        type: uint16_t
+      - name: controlword
+        type: uint16_t
+
   - name: ild1900
     fields:
     - name: distance_m
