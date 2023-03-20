@@ -374,6 +374,10 @@ states:
         type: uint16_t
       - name: controlword
         type: uint16_t
+      - name: data_in_bytes[22]
+        type: uint8_t
+      - name: data_out_bytes[22]
+        type: uint8_t
 
   - name: ild1900
     fields:
@@ -594,6 +598,13 @@ commands:
       type: uint8_t
     - name: voltage_output
       type: double
+
+  - name: el6001_write_data
+    fields:
+    - name: data_size
+      type: uint8_t
+    - name: data_out_bytes[22]
+      type: uint8_t    
 
   - name: el4102_write_all_channels
     fields:
