@@ -172,7 +172,7 @@ class Manager
 
   /** @brief names of actuator devices
    */
-  const std::vector<std::string>& GetActuatorNames();
+ void GetDeviceNamesByType(std::vector<std::string>&, fastcat::DeviceStateType);
 
  private:
   bool ConfigJSDBusFromYaml(YAML::Node node);
@@ -185,7 +185,6 @@ class Manager
       std::vector<std::shared_ptr<DeviceBase>>& sorted_devices,
       std::vector<std::string>                  parents);
 
-  void InitializeActuatorNames();
   bool LoadActuatorPosFile();
   bool ValidateActuatorPosFile();
   bool SetActuatorPositions();
@@ -209,7 +208,6 @@ class Manager
   std::unordered_map<std::string, bool>              unique_device_map_;
   std::shared_ptr<std::queue<SdoResponse>>           sdo_response_queue_;
 
-  std::vector<std::string> actuator_names_;
 };
 }  // namespace fastcat
 

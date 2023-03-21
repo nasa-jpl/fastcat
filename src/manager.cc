@@ -192,8 +192,6 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
   }
   SUCCESS("Configured Signals.");
 
-  this->InitializeActuatorNames();
-
   MSG("Reading initial state of all devices.");
   // Empirically observed some EGDs require at least one valid PDO write
   //   before reporting valid actual encoder positions after startup.
@@ -330,19 +328,15 @@ double fastcat::Manager::GetTargetLoopRate() { return target_loop_rate_hz_; }
 
 bool fastcat::Manager::IsFaulted() { return faulted_; }
 
-void fastcat::Manager::InitializeActuatorNames()
+void fastcat::Manager::GetDeviceNamesByType(
+    std::vector<std::string>& names, fastcat::DeviceStateType device_state_type)
 {
-  actuator_names_.clear();
+  names.clear();
   for (auto& device : jsd_device_list_) {
-    if (device->GetState()->type == ACTUATOR_STATE) {
-      actuator_names_.push_back(device->GetName());
+    if (device->GetState()->type == device_state_type) {
+      names.push_back(device->GetName());
     }
   }
-}
-
-const std::vector<std::string>& fastcat::Manager::GetActuatorNames()
-{
-  return actuator_names_;
 }
 
 bool fastcat::Manager::GetActuatorParams(

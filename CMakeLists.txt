@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.11)
 project(fastcat
     DESCRIPTION "C++ EtherCAT Device Command & Control Library"
-    VERSION 0.4.8
+    VERSION 0.11.5
     LANGUAGES C CXX
     )
 
