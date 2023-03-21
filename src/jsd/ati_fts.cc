@@ -34,10 +34,12 @@ bool fastcat::AtiFts::ConfigFromYamlCommon(YAML::Node node)
 
   double dummy;
   if (ParseOptVal(node, "max_force", dummy)) {
-    ERROR("fastcat no longer accept L2 norm, configure your yaml values per axis");
+    ERROR(
+        "fastcat no longer accept L2 norm, configure your yaml values per "
+        "axis");
     return false;
   }
-  
+
   if (!ParseVal(node, "max_force_x", max_force_[0])) {
     return false;
   }
@@ -110,20 +112,23 @@ fastcat::FaultType fastcat::AtiFts::Process()
       return ALL_DEVICE_FAULT;
     }
 
-    if(enable_fts_guard_fault_){
-      if (max_force_[0] < fabs(state_->fts_state.raw_fx) || max_force_[1] < fabs(state_->fts_state.raw_fy) || max_force_[2] < fabs(state_->fts_state.raw_fz) ||
-        max_torque_[0] < fabs(state_->fts_state.raw_tx) || max_torque_[1] < fabs(state_->fts_state.raw_ty) || max_torque_[2] < fabs(state_->fts_state.raw_tz)) {
-          ERROR(
+    if (enable_fts_guard_fault_) {
+      if (max_force_[0] < fabs(state_->fts_state.raw_fx) ||
+          max_force_[1] < fabs(state_->fts_state.raw_fy) ||
+          max_force_[2] < fabs(state_->fts_state.raw_fz) ||
+          max_torque_[0] < fabs(state_->fts_state.raw_tx) ||
+          max_torque_[1] < fabs(state_->fts_state.raw_ty) ||
+          max_torque_[2] < fabs(state_->fts_state.raw_tz)) {
+        ERROR(
             "Force or torque measured by device %s exceeded maximum allowable "
             "magnitude. Force: [x]: %f / %f, [y]: %f / %f, [z]: %f / %f "
             "Torque: [x]: %f / %f, [y]: %f / %f, [z]: %f / %f",
             name_.c_str(), state_->fts_state.raw_fx, max_force_[0],
-            state_->fts_state.raw_fy, max_force_[1],
-            state_->fts_state.raw_fz, max_force_[2],
-            state_->fts_state.raw_tx, max_torque_[0],
-            state_->fts_state.raw_ty, max_torque_[1],
-            state_->fts_state.raw_tz, max_torque_[2]);
-          return ALL_DEVICE_FAULT;
+            state_->fts_state.raw_fy, max_force_[1], state_->fts_state.raw_fz,
+            max_force_[2], state_->fts_state.raw_tx, max_torque_[0],
+            state_->fts_state.raw_ty, max_torque_[1], state_->fts_state.raw_tz,
+            max_torque_[2]);
+        return ALL_DEVICE_FAULT;
       }
     }
   }
@@ -133,20 +138,19 @@ fastcat::FaultType fastcat::AtiFts::Process()
 
 bool fastcat::AtiFts::Write(DeviceCmd& cmd)
 {
-
   // If device supports async SDO requests
   AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
-  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+  if (sdoResult != SDO_RET_VAL_NOT_APPLICABLE) {
     return (sdoResult == SDO_RET_VAL_SUCCESS);
   }
 
   if (cmd.type == FTS_TARE_CMD) {
-
     // Do not permit taring if there is a fault
-    if(device_fault_active_){
-      ERROR("Taring (%s) FTS is not permited with an active fault, reset first", name_.c_str());
+    if (device_fault_active_) {
+      ERROR("Taring (%s) FTS is not permited with an active fault, reset first",
+            name_.c_str());
       return false;
-    }else{
+    } else {
       bias_[0] = -state_->fts_state.raw_fx;
       bias_[1] = -state_->fts_state.raw_fy;
       bias_[2] = -state_->fts_state.raw_fz;
@@ -155,14 +159,11 @@ bool fastcat::AtiFts::Write(DeviceCmd& cmd)
       bias_[5] = -state_->fts_state.raw_tz;
       return true;
     }
-  }
-  else if (cmd.type == FTS_ENABLE_GUARD_FAULT_CMD) {
+  } else if (cmd.type == FTS_ENABLE_GUARD_FAULT_CMD) {
     enable_fts_guard_fault_ = cmd.fts_enable_guard_fault_cmd.enable;
     return true;
-  }
-  else{
+  } else {
     WARNING("That command type is not supported!");
     return false;
   }
-
 }

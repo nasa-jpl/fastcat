@@ -24,7 +24,9 @@ bool fastcat::Fts::ConfigFromYaml(YAML::Node node)
 
   double dummy;
   if (ParseOptVal(node, "max_force", dummy)) {
-    ERROR("fastcat no longer accept L2 norm, configure your yaml values per axis");
+    ERROR(
+        "fastcat no longer accept L2 norm, configure your yaml values per "
+        "axis");
     return false;
   }
 
@@ -129,20 +131,22 @@ bool fastcat::Fts::Read()
 fastcat::FaultType fastcat::Fts::Process()
 {
   if (!device_fault_active_) {
-    if(enable_fts_guard_fault_){
-      if (max_force_[0] < fabs(state_->fts_state.raw_fx) || max_force_[1] < fabs(state_->fts_state.raw_fy) || max_force_[2] < fabs(state_->fts_state.raw_fz) ||
-          max_torque_[0] < fabs(state_->fts_state.raw_tx) || max_torque_[1] < fabs(state_->fts_state.raw_ty) || max_torque_[2] < fabs(state_->fts_state.raw_tz)) {
+    if (enable_fts_guard_fault_) {
+      if (max_force_[0] < fabs(state_->fts_state.raw_fx) ||
+          max_force_[1] < fabs(state_->fts_state.raw_fy) ||
+          max_force_[2] < fabs(state_->fts_state.raw_fz) ||
+          max_torque_[0] < fabs(state_->fts_state.raw_tx) ||
+          max_torque_[1] < fabs(state_->fts_state.raw_ty) ||
+          max_torque_[2] < fabs(state_->fts_state.raw_tz)) {
         ERROR(
             "Force or torque measured by device %s exceeded maximum allowable "
             "magnitude. Force: [x]: %f / %f, [y]: %f / %f, [z]: %f / %f "
             "Torque: [x]: %f / %f, [y]: %f / %f, [z]: %f / %f",
-            name_.c_str(),
-            state_->fts_state.raw_fx, max_force_[0],
-            state_->fts_state.raw_fy, max_force_[1],
-            state_->fts_state.raw_fz, max_force_[2],
-            state_->fts_state.raw_tx, max_torque_[0],
-            state_->fts_state.raw_ty, max_torque_[1],
-            state_->fts_state.raw_tz, max_torque_[2]);
+            name_.c_str(), state_->fts_state.raw_fx, max_force_[0],
+            state_->fts_state.raw_fy, max_force_[1], state_->fts_state.raw_fz,
+            max_force_[2], state_->fts_state.raw_tx, max_torque_[0],
+            state_->fts_state.raw_ty, max_torque_[1], state_->fts_state.raw_tz,
+            max_torque_[2]);
         return ALL_DEVICE_FAULT;
       }
     }
@@ -153,23 +157,20 @@ fastcat::FaultType fastcat::Fts::Process()
 bool fastcat::Fts::Write(DeviceCmd& cmd)
 {
   if (cmd.type == FTS_TARE_CMD) {
-
     // Do not permit taring if there is a fault
-    if(device_fault_active_){
+    if (device_fault_active_) {
       ERROR("Taring FTS is not permited with a active fault, reset first");
       return false;
-    }else{
+    } else {
       for (int ii = 0; ii < FC_FTS_N_DIMS; ii++) {
         sig_offset_[ii] = -wrench_[ii];
       }
       return true;
     }
-  }
-  else if (cmd.type == FTS_ENABLE_GUARD_FAULT_CMD) {
+  } else if (cmd.type == FTS_ENABLE_GUARD_FAULT_CMD) {
     enable_fts_guard_fault_ = cmd.fts_enable_guard_fault_cmd.enable;
     return true;
-  }
-  else{
+  } else {
     WARNING("That command type is not supported!");
     return false;
   }

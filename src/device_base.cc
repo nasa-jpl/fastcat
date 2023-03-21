@@ -23,10 +23,7 @@ void fastcat::DeviceBase::SetLoopPeriod(double loop_period)
   loop_period_ = loop_period;
 }
 
-
-void fastcat::DeviceBase::SetTime(double time){
-  state_->time = time;
-}
+void fastcat::DeviceBase::SetTime(double time) { state_->time = time; }
 
 bool fastcat::DeviceBase::Write(fastcat::DeviceCmd& /* cmd */)
 {
@@ -47,4 +44,3 @@ void fastcat::DeviceBase::Reset()
 }
 
 fastcat::FaultType fastcat::DeviceBase::Process() { return NO_FAULT; }
-

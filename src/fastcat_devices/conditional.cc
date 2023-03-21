@@ -74,7 +74,6 @@ bool fastcat::Conditional::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Conditional::Read()
 {
-
   // update input signal
   if (!UpdateSignal(signals_[0])) {
     ERROR("Could not extract signal");

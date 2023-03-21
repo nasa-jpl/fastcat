@@ -65,7 +65,9 @@ bool fastcat::VirtualFts::ConfigFromYaml(YAML::Node node)
 
   double dummy;
   if (ParseOptVal(node, "max_force", dummy)) {
-    ERROR("fastcat no longer accept L2 norm, configure your yaml values per axis");
+    ERROR(
+        "fastcat no longer accept L2 norm, configure your yaml values per "
+        "axis");
     return false;
   }
 
