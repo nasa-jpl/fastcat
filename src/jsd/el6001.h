@@ -18,7 +18,7 @@ class El6001 : public JsdDeviceBase
   bool ConfigFromYaml(YAML::Node node) override;
   bool Read() override;
   bool Write(DeviceCmd& cmd) override;
-  // FaultType Process() override;
+  FaultType Process() override;
   // void      Fault() override;
   // void      Reset() override;
 
