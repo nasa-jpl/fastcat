@@ -1,43 +1,72 @@
 # use snake_case for all variable and device names
-states:
+devices:
   - name: commander
-    fields:
+    type: fastcat_device
+    state:
     - name: enable
       type: bool
       comment: if true, commander will emit fastcat commands
+    config:
 
   - name: signal_generator
-    fields:
+    type: fastcat_device
+    state:
     - name: output
       type: double
 
+
   - name: function
-    fields:
+    type: fastcat_device
+    state:
     - name: output
       type: double
 
   - name: conditional
-    fields:
+    type: fastcat_device
+    state:
     - name: output
       type: bool
 
   - name: schmitt_trigger
-    fields:
+    type: fastcat_device
+    state:
     - name: output
       type: bool
   
   - name: saturation
-    fields:
+    type: fastcat_device
+    state:
     - name: output
       type: double
 
   - name: filter
-    fields:
+    type: fastcat_device
+    state:
     - name: output
       type: double
 
+  - name: faulter
+    type: fastcat_device
+    state:
+    - name: enable
+      type: bool
+      comment: if true, the faulter is monitoring the fastcat signal for faults 
+    - name: fault_active
+      type: bool
+      comment: "if true, the conditions for faulting are met - 
+        on rising edge, the faulter will trigger all devices to fault."
+
+  - name: linear_interpolation
+    type: fastcat_device
+    state:
+    - name: output
+      type: double
+    - name: is_saturated
+      type: bool
+
   - name: pid
-    fields:
+    type: fastcat_device
+    state:
     - name: active
       type: bool
     - name: output
@@ -50,7 +79,8 @@ states:
       type: double
 
   - name: fts
-    fields:
+    type: fastcat_device
+    state:
     - name: raw_fx
       type: double
     - name: raw_fy
@@ -76,8 +106,9 @@ states:
     - name: tared_tz
       type: double
 
-  - name: actuator
-    fields:
+  - name: egd_actuator
+    type: jsd_device
+    state:
     - name: actual_position
       type: double
     - name: actual_velocity
@@ -131,25 +162,68 @@ states:
     - name: power
       type: double
 
-  - name: faulter
-    fields:
-    - name: enable
-      type: bool
-      comment: if true, the faulter is monitoring the fastcat signal for faults 
-    - name: fault_active
-      type: bool
-      comment: "if true, the conditions for faulting are met - 
-        on rising edge, the faulter will trigger all devices to fault."
-
-  - name: linear_interpolation
-    fields:
-    - name: output
+  - name: epd_actuator
+    type: jsd_device
+    state:
+    - name: actual_position
       type: double
-    - name: is_saturated
+    - name: actual_velocity
+      type: double
+    - name: actual_current
+      type: double
+    - name: faulted
       type: bool
+    - name: cmd_position
+      type: double
+    - name: cmd_velocity
+      type: double
+    - name: cmd_current
+      type: double
+    - name: cmd_max_current
+      type: double
+    - name: egd_state_machine_state
+      type: uint32_t
+      comment: "From jsd_egd_state_machine_state_t"
+    - name: egd_mode_of_operation
+      type: uint32_t
+      comment: "From jsd_egd_mode_of_operation_t"
+    - name: sto_engaged
+      type: uint8_t
+    - name: hall_state
+      type: uint8_t
+    - name: target_reached
+      type: uint8_t
+    - name: setpoint_ack_rise
+      type: bool
+    - name: motor_on
+      type: uint8_t
+    - name: servo_enabled
+      type: uint8_t
+    - name: jsd_fault_code
+      type: uint32_t
+      comment: "From jsd_egd_fault_code_t"
+    - name: fastcat_fault_code
+      type: uint32_t
+    - name: emcy_error_code
+      type: uint16_t 
+    - name: bus_voltage
+      type: double
+    - name: drive_temperature
+      type: uint32_t
+    - name: egd_actual_position
+      type: int32_t
+    - name: egd_cmd_position
+      type: int32_t
+    - name: actuator_state_machine_state
+      type: uint32_t
+      comment: "From jsd_egd_State_machine_state_t"
+    - name: power
+      type: double
+
 
   - name: egd
-    fields:
+    type: jsd_device
+    state:
     - name: actual_position
       type: int32_t
     - name: actual_velocity
@@ -229,7 +303,8 @@ states:
       type: uint32_t
 
   - name: el3602
-    fields:
+    type: jsd_device
+    state:
     - name: voltage_ch1
       type: double
     - name: adc_value_ch1
@@ -240,7 +315,8 @@ states:
       type: int32_t
 
   - name: el2124
-    fields:
+    type: jsd_device
+    state:
     - name: level_ch1
       type: uint8_t
     - name: level_ch2
@@ -251,14 +327,16 @@ states:
       type: uint8_t
 
   - name: el4102
-    fields:
+    type: jsd_device
+    state:
     - name: voltage_output_ch1
       type: double
     - name: voltage_output_ch2
       type: double
 
   - name: el3208
-    fields:
+    type: jsd_device
+    state:
     - name: output_ch1
       type: double
     - name: adc_value_ch1
@@ -293,7 +371,8 @@ states:
       type: int16_t
 
   - name: el3162
-    fields:
+    type: jsd_device
+    state:
       - name: voltage_ch1
         type: double
       - name: adc_value_ch1
@@ -304,7 +383,8 @@ states:
         type: int16_t
 
   - name: el3104
-    fields:
+    type: jsd_device
+    state:
       - name: voltage_ch1
         type: double
       - name: adc_value_ch1
@@ -323,7 +403,8 @@ states:
         type: int16_t
 
   - name: el3202
-    fields:
+    type: jsd_device
+    state:
       - name: output_eu_ch1
         type: double
       - name: adc_value_ch1
@@ -334,7 +415,8 @@ states:
         type: int16_t
 
   - name: el3318
-    fields:
+    type: jsd_device
+    state:
       - name: output_eu_ch1
         type: double
       - name: adc_value_ch1
@@ -369,7 +451,8 @@ states:
         type: int16_t
 
   - name: ild1900
-    fields:
+    type: jsd_device
+    state:
     - name: distance_m
       type: double
     - name: intensity
@@ -384,7 +467,8 @@ states:
       type: uint8_t
 
   - name: jed0101
-    fields:
+    type: jsd_device
+    state:
     - name: status 
       type: uint16_t
     - name: cmd
@@ -407,7 +491,8 @@ states:
       type: double
 
   - name: jed0200
-    fields:
+    type: jsd_device
+    state:
     - name: status 
       type: uint16_t
     - name: cmd

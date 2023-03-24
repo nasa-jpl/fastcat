@@ -25,6 +25,16 @@ cog.outl('// Please make modifications to fcgen/types.h.cog')
 namespace fastcat {
 
 
+//////////////////////////////////
+// Device List
+//////////////////////////////////
+enum DeviceType {
+[[[cog
+for device in data['devices']:
+  cog.outl('%s_DEVICE,' % device['name'].upper())
+]]]
+[[[end]]]
+};
 
 //////////////////////////////////
 // Device Commands
@@ -37,7 +47,6 @@ for cmd in data['commands']:
   camel = snake2camel(cmd['name'])
   cog.outl('} %sCmd;' % camel)
   cog.outl('')
-
 ]]]
 [[[end]]]
 
@@ -77,39 +86,25 @@ for cmd in data['commands']:
 // Device States
 //////////////////////////////////
 [[[cog
-for state in data['states']:
+for device in data['devices']:
   cog.outl('typedef struct {')
-  for field in state['fields']:
+  for field in device['state']:
     cog.outl('%s %s;' % (field['type'], field['name']))
-  camel = snake2camel(state['name'])
+  camel = snake2camel(device['name'])
   cog.outl('} %sState;' % camel)
   cog.outl('')
 
 ]]]
 [[[end]]]
 
-
-//////////////////////////////////
-// Fastcat States
-//////////////////////////////////
-enum DeviceStateType {
-[[[cog
-for state in data['states']:
-  cog.outl('%s_STATE,' % state['name'].upper())
-]]]
-[[[end]]]
-  BAD_DEVICE_STATE
-};
-
-
 typedef struct {
   std::string name;
-  DeviceStateType type;
+  DeviceType type;
   union {
 [[[cog
-for state in data['states']:
-  camel = snake2camel(state['name'])
-  cog.outl('%sState %s_state;' % (camel, state['name']) )
+for device in data['devices']:
+  camel = snake2camel(device['name'])
+  cog.outl('%sState %s_state;' % (camel, device['name']) )
 ]]]
 [[[end]]]
 
