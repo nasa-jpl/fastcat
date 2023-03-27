@@ -18,10 +18,10 @@ add_custom_command(
 
 add_custom_command(
     OUTPUT
-    ${CMAKE_BINARY_DIR}/fastcat/autogen/signal_handling.cc
+    ${CMAKE_BINARY_DIR}/autogen/signal_handling.cc
     COMMAND
     cog -d -D cog_yaml_file=fcgen/fastcat_types.yaml
-    -o ${CMAKE_BINARY_DIR}/fastcat/autogen/signal_handling.cc
+    -o ${CMAKE_BINARY_DIR}/autogen/signal_handling.cc
     ${CMAKE_CURRENT_LIST_DIR}/fcgen/signal_handling.cc.cog
     DEPENDS
     ${CMAKE_BINARY_DIR}/include/fastcat/types.h
@@ -35,10 +35,10 @@ add_custom_command(
 
 add_custom_command(
     OUTPUT
-    ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
+    ${CMAKE_BINARY_DIR}/autogen/commander.cc
     COMMAND
     cog -d -D cog_yaml_file=fcgen/fastcat_types.yaml
-    -o ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
+    -o ${CMAKE_BINARY_DIR}/autogen/commander.cc
     ${CMAKE_CURRENT_LIST_DIR}/fcgen/commander.cc.cog
     DEPENDS
     ${CMAKE_BINARY_DIR}/include/fastcat/types.h
@@ -53,8 +53,8 @@ add_custom_command(
 add_custom_target(fcgen
     DEPENDS
     ${CMAKE_BINARY_DIR}/include/fastcat/types.h
-    ${CMAKE_BINARY_DIR}/fastcat/autogen/signal_handling.cc
-    ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
+    ${CMAKE_BINARY_DIR}/autogen/signal_handling.cc
+    ${CMAKE_BINARY_DIR}/autogen/commander.cc
     )
 
 add_library(fastcat STATIC
@@ -62,7 +62,7 @@ add_library(fastcat STATIC
     device_base.cc
     manager.cc
     yaml_parser.cc
-    ${CMAKE_BINARY_DIR}/fastcat/autogen/signal_handling.cc
+    ${CMAKE_BINARY_DIR}/autogen/signal_handling.cc
     transform_utils.cc
 
     jsd/jsd_device_base.cc
@@ -98,7 +98,7 @@ add_library(fastcat STATIC
     jsd/jed0200_offline.cc
     jsd/ati_fts_offline.cc
 
-    ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
+    ${CMAKE_BINARY_DIR}/autogen/commander.cc
     fastcat_devices/signal_generator.cc
     fastcat_devices/function.cc
     fastcat_devices/conditional.cc
