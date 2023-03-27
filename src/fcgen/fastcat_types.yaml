@@ -7,6 +7,18 @@ devices:
       type: bool
       comment: if true, commander will emit fastcat commands
     config:
+    - name: start_enabled  
+      type: bool
+    - name: skip_n_loops
+      type: uint16_t 
+      comment: the number of loops between subsequent commands when enabled
+    - name: device_command_name
+      type: std::string 
+      comment: The name of the to which commander sends commands
+    - name: device_cmd_type 
+      type: std::string
+      comment: the command enum to send in ALL_CAPS
+
 
   - name: signal_generator
     type: fastcat_device
@@ -466,58 +478,6 @@ devices:
     - name: error
       type: uint8_t
 
-  - name: jed0101
-    type: jsd_device
-    state:
-    - name: status 
-      type: uint16_t
-    - name: cmd
-      type: uint16_t
-    - name: w_raw
-      type: uint32_t
-    - name: x_raw
-      type: uint32_t
-    - name: y_raw
-      type: uint32_t
-    - name: z_raw
-      type: uint32_t
-    - name: w
-      type: double
-    - name: x
-      type: double
-    - name: y
-      type: double
-    - name: z
-      type: double
-
-  - name: jed0200
-    type: jsd_device
-    state:
-    - name: status 
-      type: uint16_t
-    - name: cmd
-      type: uint16_t
-    - name: ticks
-      type: uint32_t
-    - name: voltage_hv
-      type: float
-    - name: voltage_lv
-      type: float
-    - name: voltage_12v
-      type: float
-    - name: temp_ambient
-      type: float
-    - name: temp_actuator
-      type: float
-    - name: humidity
-      type: float
-    - name: pressure
-      type: float
-    - name: brake_current
-      type: uint16_t
-    - name: brake_cc_val
-      type: uint16_t
-
 commands:
   - name: commander_enable
     fields:
@@ -806,16 +766,6 @@ commands:
     - name: enable
       type: bool
       comment: if true, faulter will trigger a fault when the specified signal is received.
-
-  - name: jed0101_set_cmd_value
-    fields:
-    - name: cmd
-      type: uint16_t
-
-  - name: jed0200_set_cmd_value
-    fields:
-    - name: cmd
-      type: uint16_t
 
   - name: pid_activate
     fields: 
