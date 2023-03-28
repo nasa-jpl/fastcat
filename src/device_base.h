@@ -17,10 +17,15 @@ namespace fastcat
 {
 class DeviceBase
 {
+ private:
+  DeviceBase(); // Don't want subclasses to use this ctor
+
  public:
+  DeviceBase(DeviceType device_type); // preferred ctor
+
   // Pure virtual methods
-  virtual bool ConfigFromYaml(YAML::Node node) = 0;
-  virtual bool Read()                          = 0;
+  virtual bool Initialize() = 0;
+  virtual bool Read()       = 0;
 
   // Non-pure virtual methods with default implementation
   virtual FaultType Process();
@@ -30,23 +35,27 @@ class DeviceBase
 
   // non-virtual methods
   void RegisterCmdQueue(std::shared_ptr<std::queue<DeviceCmd>> cmd_queue);
-  std::string                  GetName();
-  std::shared_ptr<DeviceState> GetState();
 
+  std::string                  GetName();
+  DeviceType                   GetDeviceType();
+  std::shared_ptr<DeviceState> GetState();
+  DeviceConfig                 GetConfig();
+
+  void SetConfig(DeviceConfig config);
   void SetTime(double time);
   void SetLoopPeriod(double loop_period);
 
-  std::vector<Signal> signals_;
 
  protected:
-  std::string name_;         ///< unique device name
   double      loop_period_;  ///< only some devices need
 
   /// device-level fault, manager also has fault status flag
   bool device_fault_active_ = false;
 
   std::shared_ptr<DeviceState> state_;  ///< Fastcat state data
-
+  DeviceConfig config_; ///< Fastcat configuration
+  DeviceType device_type_; 
+			
   /// for intra-device commands
   std::shared_ptr<std::queue<DeviceCmd>> cmd_queue_;
 };

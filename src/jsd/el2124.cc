@@ -10,27 +10,21 @@
 // Include external then project includes
 #include "fastcat/yaml_parser.h"
 
-fastcat::El2124::El2124()
+fastcat::El2124::El2124() : 
+  DeviceBase(EL2124_DEVICE)
 {
   MSG_DEBUG("Constructed El2124");
-
-  state_       = std::make_shared<DeviceState>();
-  state_->type = EL2124_STATE;
 }
 
-bool fastcat::El2124::ConfigFromYaml(YAML::Node node)
+bool fastcat::El2124::Initialize()
 {
-  bool retval = ConfigFromYamlCommon(node);
+  bool retval = InitializeCommon();
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
   return retval;
 }
 
-bool fastcat::El2124::ConfigFromYamlCommon(YAML::Node node)
+bool fastcat::El2124::InitializeCommon()
 {
-  if (!ParseVal(node, "name", name_)) {
-    return false;
-  }
-  state_->name = name_;
 
   jsd_slave_config_.configuration_active = true;
   jsd_slave_config_.product_code         = JSD_EL2124_PRODUCT_CODE;

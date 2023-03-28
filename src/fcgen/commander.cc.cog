@@ -29,42 +29,22 @@ cog.outl('// Please make modifications to fcgen/commander.cc.cog')
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd_print.h"
 
-fastcat::Commander::Commander()
+fastcat::Commander::Commander() : DeviceBase(COMMANDER_DEVICE)
 {
   MSG_DEBUG("Constructed Commander");
-  state_       = std::make_shared<DeviceState>();
-  state_->type = COMMANDER_STATE;
-  
 }
 
-bool fastcat::Commander::ConfigFromYaml(YAML::Node node)
+bool fastcat::Commander::Initialize()
 {
-  if (!ParseVal(node, "name", name_)) {
-    return false;
-  }
-  state_->name = name_;
+  CommanderConfig config = GetConfig().commander_config;
 
-  if (!ParseVal(node, "device_cmd_type", device_cmd_type_string_)) {
-    return false;
-  }
-  device_cmd_.type = DeviceCmdTypeFromString(device_cmd_type_string_);
+  device_cmd_.type = DeviceCmdTypeFromString(std::to_string(config.device_cmd_type));
+  device_cmd_.name = std::to_string(config.device_command_name);
 
-  if (!ParseVal(node, "device_cmd_name", device_cmd_.name)) {
-    return false;
-  }
-
-  if (!ParseVal(node, "start_enabled", start_enabled_)) {
-    return false;
-  }
-  state_->commander_state.enable = start_enabled_;
+  state_->commander_state.enable = config.start_enabled;
   if(start_enabled_){
     enable_duration_ = 0; // indefinite duration
   }
-
-  if (!ParseVal(node, "skip_n_loops", skip_n_loops_)) {
-    return false;
-  }
-
 
   if (!ConfigSignalsFromYaml(node, signals_, true)) {
     return false;

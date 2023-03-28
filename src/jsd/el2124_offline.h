@@ -13,7 +13,7 @@ namespace fastcat
 class El2124Offline : public El2124
 {
  public:
-  bool      ConfigFromYaml(YAML::Node node) override;
+  bool      Initialize() override;
   bool      Read() override;
   FaultType Process() override;
   bool      Write(DeviceCmd& cmd) override;

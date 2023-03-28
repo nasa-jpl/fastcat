@@ -1,4 +1,22 @@
 # use snake_case for all variable and device names
+
+manager_config:
+  - name: target_loop_rate_hz
+    type: double
+    comment: Target loop rate the application will run the process loop
+  - name: zero_latency_required 
+    type: bool
+    default: true
+    comment: If zero-latency is required in order to properly initialize
+  - name: actuator_position_directory
+    type: std::string
+    default: /tmp/
+    comment: Location of the fastcat saved position file for incremental feedback sensors
+  - name: actuator_fault_on_missing_pos_file
+    type: bool
+    default: true
+    comment: If true, ails to initialize if this file is not present. Otherwise, fastcat creates this file.
+
 devices:
   - name: commander
     type: fastcat_device
@@ -13,10 +31,10 @@ devices:
       type: uint16_t 
       comment: the number of loops between subsequent commands when enabled
     - name: device_command_name
-      type: std::string 
+      type: string
       comment: The name of the to which commander sends commands
     - name: device_cmd_type 
-      type: std::string
+      type: string
       comment: the command enum to send in ALL_CAPS
 
 

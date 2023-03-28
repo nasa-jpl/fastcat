@@ -15,13 +15,13 @@ class El2124 : public JsdDeviceBase
 {
  public:
   El2124();
-  bool      ConfigFromYaml(YAML::Node node) override;
+  bool      Initialize() override;
   bool      Read() override;
   FaultType Process() override;
   bool      Write(DeviceCmd& cmd) override;
 
  protected:
-  bool ConfigFromYamlCommon(YAML::Node node);
+  bool InitializeCommon();
 
  private:
   jsd_slave_config_t jsd_slave_config_ = {0};

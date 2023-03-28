@@ -14,46 +14,7 @@
 #include <typeinfo>
 
 // Include external then project includes
-#include "fastcat/fastcat_devices/commander.h"
-#include "fastcat/fastcat_devices/conditional.h"
-#include "fastcat/fastcat_devices/faulter.h"
-#include "fastcat/fastcat_devices/filter.h"
-#include "fastcat/fastcat_devices/fts.h"
-#include "fastcat/fastcat_devices/function.h"
-#include "fastcat/fastcat_devices/linear_interpolation.h"
-#include "fastcat/fastcat_devices/pid.h"
-#include "fastcat/fastcat_devices/saturation.h"
-#include "fastcat/fastcat_devices/schmitt_trigger.h"
-#include "fastcat/fastcat_devices/signal_generator.h"
-#include "fastcat/fastcat_devices/virtual_fts.h"
-#include "fastcat/jsd/actuator.h"
-#include "fastcat/jsd/actuator_offline.h"
-#include "fastcat/jsd/ati_fts.h"
-#include "fastcat/jsd/ati_fts_offline.h"
-#include "fastcat/jsd/egd.h"
-#include "fastcat/jsd/egd_offline.h"
-#include "fastcat/jsd/el2124.h"
-#include "fastcat/jsd/el2124_offline.h"
-#include "fastcat/jsd/el3104.h"
-#include "fastcat/jsd/el3104_offline.h"
-#include "fastcat/jsd/el3162.h"
-#include "fastcat/jsd/el3162_offline.h"
-#include "fastcat/jsd/el3202.h"
-#include "fastcat/jsd/el3202_offline.h"
-#include "fastcat/jsd/el3208.h"
-#include "fastcat/jsd/el3208_offline.h"
-#include "fastcat/jsd/el3318.h"
-#include "fastcat/jsd/el3318_offline.h"
-#include "fastcat/jsd/el3602.h"
-#include "fastcat/jsd/el3602_offline.h"
-#include "fastcat/jsd/el4102.h"
-#include "fastcat/jsd/el4102_offline.h"
-#include "fastcat/jsd/ild1900.h"
-#include "fastcat/jsd/ild1900_offline.h"
-#include "fastcat/jsd/jed0101.h"
-#include "fastcat/jsd/jed0101_offline.h"
-#include "fastcat/jsd/jed0200.h"
-#include "fastcat/jsd/jed0200_offline.h"
+#include "fastcat/device_includes.h"
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd_print.h"
@@ -82,6 +43,7 @@ void fastcat::Manager::Shutdown()
   SaveActuatorPosFile();
 }
 
+bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
 bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
 {
   // Configure Fastcat Parameters
@@ -329,28 +291,14 @@ double fastcat::Manager::GetTargetLoopRate() { return target_loop_rate_hz_; }
 bool fastcat::Manager::IsFaulted() { return faulted_; }
 
 void fastcat::Manager::GetDeviceNamesByType(
-    std::vector<std::string>& names, fastcat::DeviceStateType device_state_type)
+    std::vector<std::string>& names, fastcat::DeviceType device_type)
 {
   names.clear();
   for (auto& device : jsd_device_list_) {
-    if (device->GetState()->type == device_state_type) {
+    if (device->GetState()->type == device_type) {
       names.push_back(device->GetName());
     }
   }
-}
-
-bool fastcat::Manager::GetActuatorParams(
-    const std::string& name, fastcat::Actuator::ActuatorParams& params)
-{
-  if (device_map_.count(name)) {
-    auto& device = device_map_[name];
-    if (device->GetState()->type == ACTUATOR_STATE) {
-      auto actuator = std::dynamic_pointer_cast<Actuator>(device);
-      params        = actuator->GetParams();
-      return true;
-    }
-  }
-  return false;
 }
 
 bool fastcat::Manager::RecoverBus(std::string ifname)
@@ -885,7 +833,7 @@ bool fastcat::Manager::LoadActuatorPosFile()
   bool actuators_in_topo = false;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
        ++device) {
-    if ((*device)->GetState()->type == ACTUATOR_STATE) {
+    if ((*device)->GetState()->type == EGD_ACTUATOR_DEVICE) {
       actuators_in_topo = true;
       break;
     }
@@ -982,7 +930,7 @@ bool fastcat::Manager::ValidateActuatorPosFile()
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != ACTUATOR_STATE) {
+    if (dev_state->type != EGD_ACTUATOR_DEVICE) {
       continue;
     }
 
@@ -1026,7 +974,7 @@ bool fastcat::Manager::SetActuatorPositions()
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != ACTUATOR_STATE) {
+    if (dev_state->type != EGD_ACTUATOR_DEVICE) {
       continue;
     }
 
@@ -1062,7 +1010,7 @@ void fastcat::Manager::GetActuatorPositions()
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != ACTUATOR_STATE) {
+    if (dev_state->type != EGD_ACTUATOR_DEVICE) {
       continue;
     }
 
@@ -1073,7 +1021,7 @@ void fastcat::Manager::GetActuatorPositions()
     }
 
     ActuatorPosData apd         = {0};
-    apd.position                = dev_state->actuator_state.actual_position;
+    apd.position                = dev_state->egd_actuator_state.actual_position;
     actuator_pos_map_[dev_name] = apd;
 
     MSG("Actuator: %s position is %lf", dev_name.c_str(), apd.position);

@@ -38,12 +38,31 @@ class Manager
    */
   void Shutdown();
 
-  /** @brief Method that accepts a fastcat topology yaml and intializes bus
+  /** @brief Method that parses a fastcat topology input file
    *
-   *  @return true on successful initialization. If false, application should
+   *  @return true on successful parse. If false, application should
    * quit.
    */
-  bool ConfigFromYaml(YAML::Node node);
+  bool LoadConfigFromFile(std::string file_contents);
+
+  /** @brief Permits application to override device config before initialization
+   *
+   *  @return true on successful config set. If false defaults are retained.
+   */
+  bool OverrideDeviceConfig(std::string device_name, DeviceConfig config);
+
+  /** @brief Permits application to override manager parameters
+   *
+   *  @return true on successful config set. If false defaults are retained.
+   */
+  bool OverrideManagerConfig(ManagerConfig config);
+
+  /** @brief Initializes all devices from loaded configuration
+   *
+   *  @return true on successful init. If false, application should
+   * quit.
+   */
+  bool InitializeAllDevices();
 
   /** @brief Updates synchronous PDO and background async SDO requests.
    *
@@ -163,16 +182,16 @@ class Manager
    */
   bool PopSdoResponseQueue(SdoResponse& res);
 
-  /** @brief get actuator parameters
+  /** @brief get device configuration 
    *
-   *  @return true if the return reference 'parameters' is valid
+   *  @return true if the device exists and the `config` reference is valid
    */
-  bool GetActuatorParams(const std::string&                 name,
-                         fastcat::Actuator::ActuatorParams& param);
+  bool GetDeviceConfig(const std::string&     name,
+                       fastcat::DeviceConfig& config);
 
-  /** @brief names of actuator devices
+  /** @brief collect all the names of devices for given type
    */
- void GetDeviceNamesByType(std::vector<std::string>&, fastcat::DeviceStateType);
+ void GetDeviceNamesByType(std::vector<std::string>&, fastcat::DeviceType);
 
  private:
   bool ConfigJSDBusFromYaml(YAML::Node node);

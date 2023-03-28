@@ -17,13 +17,21 @@ cog.outl('// Please make modifications to fcgen/types.h.cog')
 #ifndef FASTCAT_TYPES_H_
 #define FASTCAT_TYPES_H_
 
-
 #include <string>
 
 #include "jsd/jsd_types.h"
 
+#define FASTCAT_STR_LEN 80
+
 namespace fastcat {
 
+typedef struct {
+[[[cog
+for field in data['manager_config']:
+  cog.outl('%s %s;' % (field['type'], field['name']))
+]]]
+[[[end]]]
+} MangerConfig;
 
 //////////////////////////////////
 // Device List
@@ -35,50 +43,6 @@ for device in data['devices']:
 ]]]
 [[[end]]]
 };
-
-//////////////////////////////////
-// Device Commands
-//////////////////////////////////
-[[[cog
-for cmd in data['commands']:
-  cog.outl('typedef struct {')
-  for field in cmd['fields']:
-    cog.outl('%s %s;' % (field['type'], field['name']))
-  camel = snake2camel(cmd['name'])
-  cog.outl('} %sCmd;' % camel)
-  cog.outl('')
-]]]
-[[[end]]]
-
-
-
-//////////////////////////////////
-// Fastcat Commands
-//////////////////////////////////
-enum DeviceCmdType {
-[[[cog
-for cmd in data['commands']:
-  cog.outl('%s_CMD,' %cmd['name'].upper())
-]]]
-[[[end]]]
-  BAD_DEVICE_CMD
-};
-
-
-typedef struct {
-  std::string name;
-  DeviceCmdType type;
-  union {
-[[[cog
-for cmd in data['commands']:
-  camel = snake2camel(cmd['name'])
-  cog.outl('%sCmd %s_cmd;' % (camel, cmd['name']) )
-]]]
-[[[end]]]
-
-  };
-} DeviceCmd;
-
 
 
 
@@ -111,6 +75,80 @@ for device in data['devices']:
   };
   double time;
 } DeviceState;
+
+//////////////////////////////////
+// Device Config
+//////////////////////////////////
+[[[cog
+for device in data['devices']:
+  cog.outl('typedef struct {')
+  if not 'config' in device:
+    cog.outl('bool dummy; // device does not have any config')
+  else:
+    for field in device['config']:
+      if 'string' == field['type']:
+        cog.outl('char %s[FASTCAT_STR_LEN];' % (field['name']))
+      else:
+        cog.outl('%s %s;' % (field['type'], field['name']))
+  camel = snake2camel(device['name'])
+  cog.outl('} %sConfig;' % camel)
+  cog.outl('')
+
+]]]
+[[[end]]]
+
+typedef struct {
+  std::string name;
+  DeviceType type;
+  union {
+[[[cog
+for device in data['devices']:
+  camel = snake2camel(device['name'])
+  cog.outl('%sConfig %s_config;' % (camel, device['name']) )
+]]]
+[[[end]]]
+
+  };
+} DeviceConfig;
+
+//////////////////////////////////
+// Device Commands
+//////////////////////////////////
+[[[cog
+for cmd in data['commands']:
+  cog.outl('typedef struct {')
+  for field in cmd['fields']:
+    cog.outl('%s %s;' % (field['type'], field['name']))
+  camel = snake2camel(cmd['name'])
+  cog.outl('} %sCmd;' % camel)
+  cog.outl('')
+]]]
+[[[end]]]
+
+enum DeviceCmdType {
+[[[cog
+for cmd in data['commands']:
+  cog.outl('%s_CMD,' %cmd['name'].upper())
+]]]
+[[[end]]]
+  BAD_DEVICE_CMD
+};
+
+
+typedef struct {
+  std::string name;
+  DeviceCmdType type;
+  union {
+[[[cog
+for cmd in data['commands']:
+  camel = snake2camel(cmd['name'])
+  cog.outl('%sCmd %s_cmd;' % (camel, cmd['name']) )
+]]]
+[[[end]]]
+
+  };
+} DeviceCmd;
+
 
 
 //////////////////////////////////
