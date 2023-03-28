@@ -43,7 +43,6 @@ bool fastcat::Saturation::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Saturation::Read()
 {
-
   // update input signal
   if (!UpdateSignal(signals_[0])) {
     ERROR("Could not extract signal");

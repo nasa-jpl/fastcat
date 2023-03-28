@@ -10,9 +10,6 @@ bool fastcat::AtiFtsOffline::ConfigFromYaml(YAML::Node node)
   return ConfigFromYamlCommon(node);
 }
 
-bool fastcat::AtiFtsOffline::Read()
-{
-  return true;
-}
+bool fastcat::AtiFtsOffline::Read() { return true; }
 
 fastcat::FaultType fastcat::AtiFtsOffline::Process() { return NO_FAULT; }

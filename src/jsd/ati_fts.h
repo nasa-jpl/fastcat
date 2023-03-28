@@ -30,9 +30,9 @@ class AtiFts : public JsdDeviceBase
 
   double bias_[6] = {0};
 
-  bool enable_fts_guard_fault_ = true;
-  double max_force_[3]  = {0, 0, 0};
-  double max_torque_[3] = {0, 0, 0};
+  bool   enable_fts_guard_fault_ = true;
+  double max_force_[3]           = {0, 0, 0};
+  double max_torque_[3]          = {0, 0, 0};
 };
 
 }  // namespace fastcat

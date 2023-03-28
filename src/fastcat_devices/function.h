@@ -10,14 +10,14 @@
 
 namespace fastcat
 {
-enum FunctionType { 
-  POLYNOMIAL, 
-  SUMMATION, 
-  MULTIPLICATION, 
-  POWER, 
+enum FunctionType {
+  POLYNOMIAL,
+  SUMMATION,
+  MULTIPLICATION,
+  POWER,
   EXPONENTIAL,
   SIGMOID,
-  BAD_FUNCTION_TYPE 
+  BAD_FUNCTION_TYPE
 };
 FunctionType FunctionTypeFromString(const std::string&);
 
@@ -39,16 +39,17 @@ class Function : public DeviceBase
   Function();
   bool ConfigFromYaml(YAML::Node node) override;
   bool Read() override;
+
  protected:
-  std::string         function_type_string_;
-  enum FunctionType   function_type_;
+  std::string       function_type_string_;
+  enum FunctionType function_type_;
 
   std::vector<double> polynomial_coefficients_;
   union {
-    PolynomialParams polynomial_params_;
-    PowerParams power_params_;
+    PolynomialParams  polynomial_params_;
+    PowerParams       power_params_;
     ExponentialParams exponential_params_;
-  };  
+  };
 };
 
 }  // namespace fastcat

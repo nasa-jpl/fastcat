@@ -52,14 +52,14 @@ bool fastcat::El3202::ConfigFromYamlCommon(YAML::Node node)
     return false;
   }
 
-  //TODO: Should all config put in fcat_config.yaml??
+  // TODO: Should all config put in fcat_config.yaml??
   jsd_slave_config_.el3202.element[0] = element_ch1_;
   jsd_slave_config_.el3202.element[1] = element_ch2_;
 
-  jsd_slave_config_.el3202.filter[0] = JSD_BECKHOFF_FILTER_50HZ;
-  jsd_slave_config_.el3202.filter[1] = JSD_BECKHOFF_FILTER_50HZ;
-  jsd_slave_config_.el3202.connection[0] = JSD_EL3202_CONNECTION_4WIRE;
-  jsd_slave_config_.el3202.connection[1] = JSD_EL3202_CONNECTION_4WIRE;
+  jsd_slave_config_.el3202.filter[0]       = JSD_BECKHOFF_FILTER_50HZ;
+  jsd_slave_config_.el3202.filter[1]       = JSD_BECKHOFF_FILTER_50HZ;
+  jsd_slave_config_.el3202.connection[0]   = JSD_EL3202_CONNECTION_4WIRE;
+  jsd_slave_config_.el3202.connection[1]   = JSD_EL3202_CONNECTION_4WIRE;
   jsd_slave_config_.el3202.presentation[0] = JSD_EL3202_PRESENTATION_SIGNED;
   jsd_slave_config_.el3202.presentation[1] = JSD_EL3202_PRESENTATION_SIGNED;
   return true;
@@ -72,16 +72,16 @@ bool fastcat::El3202::Read()
   const jsd_el3202_state_t* jsd_state =
       jsd_el3202_get_state((jsd_t*)context_, slave_id_);
 
-  state_->el3202_state.output_eu_ch1   = jsd_state->output_eu[0];
-  state_->el3202_state.output_eu_ch2   = jsd_state->output_eu[1];
+  state_->el3202_state.output_eu_ch1 = jsd_state->output_eu[0];
+  state_->el3202_state.output_eu_ch2 = jsd_state->output_eu[1];
   state_->el3202_state.adc_value_ch1 = jsd_state->adc_value[0];
   state_->el3202_state.adc_value_ch2 = jsd_state->adc_value[1];
 
   return true;
 }
 
-bool fastcat::El3202::ElementFromString(std::string element_string,
-                                      jsd_el3202_element_t& element)
+bool fastcat::El3202::ElementFromString(std::string           element_string,
+                                        jsd_el3202_element_t& element)
 {
   MSG("Converting element to string.");
   if (element_string.compare("PT100") == 0) {

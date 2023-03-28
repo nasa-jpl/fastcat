@@ -11,7 +11,7 @@
 namespace fastcat
 {
 
-class LinearInterpolation: public DeviceBase
+class LinearInterpolation : public DeviceBase
 {
  public:
   LinearInterpolation();
@@ -21,9 +21,9 @@ class LinearInterpolation: public DeviceBase
  protected:
   // Config paramters
   std::vector<std::pair<double, double>> domain_range_;
-  bool enable_out_of_bounds_fault_ = false;
+  bool                                   enable_out_of_bounds_fault_ = false;
 
-  std::vector<double> slope_; // computed during initialization
+  std::vector<double> slope_;  // computed during initialization
 };
 
 }  // namespace fastcat

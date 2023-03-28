@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
+
 #include <cmath>
 
 #include "fastcat/config.h"
 #include "fastcat/jsd/ati_fts.h"
 #include "fastcat/signal_handling.h"
-
 #include "jsd/jsd.h"
 #include "jsd/jsd_print.h"
 
@@ -26,25 +26,26 @@ class AtiFtsTest : public ::testing::Test
     device_.SetOffline(true);
   }
 
-  void TearDown() override
-  {
-    jsd_free(jsd_context_);
-  }
+  void TearDown() override { jsd_free(jsd_context_); }
 
-  jsd_t* jsd_context_;
-  std::string base_dir_;
-  YAML::Node node_;
+  jsd_t*          jsd_context_;
+  std::string     base_dir_;
+  YAML::Node      node_;
   fastcat::AtiFts device_;
 };
 
-TEST_F(AtiFtsTest, ParseNominalConfig) {
-  EXPECT_TRUE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_+"nominal.yaml")));
+TEST_F(AtiFtsTest, ParseNominalConfig)
+{
+  EXPECT_TRUE(
+      device_.ConfigFromYaml(YAML::LoadFile(base_dir_ + "nominal.yaml")));
 }
 
 // Currently the nominal behavior to faults is to prevent taring when faulted
 // This may change with optional YAML parameters in the future perhaps.
-TEST_F(AtiFtsTest, RejectTareWhenFaulted) {
-  EXPECT_TRUE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_+"nominal.yaml")));
+TEST_F(AtiFtsTest, RejectTareWhenFaulted)
+{
+  EXPECT_TRUE(
+      device_.ConfigFromYaml(YAML::LoadFile(base_dir_ + "nominal.yaml")));
 
   fastcat::DeviceCmd cmd;
   cmd.type = fastcat::FTS_TARE_CMD;
@@ -57,4 +58,4 @@ TEST_F(AtiFtsTest, RejectTareWhenFaulted) {
   EXPECT_FALSE(device_.Write(cmd));
 }
 
-} // namespace
+}  // namespace

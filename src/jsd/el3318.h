@@ -19,9 +19,10 @@ class El3318 : public JsdDeviceBase
   bool Read() override;
 
  protected:
-  bool ConfigFromYamlCommon(YAML::Node node);
-  bool ElementFromString(std::string element_string, jsd_el3318_element_t& element);
-  std::string        element_string_;
+  bool                 ConfigFromYamlCommon(YAML::Node node);
+  bool                 ElementFromString(std::string           element_string,
+                                         jsd_el3318_element_t& element);
+  std::string          element_string_;
   jsd_el3318_element_t element_{JSD_EL3318_ELEMENT_TYPE_K};
 
  private:
