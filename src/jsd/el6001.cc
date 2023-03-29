@@ -35,6 +35,14 @@ bool fastcat::El6001::ConfigFromYamlCommon(YAML::Node node)
     return false;    
   }
 
+  if (!ParseVal(node, "use_first_byte_as_packet_length", use_first_byte_as_packet_length_)) {
+    return false;    
+  }
+
+  if (!ParseVal(node, "use_last_byte_as_checksum", use_last_byte_as_checksum_)) {
+    return false;    
+  }
+
   state_->name = name_;
 
   switch(baud_rate_){
@@ -71,6 +79,9 @@ bool fastcat::El6001::ConfigFromYamlCommon(YAML::Node node)
       break;
   }
 
+  jsd_slave_config_.el6001.use_first_byte_as_packet_length = use_first_byte_as_packet_length_;
+  jsd_slave_config_.el6001.use_last_byte_as_checksum = use_last_byte_as_checksum_;
+
   jsd_slave_config_.configuration_active = true;
   jsd_slave_config_.product_code         = JSD_EL6001_PRODUCT_CODE;
   snprintf(jsd_slave_config_.name, JSD_NAME_LEN, "%s", name_.c_str()); 
@@ -86,7 +97,12 @@ bool fastcat::El6001::Read()
       jsd_el6001_get_state((jsd_t*)context_, slave_id_);
 
   state_->el6001_state.statusword   = jsd_state->statusword;
-  state_->el6001_state.controlword   = jsd_state->controlword_user;  
+  state_->el6001_state.controlword   = jsd_state->controlword_user;
+
+  for(int i=0; i < JSD_EL6001_NUM_DATA_BYTES; i++){
+    state_->el6001_state.data_in_bytes[i] = jsd_state->received_bytes[i];
+    state_->el6001_state.data_out_bytes[i] = jsd_state->transmit_bytes[i];
+  }
 
   return true;
 }

@@ -26,6 +26,8 @@ class El6001 : public JsdDeviceBase
   bool ConfigFromYamlCommon(YAML::Node node);
 
   int baud_rate_;
+  bool use_first_byte_as_packet_length_;
+  bool use_last_byte_as_checksum_;
 
  private:
   jsd_slave_config_t jsd_slave_config_{0};
