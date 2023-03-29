@@ -37,7 +37,7 @@ class Egd : public JsdDeviceBase
   bool WriteProfiledMode(DeviceCmd& cmd);
   bool WriteCSMode(DeviceCmd& cmd);
   bool GSModeFromString(std::string                     gs_mode_string,
-                        jsd_egd_gain_scheduling_mode_t& gs_mode);
+                        jsd_elmo_gain_scheduling_mode_t& gs_mode);
 };
 
 }  // namespace fastcat
