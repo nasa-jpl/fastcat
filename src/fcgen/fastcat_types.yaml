@@ -1,42 +1,112 @@
-# use snake_case for all variable and device names
 
+# use UpperCamelCase for names and UPPER for values
+enumerations:
+  - name: ConditionalOperatorType
+    entries:
+    - key:   "<"
+      value: LT
+    - key:   "<="
+      value: LE
+    - key:   ">"
+      value: GT 
+    - key:   ">="
+      value: GE 
+    - key:   "=="
+      value: EQ 
+    - key:   "!="
+      value: NE 
+
+# use snake_case for all variables
 manager_config:
   - name: target_loop_rate_hz
     type: double
-    comment: Target loop rate the application will run the process loop
+    comment: "Target loop rate the application will run the process loop"
   - name: zero_latency_required 
     type: bool
     default: true
-    comment: If zero-latency is required in order to properly initialize
+    comment: "If zero-latency is required in order to properly initialize"
   - name: actuator_position_directory
     type: std::string
     default: /tmp/
-    comment: Location of the fastcat saved position file for incremental feedback sensors
+    comment: "Location of the fastcat saved position file for incremental feedback sensors"
   - name: actuator_fault_on_missing_pos_file
     type: bool
     default: true
-    comment: If true, ails to initialize if this file is not present. Otherwise, fastcat creates this file.
+    comment: "If true, fails to initialize if this file is not present. 
+             Otherwise, fastcat creates this file."
 
+# use snake_case for all variable and device names
 devices:
   - name: commander
     type: fastcat_device
     state:
     - name: enable
       type: bool
-      comment: if true, commander will emit fastcat commands
+      comment: "if true, commander will emit fastcat commands"
     config:
     - name: start_enabled  
       type: bool
+      comment: "if true, starts issuing commands immediately after initialization"
     - name: skip_n_loops
       type: uint16_t 
-      comment: the number of loops between subsequent commands when enabled
+      comment: "The number of loops between issuing commands when enabled"
     - name: device_command_name
-      type: string
-      comment: The name of the to which commander sends commands
+      type: std::string
+      comment: "The name of the to which commander sends commands"
     - name: device_cmd_type 
-      type: string
-      comment: the command enum to send in ALL_CAPS
+      type: DeviceCmdType
+      comment: "The command type to send to device_command_name"
 
+  - name: conditional
+    type: fastcat_device
+    state:
+    - name: output
+      type: bool
+      config: "bool output = (double)signal_value <COMPARE_OPERATOR> (double)compare_rhs_value"
+    config:
+    - name: conditional_type
+      type: ConditionalOperatorType
+      comment: "Comparison operator valid inputs: {<, <=, >, >=, ==, !=}"
+    - name: compare_rhs_value
+      type: double
+      comment: "The right-hand side value of the comparison test"
+
+  - name: faulter
+    type: fastcat_device
+    state:
+    - name: enable
+      type: bool
+      comment: "If true, the faulter is currently monitoring the fastcat signal for faults"
+    - name: fault_active
+      type: bool
+      comment: "If true, the conditions for raising a fault are met"
+    config:
+    - name: start_enabled
+      type: bool
+      comment: "If true, starts monitoring the input signal immediately after initialization"
+
+  - name: moving_average_filter
+    type: fastcat_device
+    state:
+    - name: output
+      type: double
+      comment: "Filtered output value"
+    config:
+    - name: buffer_size
+      type: uint16_t
+      comment: "The number of samples which to average over"
+
+  - name: digital_ab_filter
+    type: fastcat_device
+    state:
+    - name: output
+      type: double
+      comment: "Filtered output value"
+    config:
+    - name: A
+      type: std::vector<double>
+    - name: B
+      type: std::vector<double>
 
   - name: signal_generator
     type: fastcat_device
@@ -51,11 +121,6 @@ devices:
     - name: output
       type: double
 
-  - name: conditional
-    type: fastcat_device
-    state:
-    - name: output
-      type: bool
 
   - name: schmitt_trigger
     type: fastcat_device
@@ -69,22 +134,7 @@ devices:
     - name: output
       type: double
 
-  - name: filter
-    type: fastcat_device
-    state:
-    - name: output
-      type: double
 
-  - name: faulter
-    type: fastcat_device
-    state:
-    - name: enable
-      type: bool
-      comment: if true, the faulter is monitoring the fastcat signal for faults 
-    - name: fault_active
-      type: bool
-      comment: "if true, the conditions for faulting are met - 
-        on rising edge, the faulter will trigger all devices to fault."
 
   - name: linear_interpolation
     type: fastcat_device
@@ -496,6 +546,7 @@ devices:
     - name: error
       type: uint8_t
 
+# use snake_case for all variable and device names
 commands:
   - name: commander_enable
     fields:
