@@ -29,7 +29,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
         ${TEST_EXECUTABLE} PRIVATE
         ${GTEST_BOTH_LIBRARIES}
         Threads::Threads
-        fastcat
+        fastcat-test
         )
     target_include_directories(
         ${TEST_EXECUTABLE} PUBLIC

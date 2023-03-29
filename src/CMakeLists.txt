@@ -58,9 +58,7 @@ add_custom_target(fcgen
     )
 
 # Build a library regardless of BUILD_TESTS flag
-add_definitions(-DPROTECTED=protected)
-add_definitions(-DPRIVATE=private)
-add_library(fastcat STATIC
+set(FASTCAT_SOURCES
     trap.c
     device_base.cc
     manager.cc
@@ -113,20 +111,33 @@ add_library(fastcat STATIC
     fastcat_devices/virtual_fts.cc
     fastcat_devices/faulter.cc
     fastcat_devices/linear_interpolation.cc
-    )
+)
 
-target_include_directories(
-    fastcat PUBLIC
-    ${CMAKE_BINARY_DIR}/include
-    ${SOEM_INCLUDE_DIRS}
-    )
+macro(create_fastcat_lib)
+  message("creating library: ${ARGV0}")
+  add_library(${ARGV0} STATIC
+     ${FASTCAT_SOURCES}
+      )
+  target_include_directories(${ARGV0} PUBLIC
+      ${CMAKE_BINARY_DIR}/include
+      ${SOEM_INCLUDE_DIRS}
+      )
+  
+  target_link_libraries(${ARGV0}
+      jsd-lib
+      ${YAMLCPP_LIBRARY}
+      )
+  
+  add_dependencies(${ARGV0}
+      fcgen
+      )
+endmacro()
 
-target_link_libraries(fastcat
-    jsd-lib
-    ${YAMLCPP_LIBRARY}
-    )
+create_fastcat_lib(fastcat)
+target_compile_definitions(fastcat PUBLIC PROTECTED=protected PRIVATE=private)
 
-add_dependencies(fastcat
-    fcgen
-    )
-
+if(BUILD_TESTS)
+    create_fastcat_lib(fastcat-test)
+    message("fastcat-test: Overriding protected and private class methods for internal unit testing"
+    target_compile_definitions(fastcat-test PUBLIC PROTECTED=public PRIVATE=public)
+endif()

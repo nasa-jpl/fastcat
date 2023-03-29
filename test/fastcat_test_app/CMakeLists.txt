@@ -10,7 +10,7 @@ include(FetchContent)
 FetchContent_Declare(
   fastcat
   GIT_REPOSITORY https://github.com/nasa-jpl/fastcat.git
-  GIT_TAG master
+  GIT_TAG apb-ut-visibility-declarations
 )
 FetchContent_MakeAvailable(fastcat)
 

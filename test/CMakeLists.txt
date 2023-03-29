@@ -4,16 +4,13 @@ message("Building tests, disable with BUILD_TESTS CMake option")
 ## Simple C Test Programs ##
 ############################
 
-add_definitions(-DPROTECTED=public)
-add_definitions(-DPRIVATE=public)
-
 include_directories(
     ${READLINE_INCLUDE_DIRS}
     ${CMAKE_BINARY_DIR}/include
     )
 
 set(fastcat_test_libs
-    fastcat
+    fastcat-test
     m
     -lreadline
     )
