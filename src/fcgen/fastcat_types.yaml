@@ -379,6 +379,12 @@ states:
       - name: data_out_bytes[22]
         type: uint8_t
 
+  - name: fbc
+    fields:
+    - name: status      
+      type: uint32_t
+      comment: "From FbcStatus"
+
   - name: ild1900
     fields:
     - name: distance_m
