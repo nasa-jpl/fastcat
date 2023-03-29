@@ -10,7 +10,7 @@ include(FetchContent)
 FetchContent_Declare(
   fastcat
   GIT_REPOSITORY https://github.com/nasa-jpl/fastcat.git
-  GIT_TAG apb-ut-visibility-declarations
+  GIT_TAG master
 )
 FetchContent_MakeAvailable(fastcat)
 
@@ -28,7 +28,7 @@ target_link_libraries(ftest fastcat)
 #target_link_libraries(ftest-invalid-access fastcat)
 
 # Test that the fastcat-test lib is not available to applications by accident
-add_executable(ftest-invalid-access-lib
-  ftest_invalid_access.cc
-)
-target_link_libraries(ftest-invalid-access-lib fastcat-test)
+#add_executable(ftest-invalid-access-lib
+#  ftest_invalid_access.cc
+#)
+#target_link_libraries(ftest-invalid-access-lib fastcat-test)

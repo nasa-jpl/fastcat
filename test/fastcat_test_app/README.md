@@ -41,3 +41,17 @@ make[1]: *** [CMakeFiles/Makefile2:223: CMakeFiles/ftest-invalid-access.dir/all]
 make: *** [Makefile:136: all] Error 2
 
 ```
+
+And this is the output for the 2nd executable `ftest-invalid-access-lib` which aims to link against the library `fastcat-test` instead of the proper `fastcat` target library:
+```
+# Test that the fastcat-test lib is not available to applications by accident
+
+[ 94%] Building CXX object CMakeFiles/ftest-invalid-access-lib.dir/ftest_invalid_access.cc.o
+/home/abrinkma/src/fastcat_ws/fastcat-uts/test/fastcat_test_app/ftest_invalid_access.cc:2:10: fatal error: fastcat/fastcat.h: No such file or directory
+    2 | #include "fastcat/fastcat.h"
+      |          ^~~~~~~~~~~~~~~~~~~
+compilation terminated.
+make[2]: *** [CMakeFiles/ftest-invalid-access-lib.dir/build.make:76: CMakeFiles/ftest-invalid-access-lib.dir/ftest_invalid_access.cc.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:217: CMakeFiles/ftest-invalid-access-lib.dir/all] Error 2
+make: *** [Makefile:136: all] Error 2
+```
