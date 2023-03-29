@@ -69,6 +69,11 @@ void fastcat::ActuatorOffline::EgdClearErrors()
   // no-op
 }
 
+void fastcat::ActuatorOffline::EgdFault()
+{
+  // no-op
+}
+
 void fastcat::ActuatorOffline::EgdReset()
 {
   // no-op
@@ -91,7 +96,7 @@ void fastcat::ActuatorOffline::EgdSetUnitMode(int32_t mode, uint16_t app_id)
 }
 
 void fastcat::ActuatorOffline::EgdSetGainSchedulingMode(
-    jsd_egd_gain_scheduling_mode_t /* mode */, uint16_t /* app_id */)
+    jsd_elmo_gain_scheduling_mode_t /* mode */, uint16_t /* app_id */)
 {
   // no-op
 }
@@ -101,7 +106,7 @@ void fastcat::ActuatorOffline::EgdSetGainSchedulingIndex(uint16_t /* index */)
   // no-op
 }
 
-void fastcat::ActuatorOffline::EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd)
+void fastcat::ActuatorOffline::EgdCSP(jsd_elmo_motion_command_csp_t jsd_csp_cmd)
 {
   jsd_egd_state_.cmd_position = jsd_csp_cmd.target_position;
   jsd_egd_state_.cmd_velocity = 0;
@@ -125,7 +130,7 @@ void fastcat::ActuatorOffline::EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd)
   jsd_egd_state_.actual_velocity = vel;  // "sure, why not"
 }
 
-void fastcat::ActuatorOffline::EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd)
+void fastcat::ActuatorOffline::EgdCSV(jsd_elmo_motion_command_csv_t jsd_csv_cmd)
 {
   jsd_egd_state_.cmd_position = 0;
   jsd_egd_state_.cmd_velocity = jsd_csv_cmd.target_velocity;
@@ -144,7 +149,7 @@ void fastcat::ActuatorOffline::EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd)
       jsd_egd_state_.actual_velocity * loop_period_;  // integrated
 }
 
-void fastcat::ActuatorOffline::EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd)
+void fastcat::ActuatorOffline::EgdCST(jsd_elmo_motion_command_cst_t jsd_cst_cmd)
 {
   jsd_egd_state_.cmd_position = 0;
   jsd_egd_state_.cmd_velocity = 0;

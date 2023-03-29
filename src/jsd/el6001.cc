@@ -125,7 +125,7 @@ fastcat::FaultType fastcat::El6001::Process()
 {
   fastcat::FaultType retval = NO_FAULT;
 
-  jsd_el6001_process(context_, slave_id);
-  
+  jsd_el6001_process(context_, slave_id_);
+
   return retval;
 }
