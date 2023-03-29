@@ -1,5 +1,9 @@
 message("Building tests, disable with BUILD_TESTS CMake option")
 
+create_fastcat_lib(fastcat-test)
+message("fastcat-test: Overriding protected and private class methods for internal unit testing")
+target_compile_definitions(fastcat-test PUBLIC PROTECTED=public PRIVATE=public)
+
 ############################
 ## Simple C Test Programs ##
 ############################

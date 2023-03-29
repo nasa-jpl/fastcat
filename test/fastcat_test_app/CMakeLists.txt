@@ -19,3 +19,16 @@ add_executable(ftest
 )
 
 target_link_libraries(ftest fastcat)
+
+
+# Test that the protected and private overrides work properly
+#add_executable(ftest-invalid-access
+#  ftest_invalid_access.cc
+#)
+#target_link_libraries(ftest-invalid-access fastcat)
+
+# Test that the fastcat-test lib is not available to applications by accident
+add_executable(ftest-invalid-access-lib
+  ftest_invalid_access.cc
+)
+target_link_libraries(ftest-invalid-access-lib fastcat-test)
