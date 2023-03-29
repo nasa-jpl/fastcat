@@ -39,16 +39,16 @@ class DeviceBase
   std::vector<Signal> signals_;
 
  protected:
-  std::string name_;    ///< unique device name
-  double loop_period_;  ///< only some devices need
+  std::string name_;         ///< unique device name
+  double      loop_period_;  ///< only some devices need
 
   /// device-level fault, manager also has fault status flag
-  bool device_fault_active_ = false;                                      
+  bool device_fault_active_ = false;
 
   std::shared_ptr<DeviceState> state_;  ///< Fastcat state data
 
   /// for intra-device commands
-  std::shared_ptr<std::queue<DeviceCmd>> cmd_queue_;  
+  std::shared_ptr<std::queue<DeviceCmd>> cmd_queue_;
 };
 
 }  // namespace fastcat

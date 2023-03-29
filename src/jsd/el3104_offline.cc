@@ -14,7 +14,4 @@ bool fastcat::El3104Offline::ConfigFromYaml(YAML::Node node)
   return ConfigFromYamlCommon(node);
 }
 
-bool fastcat::El3104Offline::Read()
-{
-  return true;
-}
+bool fastcat::El3104Offline::Read() { return true; }

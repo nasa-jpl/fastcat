@@ -17,6 +17,6 @@ class Ild1900Offline : public Ild1900
   bool Read() override;
 };
 
-}  // namespace fascat
+}  // namespace fastcat
 
 #endif

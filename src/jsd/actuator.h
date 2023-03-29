@@ -52,6 +52,7 @@ class Actuator : public JsdDeviceBase
 {
  public:
   Actuator();
+
   bool      ConfigFromYaml(YAML::Node node) override;
   bool      Read() override;
   FaultType Process() override;
@@ -63,6 +64,38 @@ class Actuator : public JsdDeviceBase
 
   static std::string GetFastcatFaultCodeAsString(const DeviceState& state);
   static std::string GetJSDFaultCodeAsString(const DeviceState& state);
+
+  struct ActuatorParams {
+    std::string actuator_type_str;
+    double      gear_ratio                    = 1;
+    double      counts_per_rev                = 1;
+    double      max_speed_eu_per_sec          = 0;
+    double      max_accel_eu_per_sec2         = 0;
+    double      over_speed_multiplier         = 1;
+    double      vel_tracking_error_eu_per_sec = 0;
+    double      pos_tracking_error_eu         = 0;
+    double      peak_current_limit_amps       = 0;
+    double      peak_current_time_sec         = 0;
+    double      continuous_current_limit_amps = 0;
+    double      torque_slope_amps_per_sec     = 0;
+    double      low_pos_cal_limit_eu          = 0;
+    double      low_pos_cmd_limit_eu          = 0;
+    double      high_pos_cmd_limit_eu         = 0;
+    double      high_pos_cal_limit_eu         = 0;
+    double      holding_duration_sec          = 0;
+    double      egd_brake_engage_msec         = 0;
+    double      egd_brake_disengage_msec      = 0;
+    double      egd_crc                       = 0;
+    double      egd_drive_max_cur_limit_amps  = 0;
+    double      smooth_factor                 = 0;
+    double      torque_constant               = 0;
+    double      winding_resistance            = 0;
+    double      brake_power                   = 0;
+    double      motor_encoder_gear_ratio      = 0;
+    bool        actuator_absolute_encoder     = false;
+  };
+
+  const ActuatorParams& GetParams() { return params_; }
 
  protected:
   double  CntsToEu(int32_t cnts);
@@ -121,37 +154,11 @@ class Actuator : public JsdDeviceBase
   virtual void EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd);
   virtual void EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd);
   virtual void EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd);
-  virtual void EgdSetGainSchedulingMode(jsd_egd_gain_scheduling_mode_t mode, uint16_t app_id);
+  virtual void EgdSetGainSchedulingMode(jsd_egd_gain_scheduling_mode_t mode,
+                                        uint16_t                       app_id);
   virtual void EgdSetGainSchedulingIndex(uint16_t index);
 
-  std::string  actuator_type_str_;
   ActuatorType actuator_type_;
-
-  double gear_ratio_                    = 1;
-  double counts_per_rev_                = 1;
-  double max_speed_eu_per_sec_          = 0;
-  double max_accel_eu_per_sec2_         = 0;
-  double over_speed_multiplier_         = 1;
-  double vel_tracking_error_eu_per_sec_ = 0;
-  double pos_tracking_error_eu_         = 0;
-  double peak_current_limit_amps_       = 0;
-  double peak_current_time_sec_         = 0;
-  double continuous_current_limit_amps_ = 0;
-  double torque_slope_amps_per_sec_     = 0;
-  double low_pos_cal_limit_eu_          = 0;
-  double low_pos_cmd_limit_eu_          = 0;
-  double high_pos_cmd_limit_eu_         = 0;
-  double high_pos_cal_limit_eu_         = 0;
-  double holding_duration_sec_          = 0;
-  double egd_brake_engage_msec_         = 0;
-  double egd_brake_disengage_msec_      = 0;
-  double egd_crc_                       = 0;
-  double egd_drive_max_cur_limit_amps_  = 0;
-  double smooth_factor_                 = 0;
-  double torque_constant_               = 0;
-  double winding_resistance_            = 0;
-  double brake_power_                   = 0;
-  double motor_encoder_gear_ratio_      = 0;
 
   bool compute_power_ = false;
 
@@ -167,14 +174,13 @@ class Actuator : public JsdDeviceBase
   int32_t                   egd_pos_offset_cnts_ = 1;
 
   ActuatorCalibrateCmd cal_cmd_;
+  ActuatorParams       params_;
 
  private:
   bool GSModeFromString(std::string                     gs_mode_string,
                         jsd_egd_gain_scheduling_mode_t& gs_mode);
 
   bool prof_pos_hold_;
-
-  bool actuator_absolute_encoder_ = false;
 
   ActuatorFastcatFault fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
 };
