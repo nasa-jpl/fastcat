@@ -57,10 +57,7 @@ add_custom_target(fcgen
     ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
     )
 
-# Build a library regardless of BUILD_TESTS flag
-set(FASTCAT_SOURCES
-)
-
+# This Macro is reused to create a test library as well when necessary
 macro(create_fastcat_lib)
   message("creating library: ${ARGV0}")
   add_library(${ARGV0} STATIC
