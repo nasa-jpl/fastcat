@@ -138,6 +138,6 @@ target_compile_definitions(fastcat PUBLIC PROTECTED=protected PRIVATE=private)
 
 if(BUILD_TESTS)
     create_fastcat_lib(fastcat-test)
-    message("fastcat-test: Overriding protected and private class methods for internal unit testing"
+    message("fastcat-test: Overriding protected and private class methods for internal unit testing")
     target_compile_definitions(fastcat-test PUBLIC PROTECTED=public PRIVATE=public)
 endif()
