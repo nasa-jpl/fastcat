@@ -13,8 +13,6 @@ namespace fastcat
 class ActuatorOffline : public Actuator
 {
 
-  friend class ActuatorTest;
-
  public:
   ActuatorOffline();
 
