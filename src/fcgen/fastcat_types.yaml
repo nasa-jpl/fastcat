@@ -1,20 +1,38 @@
 
-# use UpperCamelCase for names and UPPER for values
+# use UpperCamelCase for type-name and UPPER for value
+# if string is not supplied, it will be taken as the value
 enumerations:
   - name: ConditionalOperatorType
     entries:
-    - key:   "<"
-      value: LT
-    - key:   "<="
-      value: LE
-    - key:   ">"
-      value: GT 
-    - key:   ">="
-      value: GE 
-    - key:   "=="
-      value: EQ 
-    - key:   "!="
-      value: NE 
+    - string: "<"
+      value:  LT
+    - string: "<="
+      value:  LE
+    - string: ">"
+      value:  GT 
+    - string: ">="
+      value:  GE 
+    - string: "=="
+      value:  EQ 
+    - string: "!="
+      value:  NE 
+ - name: FilterType
+   entries: 
+   - value: DIGITAL_AB
+   - value: MOVING_AVERAGE
+ - name: FunctionType
+   entries:
+   - value: POLYNOMIAL
+   - value: MULTIPLICATION
+   - value: POWER
+   - value: EXPONENTIAL
+   - value: SIGMOID
+ - name: SignalGeneratorType
+   entries:
+   - value: SINE_WAVE
+   - value: SAW_TOOTH
+   - value: GAUSSIAN_RANDOM
+   - value: UNIFORM_RANDOM
 
 # use snake_case for all variables
 manager_config:
@@ -36,6 +54,8 @@ manager_config:
              Otherwise, fastcat creates this file."
 
 # use snake_case for all variable and device names
+# if a config variable has a default value, it is assumed to be optional
+# all parameters must have a default value 
 devices:
   - name: commander
     type: fastcat_device
@@ -85,78 +105,29 @@ devices:
       type: bool
       comment: "If true, starts monitoring the input signal immediately after initialization"
 
-  - name: moving_average_filter
-    type: fastcat_device
-    state:
-    - name: output
-      type: double
-      comment: "Filtered output value"
-    config:
-    - name: buffer_size
-      type: uint16_t
-      comment: "The number of samples which to average over"
 
-  - name: digital_ab_filter
+  - name: filter_digital_ab
     type: fastcat_device
     state:
     - name: output
       type: double
       comment: "Filtered output value"
     config:
+    - name: filter_type
+      type: FilterType
+      comment: "The type of filter"
     - name: A
       type: std::vector<double>
+      default: {0}
+      comment: "Digital-AB: The A coefficients"
     - name: B
       type: std::vector<double>
-
-  - name: signal_generator
-    type: fastcat_device
-    state:
-    - name: output
-      type: double
-
-
-  - name: function
-    type: fastcat_device
-    state:
-    - name: output
-      type: double
-
-
-  - name: schmitt_trigger
-    type: fastcat_device
-    state:
-    - name: output
-      type: bool
-  
-  - name: saturation
-    type: fastcat_device
-    state:
-    - name: output
-      type: double
-
-
-
-  - name: linear_interpolation
-    type: fastcat_device
-    state:
-    - name: output
-      type: double
-    - name: is_saturated
-      type: bool
-
-  - name: pid
-    type: fastcat_device
-    state:
-    - name: active
-      type: bool
-    - name: output
-      type: double
-    - name: kp_term
-      type: double
-    - name: ki_term
-      type: double
-    - name: kd_term
-      type: double
+      default: {0}
+      comment: "Digital-AB: The B coefficients"
+    - name: buffer_size
+      type: uint16_t
+      default: 1
+      comment: "Moving-average: The number of samples which to average over"
 
   - name: fts
     type: fastcat_device
@@ -185,6 +156,248 @@ devices:
       type: double
     - name: tared_tz
       type: double
+    config: 
+    - name: calibration_matrix
+      type: std::vector<double> 
+      comment: "Must be NxN elements long arranged row-wise, where N is the number of input signals (N=6 typically)"
+    parameters:
+    - name: max_force_x
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_force_y
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_force_z
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_torque_x
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+    - name: max_torque_y
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+    - name: max_torque_z
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+
+  - name: function
+    type: fastcat_device
+    state:
+    - name: output
+      type: double
+    config: 
+    - name: function_type
+      type: FunctionType
+    - name: poly_order
+      type: uint8_t
+      default: 0
+      comment: "Polynomial: Order of polynominal"
+    - name: poly_coefficients
+      type: std::vector<double>
+      default: {0}
+      comment: "Polynomial: Order of polynominal"
+    - name: power_exponent
+      type: double
+      default: 0
+      comment: "Power: the constant power term i.e input^power_exponent"
+    - name: exponential_base
+      type: double
+      default: e
+      comment: "Exponential: the base term i.e.  exponential_base^input"
+
+  - name: linear_interpolation
+    type: fastcat_device
+    state:
+    - name: output
+      type: double
+    - name: is_saturated
+      type: bool
+    config:
+    - name: domain
+      type: std::vector<double>
+      comment: "Variable-length domain of linear interpolation table. Must match length of range"
+    - name: range
+      type: std::vector<double>
+      comment: "Variable-length range of linear interpolation table. Must match length of domain"
+    - name: enable_output_bounds_fault
+      type: bool
+      default: true
+      comment: "If true, emits a fault if the input signal lies outside the (min,max) of the domain"
+
+  - name: pid
+    type: fastcat_device
+    state:
+    - name: active
+      type: bool
+    - name: output
+      type: double
+    - name: kp_term
+      type: double
+    - name: ki_term
+      type: double
+    - name: kd_term
+      type: double
+   config:
+   - name: kp
+     type: double
+     comment: "Proportional Gain"
+   - name: ki
+     type: double
+     comment: "Integral Gain"
+   - name: kd
+     type: double
+     comment: "Derivative Gain"
+   - name: windup_limit
+     type: double
+     comment: "The Max contribution of the integral term i.e. (ki*error)"
+
+  - name: saturation
+    type: fastcat_device
+    state:
+    - name: output
+      type: double
+    config:
+    - name: lower_limit
+      type: double
+      comment: "Lower clipping value"
+    - name: upper_limit
+      type: double
+      comment: "Upper clipping value"
+
+  - name: schmitt_trigger
+    type: fastcat_device
+    state:
+    - name: output
+      type: bool
+    config:
+    - name: low_threshold
+      type: double
+      comment: "Lower threshold for turning output on"
+    - name: high_threshold
+      type: double
+      comment: "Upper threshold for turning output off"
+
+  - name: signal_generator
+    type: fastcat_device
+    state:
+    - name: output
+      type: double
+    config:
+    - name: signal_generator_type
+      type: SignalGeneratorType
+      comment: "Controls which type of generator to use to create periodic output signal"
+    - name: sine_wave_angular_frequency
+      type: double
+      default: 0
+    - name: sine_wave_phase
+      type: double
+      default: 0
+    - name: sine_wave_offset
+      type: double
+      default: 0
+    - name: saw_tooth_max
+      type: double
+      default: 0
+    - name: saw_tooth_min
+      type: double
+      default: 0
+    - name: saw_tooth_slope
+      type: double
+      default: 0
+    - name: gaussian_random_mean
+      type: double
+      default: 0
+    - name: gaussian_random_sigma
+      type: double
+      default: 0
+    - name: gaussian_random_seed
+      type: uint32_t
+      default: 1
+    - name: uniform_random_max
+      type: double
+      default: 0
+    - name: uniform_random_min
+      type: double
+      default: 0
+    - name: uniform_random_seed
+      type: uint32_t
+      default: 1
+
+  - name: virtual_fts
+    type: fastcat_device
+    state:
+    - name: raw_fx
+      type: double
+    - name: raw_fy
+      type: double
+    - name: raw_fz
+      type: double
+    - name: raw_tx
+      type: double
+    - name: raw_ty
+      type: double
+    - name: raw_tz
+      type: double
+    - name: tared_fx
+      type: double
+    - name: tared_fy
+      type: double
+    - name: tared_fz
+      type: double
+    - name: tared_tx
+      type: double
+    - name: tared_ty
+      type: double
+    - name: tared_tz
+      type: double
+    config: 
+    - name: calibration_matrix
+      type: std::vector<double> 
+      comment: "Must be NxN elements long arranged row-wise, where N is the number of input signals (N=6 typically)"
+    - name: position
+      type: std::array<double,3>
+      comment: "Translation of the original sensor to this virtual sensor"
+    - name: quaternion
+      type: std::array<double,4>
+      default: [NAN, NAN, NAN, NAN]
+      comment: "The preferred method for specifying orientation from real to virtual fts in [u,x,y,z] order"
+    - name: euler
+      type: std::array<double,3>
+      default: [NAN, NAN, NAN]
+      comment: "The secondary method for specifying orientation from real to virtual fts in [roll, pitch, yaw] 
+                order but computed in the standard absolute Z-Y-X order"
+    parameters:
+    - name: max_force_x
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_force_y
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_force_z
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_torque_x
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+    - name: max_torque_y
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+    - name: max_torque_z
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+
 
   - name: egd_actuator
     type: jsd_device
