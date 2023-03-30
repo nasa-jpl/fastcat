@@ -7,7 +7,7 @@
 #include "fastcat/signal_handling.h"
 #include "jsd/jsd_print.h"
 
-namespace
+namespace fastcat
 {
 class ActuatorTest : public ::testing::Test
 {
