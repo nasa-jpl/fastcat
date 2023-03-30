@@ -39,7 +39,6 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
         NAME ${TEST_EXECUTABLE}
         COMMAND ${TEST_EXECUTABLE}
         )
-    target_compile_options(${TEST_EXECUTABLE} PRIVATE -fno-access-control)
 
 endforeach()
 

@@ -50,6 +50,9 @@ typedef enum {
 
 class Actuator : public JsdDeviceBase
 {
+ 
+ friend class Tester;
+
  public:
   Actuator();
 
