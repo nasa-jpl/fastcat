@@ -50,6 +50,9 @@ typedef enum {
 
 class Actuator : public JsdDeviceBase
 {
+ 
+ friend class Tester;
+
  public:
   Actuator();
 
@@ -97,7 +100,7 @@ class Actuator : public JsdDeviceBase
 
   const ActuatorParams& GetParams() { return params_; }
 
- PROTECTED:
+ protected:
 
   double  CntsToEu(int32_t cnts);
   int32_t EuToCnts(double eu);
@@ -176,7 +179,7 @@ class Actuator : public JsdDeviceBase
   ActuatorCalibrateCmd cal_cmd_;
   ActuatorParams       params_;
 
-PRIVATE:
+ private:
   bool GSModeFromString(std::string                     gs_mode_string,
                         jsd_egd_gain_scheduling_mode_t& gs_mode);
 

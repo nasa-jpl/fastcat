@@ -7,8 +7,32 @@
 #include "fastcat/signal_handling.h"
 #include "jsd/jsd_print.h"
 
-namespace
+namespace fastcat
 {
+
+class Tester {
+  public:
+  jsd_egd_state_t* GetEgdState(Actuator& device){
+    return &device.jsd_egd_state_;
+  }
+  
+  ActuatorStateMachineState GetSMS(Actuator& device){
+    return device.actuator_sms_;
+  }
+
+  
+  double  CntsToEu(Actuator& device, int32_t cnts){
+    return device.CntsToEu(cnts);
+  }
+
+  double  PosCntsToEu(Actuator& device, int32_t cnts){
+    return device.PosCntsToEu(cnts);
+  }
+
+};
+
+Tester tester;
+
 class ActuatorTest : public ::testing::Test
 {
  protected:
@@ -159,10 +183,10 @@ TEST_F(ActuatorTest, RejectMotionCommandsWhenFaulted)
   TEST_F(ActuatorTest, NominalResetFunction) {
     EXPECT_TRUE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_+"valid.yaml")));
     device_.Fault();    
-    EXPECT_TRUE(device_.actuator_sms_ == fastcat::ACTUATOR_SMS_FAULTED);
+    EXPECT_TRUE(tester.GetSMS(device_) == fastcat::ACTUATOR_SMS_FAULTED);
 
     device_.Reset();
-    EXPECT_TRUE(device_.actuator_sms_ == fastcat::ACTUATOR_SMS_HALTED);
+    EXPECT_TRUE(tester.GetSMS(device_) == fastcat::ACTUATOR_SMS_HALTED);
   }
 
   TEST_F(ActuatorTest, FixDirtyCmdVelocityValues) {
@@ -170,12 +194,15 @@ TEST_F(ActuatorTest, RejectMotionCommandsWhenFaulted)
     // Set the jsd egd device state to known, dirty values
     // TODO setup for pos, and current values too
 
-    device_.jsd_egd_state_.cmd_position = 1234;
-    device_.jsd_egd_state_.cmd_velocity = 1234;
-    device_.jsd_egd_state_.cmd_current = 1234;
     
-    double expected_pos = device_.PosCntsToEu(1234);
-    double expected_vel = device_.CntsToEu(1234);
+    jsd_egd_state_t* jsd_egd_state = tester.GetEgdState(device_);
+
+    jsd_egd_state->cmd_position = 1234;
+    jsd_egd_state->cmd_velocity = 1234;
+    jsd_egd_state->cmd_current = 1234;
+    
+    double expected_pos = tester.PosCntsToEu(device_, 1234);
+    double expected_vel = tester.CntsToEu(device_, 1234);
     double expected_cur = 1234;
     
     device_.Read();
