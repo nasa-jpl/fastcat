@@ -50,6 +50,9 @@ typedef enum {
 
 class Actuator : public JsdDeviceBase
 {
+ 
+ friend class Tester;
+
  public:
   Actuator();
 
@@ -98,6 +101,7 @@ class Actuator : public JsdDeviceBase
   const ActuatorParams& GetParams() { return params_; }
 
  protected:
+
   double  CntsToEu(int32_t cnts);
   int32_t EuToCnts(double eu);
   double  PosCntsToEu(int32_t cnts);
@@ -122,7 +126,6 @@ class Actuator : public JsdDeviceBase
   bool HandleNewProfVelCmd(DeviceCmd& cmd);
   bool HandleNewProfTorqueCmd(DeviceCmd& cmd);
   bool HandleNewHaltCmd();
-  bool HandleNewResetCmd();
   bool HandleNewSetOutputPositionCmd(DeviceCmd& cmd);
   bool HandleNewSetUnitModeCmd(DeviceCmd& cmd);
   bool HandleNewCalibrationCmd(DeviceCmd& cmd);
