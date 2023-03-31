@@ -26,7 +26,7 @@ class Pid : public DeviceBase
   double windup_limit_;
 
   PidActivateCmd pid_activate_cmd_ = {0};
-  double         activation_time_ = 0;
+  double         activation_time_  = 0;
 
   double  error_               = 0;
   double  prev_error_          = 0;

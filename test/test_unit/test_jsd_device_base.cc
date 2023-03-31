@@ -9,7 +9,8 @@ namespace
 class JsdDeviceBaseTest : public ::testing::Test
 {
  protected:
-  void SetUp() override {
+  void SetUp() override
+  {
     // FASTCAT_UNIT_TEST_DIR contains path to .
     sdo_response_queue_ = std::make_shared<std::queue<fastcat::SdoResponse>>();
     device_.SetOffline(true);
@@ -19,8 +20,8 @@ class JsdDeviceBaseTest : public ::testing::Test
   std::shared_ptr<std::queue<fastcat::SdoResponse>> sdo_response_queue_;
 };
 
-TEST_F(JsdDeviceBaseTest, TesterQueueOps){
-
+TEST_F(JsdDeviceBaseTest, TesterQueueOps)
+{
   EXPECT_TRUE(sdo_response_queue_->empty());
 
   {
@@ -30,19 +31,17 @@ TEST_F(JsdDeviceBaseTest, TesterQueueOps){
     EXPECT_FALSE(sdo_response_queue_->empty());
   }
 
-
   {
     fastcat::SdoResponse resp;
     resp = sdo_response_queue_->front();
     sdo_response_queue_->pop();
-    EXPECT_EQ(0,resp.device_name.compare("jose_cuervo"));
+    EXPECT_EQ(0, resp.device_name.compare("jose_cuervo"));
     EXPECT_TRUE(sdo_response_queue_->empty());
   }
 }
 
-
-TEST_F(JsdDeviceBaseTest, RegisterAndUseSdo){
-
+TEST_F(JsdDeviceBaseTest, RegisterAndUseSdo)
+{
   device_.RegisterSdoResponseQueue(sdo_response_queue_);
 
   fastcat::DeviceCmd cmd;
@@ -66,13 +65,13 @@ TEST_F(JsdDeviceBaseTest, RegisterAndUseSdo){
     sdo_response_queue_->pop();
 
     EXPECT_EQ(0, resp.device_name.compare("patron"));
-    EXPECT_EQ(resp.response.sdo_index,    0xDEAD);
+    EXPECT_EQ(resp.response.sdo_index, 0xDEAD);
     EXPECT_EQ(resp.response.sdo_subindex, 3);
-    EXPECT_EQ(resp.response.data.as_u16,  0xBEEF);
-    EXPECT_EQ(resp.response.app_id,       123);
+    EXPECT_EQ(resp.response.data.as_u16, 0xBEEF);
+    EXPECT_EQ(resp.response.app_id, 123);
 
     EXPECT_TRUE(resp.response.success);
   }
 }
 
-} //namespace
+}  // namespace

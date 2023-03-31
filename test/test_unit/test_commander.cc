@@ -93,7 +93,7 @@ TEST_F(CommanderTest, CmdsRejectedWhenFaulted)
   EXPECT_FALSE(c2_.GetState()->commander_state.enable);
 
   // Reject Enable
-  cmd.type = fastcat::COMMANDER_ENABLE_CMD;
+  cmd.type                          = fastcat::COMMANDER_ENABLE_CMD;
   cmd.commander_enable_cmd.duration = 30;
 
   EXPECT_FALSE(c2_.Write(cmd));
@@ -103,9 +103,6 @@ TEST_F(CommanderTest, CmdsRejectedWhenFaulted)
   c2_.Reset();
   EXPECT_TRUE(c2_.Write(cmd));
   EXPECT_TRUE(c2_.GetState()->commander_state.enable);
-
-
 }
-
 
 }  // namespace

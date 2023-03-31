@@ -15,32 +15,32 @@ void fastcat::EgdActuator::PopulateJsdSlaveConfig()
   jsd_slave_config_.product_code = JSD_EGD_PRODUCT_CODE;
 
   jsd_slave_config_.egd.drive_cmd_mode    = JSD_EGD_DRIVE_CMD_MODE_CS;
-  jsd_slave_config_.egd.max_motor_speed   = EuToCnts(max_speed_eu_per_sec_);
+  jsd_slave_config_.egd.max_motor_speed   = EuToCnts(params_.max_speed_eu_per_sec);
   jsd_slave_config_.egd.loop_period_ms    = lround(loop_period_ * 1000.0);
-  jsd_slave_config_.egd.torque_slope      = torque_slope_amps_per_sec_;
-  jsd_slave_config_.egd.max_profile_accel = EuToCnts(max_accel_eu_per_sec2_);
-  jsd_slave_config_.egd.max_profile_decel = EuToCnts(max_accel_eu_per_sec2_);
+  jsd_slave_config_.egd.torque_slope      = params_.torque_slope_amps_per_sec;
+  jsd_slave_config_.egd.max_profile_accel = EuToCnts(params_.max_accel_eu_per_sec2);
+  jsd_slave_config_.egd.max_profile_decel = EuToCnts(params_.max_accel_eu_per_sec2);
   jsd_slave_config_.egd.velocity_tracking_error =
-      EuToCnts(vel_tracking_error_eu_per_sec_);
+      EuToCnts(params_.vel_tracking_error_eu_per_sec);
   jsd_slave_config_.egd.position_tracking_error =
-      EuToCnts(pos_tracking_error_eu_);
-  jsd_slave_config_.egd.peak_current_limit = peak_current_limit_amps_;
-  jsd_slave_config_.egd.peak_current_time  = peak_current_time_sec_;
+      EuToCnts(params_.pos_tracking_error_eu);
+  jsd_slave_config_.egd.peak_current_limit = params_.peak_current_limit_amps;
+  jsd_slave_config_.egd.peak_current_time  = params_.peak_current_time_sec;
   jsd_slave_config_.egd.continuous_current_limit =
-      continuous_current_limit_amps_;
+      params_.continuous_current_limit_amps;
   jsd_slave_config_.egd.motor_stuck_current_level_pct  = 0.0f;  // disable
   jsd_slave_config_.egd.motor_stuck_velocity_threshold = 0.0f;  // disable
   jsd_slave_config_.egd.motor_stuck_timeout            = 0.0f;  // disable
   jsd_slave_config_.egd.over_speed_threshold =
-      over_speed_multiplier_ * EuToCnts(max_speed_eu_per_sec_);
+      params_.over_speed_multiplier * EuToCnts(params_.max_speed_eu_per_sec);
   jsd_slave_config_.egd.low_position_limit   = 0;  // disable
   jsd_slave_config_.egd.high_position_limit  = 0;  // disable
-  jsd_slave_config_.egd.brake_engage_msec    = elmo_brake_engage_msec_;
-  jsd_slave_config_.egd.brake_disengage_msec = elmo_brake_disengage_msec_;
-  jsd_slave_config_.egd.crc                  = elmo_crc_;
+  jsd_slave_config_.egd.brake_engage_msec    = params_.elmo_brake_engage_msec;
+  jsd_slave_config_.egd.brake_disengage_msec = params_.elmo_brake_disengage_msec;
+  jsd_slave_config_.egd.crc                  = params_.elmo_crc;
   jsd_slave_config_.egd.drive_max_current_limit =
-      elmo_drive_max_cur_limit_amps_;
-  jsd_slave_config_.egd.smooth_factor = smooth_factor_;
+      params_.elmo_drive_max_cur_limit_amps;
+  jsd_slave_config_.egd.smooth_factor = params_.smooth_factor;
   jsd_slave_config_.egd.ctrl_gain_scheduling_mode = ctrl_gs_mode_;
 }
 
@@ -133,6 +133,19 @@ void fastcat::EgdActuator::ElmoSetGainSchedulingIndex(uint16_t index)
   jsd_egd_set_gain_scheduling_index((jsd_t*)context_, slave_id_, true, index);
 }
 
+void fastcat::EgdActuator::ElmoFault()
+{
+  MSG("Faulting EGD through JSD: %s", name_.c_str());
+  jsd_egd_fault((jsd_t*)context_, slave_id_);
+
+  // TODO review with david
+  // need to clear so that old commands are not left over 
+  //  for new commands
+  jsd_egd_state_.cmd_position = 0;
+  jsd_egd_state_.cmd_velocity = 0;
+  jsd_egd_state_.cmd_current  = 0;
+}
+
 void fastcat::EgdActuator::ElmoReset()
 {
   MSG("Resetting EGD through JSD: %s", name_.c_str());
@@ -223,7 +236,7 @@ bool fastcat::EgdActuator::HandleNewProfTorqueCmdImpl(const DeviceCmd& cmd)
 
   trap_generate_vel(&trap_, state_->time, 0, 0,
                     cmd.actuator_prof_torque_cmd.target_torque_amps,
-                    torque_slope_amps_per_sec_,
+                    params_.torque_slope_amps_per_sec,
                     cmd.actuator_prof_torque_cmd.max_duration);
 
   TransitionToState(ACTUATOR_SMS_PROF_TORQUE);
@@ -387,7 +400,7 @@ fastcat::FaultType fastcat::EgdActuator::ProcessProfTorqueDisengaging()
     // state
     trap_generate_vel(&trap_, state_->time, 0, 0,
                       last_cmd_.actuator_prof_torque_cmd.target_torque_amps,
-                      torque_slope_amps_per_sec_,
+                      params_.torque_slope_amps_per_sec,
                       last_cmd_.actuator_prof_torque_cmd.max_duration);
 
     TransitionToState(ACTUATOR_SMS_PROF_TORQUE);

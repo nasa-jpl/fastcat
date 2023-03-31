@@ -64,7 +64,7 @@
 
 fastcat::Manager::Manager()
 {
-  cmd_queue_ = std::make_shared<std::queue<DeviceCmd>>();
+  cmd_queue_          = std::make_shared<std::queue<DeviceCmd>>();
   sdo_response_queue_ = std::make_shared<std::queue<SdoResponse>>();
 }
 
@@ -111,7 +111,6 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-
   // Configure Buses
   YAML::Node buses_node;
   if (!ParseList(node, "buses", buses_node)) {
@@ -147,7 +146,6 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
       return false;
     }
   }
-
 
   SUCCESS("Added %lu devices to map", device_map_.size());
 
@@ -197,18 +195,19 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
   SUCCESS("Configured Signals.");
 
   MSG("Reading initial state of all devices.");
-  // Empirically observed some EGDs require at least one valid PDO write 
-  //   before reporting valid actual encoder positions after startup. 
-  //   An up-to-date drive position is absolutely essential to setting the 
+  // Empirically observed some EGDs require at least one valid PDO write
+  //   before reporting valid actual encoder positions after startup.
+  //   An up-to-date drive position is absolutely essential to setting the
   //   Actuator posititions properly from file using incremental encoders.
-  this->Process(); // PDO Read and Write (first PDO Write)
-  this->Process(); // PDO Read and Write (Need to re-read after the first PDO write)
+  this->Process();  // PDO Read and Write (first PDO Write)
+  this->Process();  // PDO Read and Write (Need to re-read after the first PDO
+                    // write)
 
   if (!SetActuatorPositions()) {
     return false;
   }
 
-  // After the first valid PDO exchange, reset all devices to 
+  // After the first valid PDO exchange, reset all devices to
   // attempt to start in nominal, post-reset state.
   this->ExecuteAllDeviceResets();
 
@@ -221,12 +220,11 @@ bool fastcat::Manager::Process()
     jsd_read(it->second, 1e6 / target_loop_rate_hz_);
   }
 
-  // Pass the PDO read time for consistent timestamping before the device Read() 
+  // Pass the PDO read time for consistent timestamping before the device Read()
   //   method is invoked
   double read_time = jsd_time_get_time_sec();
 
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
-
     (*it)->SetTime(read_time);
 
     if (!(*it)->Read()) {
@@ -234,10 +232,8 @@ bool fastcat::Manager::Process()
     }
   }
 
-
   for (auto it = fastcat_device_list_.begin(); it != fastcat_device_list_.end();
        ++it) {
-
     (*it)->SetTime(read_time);
 
     if (!(*it)->Read()) {
@@ -280,19 +276,19 @@ bool fastcat::Manager::Process()
     jsd_write(it->second);
   }
 
-  // for each JSD context, pop their queues and push them onto the single 
+  // for each JSD context, pop their queues and push them onto the single
   // fastcat queue
   SdoResponse entry;
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
-    while(jsd_sdo_pop_response_queue(it->second, &entry.response)){
-      
-      if(entry.response.slave_id < *(it->second->ecx_context.slavecount) ){
-        entry.device_name = it->second->slave_configs[entry.response.slave_id].name;
-      }else{
-          entry.device_name = "invalid name";
+    while (jsd_sdo_pop_response_queue(it->second, &entry.response)) {
+      if (entry.response.slave_id < *(it->second->ecx_context.slavecount)) {
+        entry.device_name =
+            it->second->slave_configs[entry.response.slave_id].name;
+      } else {
+        entry.device_name = "invalid name";
       }
-      MSG("JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)", 
-              it->first.c_str(), entry.device_name.c_str(), entry.response.app_id);
+      MSG("JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)",
+          it->first.c_str(), entry.device_name.c_str(), entry.response.app_id);
       sdo_response_queue_->push(entry);
     }
   }
@@ -300,9 +296,7 @@ bool fastcat::Manager::Process()
   return !faulted_;
 }
 
-void fastcat::Manager::QueueCommand(DeviceCmd& cmd) { 
-  cmd_queue_->push(cmd); 
-}
+void fastcat::Manager::QueueCommand(DeviceCmd& cmd) { cmd_queue_->push(cmd); }
 
 std::vector<fastcat::DeviceState> fastcat::Manager::GetDeviceStates()
 {
@@ -333,7 +327,34 @@ fastcat::Manager::GetDeviceStatePointers()
 }
 
 double fastcat::Manager::GetTargetLoopRate() { return target_loop_rate_hz_; }
-bool   fastcat::Manager::IsFaulted() { return faulted_; }
+
+bool fastcat::Manager::IsFaulted() { return faulted_; }
+
+void fastcat::Manager::GetDeviceNamesByType(
+    std::vector<std::string>& names, fastcat::DeviceStateType device_state_type)
+{
+  names.clear();
+  for (auto& device : jsd_device_list_) {
+    if (device->GetState()->type == device_state_type) {
+      names.push_back(device->GetName());
+    }
+  }
+}
+
+bool fastcat::Manager::GetActuatorParams(
+    const std::string& name, fastcat::Actuator::ActuatorParams& params)
+{
+  if (device_map_.count(name)) {
+    auto& device = device_map_[name];
+    if (device->GetState()->type == EGD_ACTUATOR_STATE or
+        device->GetState()->type == EPD_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<Actuator>(device);
+      params        = actuator->GetParams();
+      return true;
+    }
+  }
+  return false;
+}
 
 bool fastcat::Manager::RecoverBus(std::string ifname)
 {
@@ -371,7 +392,7 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
   JSDPair pair(ifname, jsd);
   jsd_map_.insert(pair);
 
-  std::shared_ptr<DeviceBase>     device;
+  std::shared_ptr<DeviceBase> device;
   uint16_t                    slave_id = 0;
 
   for (auto device_node = devices_node.begin();
@@ -660,7 +681,6 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
 bool fastcat::Manager::WriteCommands()
 {
-
   while (!cmd_queue_->empty()) {
     DeviceCmd cmd = cmd_queue_->front();
     cmd_queue_->pop();
@@ -848,15 +868,17 @@ void fastcat::Manager::ExecuteAllDeviceResets()
   faulted_ = false;
 }
 
-bool fastcat::Manager::IsSdoResponseQueueEmpty(){
+bool fastcat::Manager::IsSdoResponseQueueEmpty()
+{
   return sdo_response_queue_->empty();
 }
 
-bool fastcat::Manager::PopSdoResponseQueue(SdoResponse& res){
-  if(sdo_response_queue_->empty()){
-    res.device_name = "INVALID";
+bool fastcat::Manager::PopSdoResponseQueue(SdoResponse& res)
+{
+  if (sdo_response_queue_->empty()) {
+    res.device_name      = "INVALID";
     res.response.success = false;
-    res.response.app_id = 0;
+    res.response.app_id  = 0;
     return false;
   }
 
@@ -868,8 +890,7 @@ bool fastcat::Manager::PopSdoResponseQueue(SdoResponse& res){
 
 bool fastcat::Manager::LoadActuatorPosFile()
 {
-
-  // Look for the existence of at least one actuator in the topology 
+  // Look for the existence of at least one actuator in the topology
   bool actuators_in_topo = false;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end(); ++device) 
   {
@@ -880,11 +901,11 @@ bool fastcat::Manager::LoadActuatorPosFile()
     }
   }
 
-  if(!actuators_in_topo){
-    MSG("No actuators found in topology, bypassing saved positions file functions");
+  if (!actuators_in_topo) {
+    MSG("No actuators found in topology, bypassing saved positions file "
+        "functions");
     return true;
   }
-
 
   if (!actuator_fault_on_missing_pos_file_) {
     WARNING("YAML parameter \'actuator_fault_on_missing_pos_file\' is FALSE");
@@ -1024,10 +1045,11 @@ bool fastcat::Manager::SetActuatorPositions()
     actuator = std::dynamic_pointer_cast<Actuator>(*device);
 
     if (actuator->HasAbsoluteEncoder()) {
-      MSG_DEBUG("Actuator (%s) has absolute encoder, ignoring saved positions", dev_name.c_str());
+      MSG_DEBUG("Actuator (%s) has absolute encoder, ignoring saved positions",
+                dev_name.c_str());
       continue;
     }
-    
+
     auto find_pos_data = actuator_pos_map_.find(dev_name);
 
     MSG("Setting actuator: %s to saved pos: %lf", dev_name.c_str(),

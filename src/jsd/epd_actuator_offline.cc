@@ -75,7 +75,7 @@ bool fastcat::EpdActuatorOffline::HandleNewProfTorqueCmdImpl(
 
   trap_generate_vel(&trap_, state_->time, 0, 0,
                     cmd.actuator_prof_torque_cmd.target_torque_amps,
-                    torque_slope_amps_per_sec_,
+                    params_.torque_slope_amps_per_sec,
                     cmd.actuator_prof_torque_cmd.max_duration);
 
   TransitionToState(ACTUATOR_SMS_PROF_TORQUE);
@@ -239,7 +239,7 @@ fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfTorqueDisengaging()
     // state
     trap_generate_vel(&trap_, state_->time, 0, 0,
                       last_cmd_.actuator_prof_torque_cmd.target_torque_amps,
-                      torque_slope_amps_per_sec_,
+                      params_.torque_slope_amps_per_sec,
                       last_cmd_.actuator_prof_torque_cmd.max_duration);
 
     TransitionToState(ACTUATOR_SMS_PROF_TORQUE);
@@ -308,10 +308,15 @@ void fastcat::EpdActuatorOffline::ElmoProcess()
   //
   if (!jsd_epd_state_.servo_enabled && jsd_epd_state_.motor_on) {
     double brake_on_dur = jsd_time_get_time_sec() - motor_on_start_time_;
-    if (brake_on_dur > elmo_brake_disengage_msec_ / 1000.0) {
+    if (brake_on_dur > params_.elmo_brake_disengage_msec / 1000.0) {
       jsd_epd_state_.servo_enabled = 1;
     }
   }
+}
+
+void fastcat::EpdActuatorOffline::ElmoFault()
+{
+  // no-op
 }
 
 void fastcat::EpdActuatorOffline::ElmoReset()
@@ -414,9 +419,9 @@ void fastcat::EpdActuatorOffline::ElmoCST(
   jsd_epd_state_.actual_current =
       jsd_epd_state_.cmd_current + jsd_epd_state_.cmd_ff_current;
 
-  double pct = jsd_epd_state_.actual_current / continuous_current_limit_amps_;
+  double pct = jsd_epd_state_.actual_current / params_.continuous_current_limit_amps;
   jsd_epd_state_.actual_velocity =
-      pct * max_speed_eu_per_sec_;  // sure, why not
+      pct * params_.max_speed_eu_per_sec;  // sure, why not
   jsd_epd_state_.actual_position +=
       jsd_epd_state_.actual_velocity * loop_period_;  // integrated
 }

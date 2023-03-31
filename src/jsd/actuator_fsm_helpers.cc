@@ -227,7 +227,7 @@ bool fastcat::Actuator::HandleNewProfTorqueCmd(const DeviceCmd& cmd)
     ERROR("Act %s: %s", name_.c_str(), "Failing Prof Torque Command");
     return false;
   }
-  
+
   // Check that the command can be honored within FSM state
   if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
@@ -395,19 +395,23 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
     return false;
   }
 
-  double rom = fabs(high_pos_cal_limit_eu_ - low_pos_cal_limit_eu_);
-  double cal_range = rom + pos_tracking_error_eu_;
+  double rom =
+      fabs(params_.high_pos_cal_limit_eu - params_.low_pos_cal_limit_eu);
+  double cal_range = rom + params_.pos_tracking_error_eu;
 
-  // Since the hardstop calibration feature depends on a position tracking fault,
+  // Since the hardstop calibration feature depends on a position tracking
+  // fault,
   //   sanity check drive settings to prevent unexpected outcomes.
-  //   At the very least, the Range-of-Motion must be > the position tracking fault
-  //   tolerance. (In practice, ROM should be MUCH > than the full tracking tol)
-  if( rom < pos_tracking_error_eu_){
+  //   At the very least, the Range-of-Motion must be > the position tracking
+  //   fault tolerance. (In practice, ROM should be MUCH > than the full
+  //   tracking tol)
+  if (rom < params_.pos_tracking_error_eu) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: Calibration cannot succeed when Range-of-motion (%lf) "
-          "< Pos tracking error (%lf). "
-          "Check Drive parameters for excessive pos tracking fault", 
-        name_.c_str(), rom, pos_tracking_error_eu_);
+    ERROR(
+        "Act %s: Calibration cannot succeed when Range-of-motion (%lf) "
+        "< Pos tracking error (%lf). "
+        "Check Drive parameters for excessive pos tracking fault",
+        name_.c_str(), rom, params_.pos_tracking_error_eu);
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CAL_MOTION_RANGE;
     return false;
   }
@@ -477,10 +481,7 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
   return false;
 }
 
-fastcat::FaultType fastcat::Actuator::ProcessFaulted()
-{
-  return NO_FAULT;
-}
+fastcat::FaultType fastcat::Actuator::ProcessFaulted() { return NO_FAULT; }
 
 fastcat::FaultType fastcat::Actuator::ProcessHalted()
 {
@@ -522,7 +523,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfPosTrapImpl()
   jsd_cmd.velocity_offset    = EuToCnts(vel);
   jsd_cmd.torque_offset_amps = 0;
 
-  if (!complete || prof_pos_hold_) {
+  if (!complete || params_.prof_pos_hold) {
     ElmoCSP(jsd_cmd);
   } else {
     TransitionToState(ACTUATOR_SMS_HOLDING);
@@ -552,8 +553,9 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_STO_ENGAGED;
 
-    MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
-    ElmoSetPeakCurrent(peak_current_limit_amps_);
+    MSG("Restoring Current after calibration: %lf",
+        params_.peak_current_limit_amps);
+    ElmoSetPeakCurrent(params_.peak_current_limit_amps);
 
     return ALL_DEVICE_FAULT;
   }
@@ -565,8 +567,9 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
         "Detected Hardstop, Elmo jsd_fault_code",
         GetJSDFaultCodeAsString(*state_).c_str());
 
-    MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
-    ElmoSetPeakCurrent(peak_current_limit_amps_);
+    MSG("Restoring Current after calibration: %lf",
+        params_.peak_current_limit_amps);
+    ElmoSetPeakCurrent(params_.peak_current_limit_amps);
 
     TransitionToState(ACTUATOR_SMS_CAL_AT_HARDSTOP);
   }
@@ -589,8 +592,9 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
           "Moved Full Range and did not encounter hard stop");
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_NO_HARDSTOP_DURING_CAL;
 
-    MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
-    ElmoSetPeakCurrent(peak_current_limit_amps_);
+    MSG("Restoring Current after calibration: %lf",
+        params_.peak_current_limit_amps);
+    ElmoSetPeakCurrent(params_.peak_current_limit_amps);
 
     return ALL_DEVICE_FAULT;
   }
@@ -624,11 +628,11 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
   double cal_position     = 0;
   double backoff_position = 0;
   if (cal_cmd_.velocity > 0) {
-    cal_position     = high_pos_cal_limit_eu_;
-    backoff_position = high_pos_cmd_limit_eu_;
+    cal_position     = params_.high_pos_cal_limit_eu;
+    backoff_position = params_.high_pos_cmd_limit_eu;
   } else {
-    cal_position     = low_pos_cal_limit_eu_;
-    backoff_position = low_pos_cmd_limit_eu_;
+    cal_position     = params_.low_pos_cal_limit_eu;
+    backoff_position = params_.low_pos_cmd_limit_eu;
   }
   SetOutputPosition(cal_position);
 
@@ -645,3 +649,4 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToSoftstop()
 {
   return ProcessProfPosTrapImpl();
 }
+

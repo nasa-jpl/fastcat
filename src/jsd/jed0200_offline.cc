@@ -9,15 +9,12 @@
 
 bool fastcat::Jed0200Offline::ConfigFromYaml(YAML::Node node)
 {
-  bool retval           = ConfigFromYamlCommon(node);
+  bool retval               = ConfigFromYamlCommon(node);
   state_->jed0200_state.cmd = initial_cmd_;
   return retval;
 }
 
-bool fastcat::Jed0200Offline::Read()
-{
-  return true;
-}
+bool fastcat::Jed0200Offline::Read() { return true; }
 
 fastcat::FaultType fastcat::Jed0200Offline::Process()
 {
@@ -26,10 +23,9 @@ fastcat::FaultType fastcat::Jed0200Offline::Process()
 
 bool fastcat::Jed0200Offline::Write(DeviceCmd& cmd)
 {
-
   // If device supports async SDO requests
   AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
-  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+  if (sdoResult != SDO_RET_VAL_NOT_APPLICABLE) {
     return (sdoResult == SDO_RET_VAL_SUCCESS);
   }
 

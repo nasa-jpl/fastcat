@@ -13,19 +13,19 @@ void fastcat::EpdActuator::PopulateJsdSlaveConfig()
 {
   jsd_slave_config_.product_code = JSD_EPD_PRODUCT_CODE;
 
-  jsd_slave_config_.epd.max_motor_speed   = EuToCnts(max_speed_eu_per_sec_);
+  jsd_slave_config_.epd.max_motor_speed   = EuToCnts(params_.max_speed_eu_per_sec);
   jsd_slave_config_.epd.loop_period_ms    = lround(loop_period_ * 1000.0);
-  jsd_slave_config_.epd.torque_slope      = torque_slope_amps_per_sec_;
-  jsd_slave_config_.epd.max_profile_accel = EuToCnts(max_accel_eu_per_sec2_);
-  jsd_slave_config_.epd.max_profile_decel = EuToCnts(max_accel_eu_per_sec2_);
+  jsd_slave_config_.epd.torque_slope      = params_.torque_slope_amps_per_sec;
+  jsd_slave_config_.epd.max_profile_accel = EuToCnts(params_.max_accel_eu_per_sec2);
+  jsd_slave_config_.epd.max_profile_decel = EuToCnts(params_.max_accel_eu_per_sec2);
   jsd_slave_config_.epd.velocity_tracking_error =
-      EuToCnts(vel_tracking_error_eu_per_sec_);
+      EuToCnts(params_.vel_tracking_error_eu_per_sec);
   jsd_slave_config_.epd.position_tracking_error =
-      EuToCnts(pos_tracking_error_eu_);
-  jsd_slave_config_.epd.peak_current_limit = peak_current_limit_amps_;
-  jsd_slave_config_.epd.peak_current_time  = peak_current_time_sec_;
+      EuToCnts(params_.pos_tracking_error_eu);
+  jsd_slave_config_.epd.peak_current_limit = params_.peak_current_limit_amps;
+  jsd_slave_config_.epd.peak_current_time  = params_.peak_current_time_sec;
   jsd_slave_config_.epd.continuous_current_limit =
-      continuous_current_limit_amps_;
+      params_.continuous_current_limit_amps;
   jsd_slave_config_.epd.motor_stuck_current_level_pct =
       0.0f;  // Disable motor stuck protection
   jsd_slave_config_.epd.motor_stuck_velocity_threshold =
@@ -33,15 +33,15 @@ void fastcat::EpdActuator::PopulateJsdSlaveConfig()
   jsd_slave_config_.epd.motor_stuck_timeout =
       0.0f;  // Motor stuck protection is disabled
   jsd_slave_config_.epd.over_speed_threshold =
-      over_speed_multiplier_ * EuToCnts(max_speed_eu_per_sec_);
+      params_.over_speed_multiplier * EuToCnts(params_.max_speed_eu_per_sec);
   jsd_slave_config_.epd.low_position_limit =
       0.0;  // Disable out of position limits protection
   jsd_slave_config_.epd.high_position_limit =
       0.0;  // Disable out of position limits protection
-  jsd_slave_config_.epd.brake_engage_msec    = elmo_brake_engage_msec_;
-  jsd_slave_config_.epd.brake_disengage_msec = elmo_brake_disengage_msec_;
-  jsd_slave_config_.epd.crc                  = elmo_crc_;
-  jsd_slave_config_.epd.smooth_factor        = smooth_factor_;
+  jsd_slave_config_.epd.brake_engage_msec    = params_.elmo_brake_engage_msec;
+  jsd_slave_config_.epd.brake_disengage_msec = params_.elmo_brake_disengage_msec;
+  jsd_slave_config_.epd.crc                  = params_.elmo_crc;
+  jsd_slave_config_.epd.smooth_factor        = params_.smooth_factor;
   jsd_slave_config_.epd.ctrl_gain_scheduling_mode = ctrl_gs_mode_;
 }
 
@@ -206,7 +206,7 @@ fastcat::FaultType fastcat::EpdActuator::ProcessProfPos()
 
   // Transition to ACTUATOR_SMS_HOLDING once profile execution is complete if
   // the option to actively hold position is not on.
-  if (state_->epd_actuator_state.target_reached && !prof_pos_hold_) {
+  if (state_->epd_actuator_state.target_reached && !params_.prof_pos_hold) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
   }
 
@@ -278,6 +278,12 @@ void fastcat::EpdActuator::ElmoRead()
   jsd_epd_read((jsd_t*)context_, slave_id_);
   memcpy(&jsd_epd_state_, jsd_epd_get_state((jsd_t*)context_, slave_id_),
          sizeof(jsd_epd_state_t));
+}
+
+void fastcat::EpdActuator::ElmoFault()
+{
+  // TODO review with dloret
+  //jsd_epd_fault((jsd_t*)context_, slave_id_);
 }
 
 void fastcat::EpdActuator::ElmoReset()

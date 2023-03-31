@@ -30,6 +30,7 @@ class EpdActuatorOffline : public EpdActuator
 
   void ElmoSetConfig() override;
   void ElmoProcess() override;
+  void ElmoFault() override;
   void ElmoReset() override;
   void ElmoRead() override;
   void ElmoClearErrors() override;

@@ -49,115 +49,122 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseValCheckRange(node, "gear_ratio", gear_ratio_, 0, 1.0e12)) {
+  if (!ParseValCheckRange(node, "gear_ratio", params_.gear_ratio, 0, 1.0e12)) {
     return false;
   }
 
-  double counts_per_rev = 1.0;
-  if (!ParseValCheckRange(node, "counts_per_rev", counts_per_rev, 0, 1.0e12)) {
+  if (!ParseValCheckRange(node, "counts_per_rev", params_.counts_per_rev, 0, 1.0e12)) {
     return false;
   }
 
-  if (!ParseValCheckRange(node, "max_speed_eu_per_sec", max_speed_eu_per_sec_,
-                          0, (double)INT32_MAX + 1.0)) {
-    return false;
-  }
-
-  if (!ParseValCheckRange(node, "max_accel_eu_per_sec2", max_accel_eu_per_sec2_,
-                          0, (double)INT32_MAX + 1.0)) {
-    return false;
-  }
-
-  if (!ParseValCheckRange(node, "over_speed_multiplier", over_speed_multiplier_,
-                          0.0, 1000.0)) {
-    return false;
-  }
-
-  if (!ParseValCheckRange(node, "vel_tracking_error_eu_per_sec",
-                          vel_tracking_error_eu_per_sec_, 0,
+  if (!ParseValCheckRange(node, "max_speed_eu_per_sec",
+                          params_.max_speed_eu_per_sec, 0,
                           (double)INT32_MAX + 1.0)) {
     return false;
   }
 
-  if (!ParseValCheckRange(node, "pos_tracking_error_eu", pos_tracking_error_eu_,
-                          0, (double)INT32_MAX + 1.0)) {
+  if (!ParseValCheckRange(node, "max_accel_eu_per_sec2",
+                          params_.max_accel_eu_per_sec2, 0,
+                          (double)INT32_MAX + 1.0)) {
+    return false;
+  }
+
+  if (!ParseValCheckRange(node, "over_speed_multiplier",
+                          params_.over_speed_multiplier, 0.0, 1000.0)) {
+    return false;
+  }
+
+  if (!ParseValCheckRange(node, "vel_tracking_error_eu_per_sec",
+                          params_.vel_tracking_error_eu_per_sec, 0,
+                          (double)INT32_MAX + 1.0)) {
+    return false;
+  }
+
+  if (!ParseValCheckRange(node, "pos_tracking_error_eu",
+                          params_.pos_tracking_error_eu, 0,
+                          (double)INT32_MAX + 1.0)) {
     return false;
   }
 
   if (!ParseValCheckRange(node, "peak_current_limit_amps",
-                          peak_current_limit_amps_, 0, 100)) {
+                          params_.peak_current_limit_amps, 0, 100)) {
     return false;
   }
-
-  if (!ParseValCheckRange(node, "peak_current_time_sec", peak_current_time_sec_,
-                          0, 60.0)) {
+  if (!ParseValCheckRange(node, "peak_current_time_sec",
+                          params_.peak_current_time_sec, 0, 60.0)) {
     return false;
   }
 
   if (!ParseValCheckRange(node, "continuous_current_limit_amps",
-                          continuous_current_limit_amps_, 0, 100)) {
+                          params_.continuous_current_limit_amps, 0, 100)) {
     return false;
   }
 
   if (!ParseValCheckRange(node, "torque_slope_amps_per_sec",
-                          torque_slope_amps_per_sec_, 0, 1000.0)) {
+                          params_.torque_slope_amps_per_sec, 0, 1000.0)) {
     return false;
   }
 
-  if (!ParseVal(node, "low_pos_cal_limit_eu", low_pos_cal_limit_eu_)) {
+  if (!ParseVal(node, "low_pos_cal_limit_eu", params_.low_pos_cal_limit_eu)) {
     return false;
   }
-  if (!ParseVal(node, "low_pos_cmd_limit_eu", low_pos_cmd_limit_eu_)) {
-    return false;
-  }
-
-  if (!ParseVal(node, "high_pos_cal_limit_eu", high_pos_cal_limit_eu_)) {
-    return false;
-  }
-  if (!ParseVal(node, "high_pos_cmd_limit_eu", high_pos_cmd_limit_eu_)) {
+  if (!ParseVal(node, "low_pos_cmd_limit_eu", params_.low_pos_cmd_limit_eu)) {
     return false;
   }
 
-  if (!ParseValCheckRange(node, "holding_duration_sec", holding_duration_sec_,
-                          0, 1000.0)) {
+  if (!ParseVal(node, "high_pos_cal_limit_eu", params_.high_pos_cal_limit_eu)) {
+    return false;
+  }
+  if (!ParseVal(node, "high_pos_cmd_limit_eu", params_.high_pos_cmd_limit_eu)) {
     return false;
   }
 
-  if (!ParseVal(node, "elmo_brake_engage_msec", elmo_brake_engage_msec_)) {
+  if (!ParseValCheckRange(node, "holding_duration_sec",
+                          params_.holding_duration_sec, 0, 1000.0)) {
+    return false;
+  }
+
+  if (!ParseVal(node, "elmo_brake_engage_msec", params_.elmo_brake_engage_msec)) {
     return false;
   }
   if (!ParseVal(node, "elmo_brake_disengage_msec",
-                elmo_brake_disengage_msec_)) {
+                params_.elmo_brake_disengage_msec)) {
     return false;
   }
 
-  if (!ParseVal(node, "elmo_crc", elmo_crc_)) {
+  if (!ParseVal(node, "elmo_crc", params_.elmo_crc)) {
     return false;
   }
   if (!ParseVal(node, "elmo_drive_max_current_limit",
-                elmo_drive_max_cur_limit_amps_)) {
+                params_.elmo_drive_max_cur_limit_amps)) {
     return false;
   }
-  if (!ParseValCheckRange(node, "smooth_factor", smooth_factor_, -1, 64)) {
+  if (!ParseValCheckRange(node, "smooth_factor", params_.smooth_factor, -1,
+                          64)) {
     return false;
   }
-  
-  if (ParseOptValCheckRange(node, "torque_constant", torque_constant_, 0.0, 999999.0) &&
-      ParseOptValCheckRange(node, "winding_resistance", winding_resistance_, 0.0, 999999.0) ) {
-    
-    // Only compute power if we received both torque_constant and winding_resistance parameters
+
+  if (ParseOptValCheckRange(node, "torque_constant", params_.torque_constant,
+                            0.0, 999999.0) &&
+      ParseOptValCheckRange(node, "winding_resistance",
+                            params_.winding_resistance, 0.0, 999999.0)) {
+    // Only compute power if we received both torque_constant and
+    // winding_resistance parameters
     compute_power_ = true;
-    
+
     // Read in brake power (if provided) to add to actuator power
-    if (!ParseOptValCheckRange(node, "brake_power", brake_power_, 0.0, 9999.0)) {
+    if (!ParseOptValCheckRange(node, "brake_power", params_.brake_power, 0.0,
+                               9999.0)) {
       // If not found then set to zero
-      brake_power_ = 0.0;
+      params_.brake_power = 0.0;
     }
-    
-    // Read in any gear ratio between the motor and encoder for power calculation
-    if (!ParseOptValCheckRange(node, "motor_encoder_gear_ratio", motor_encoder_gear_ratio_, 0.0, 9999.0)) {
+
+    // Read in any gear ratio between the motor and encoder for power
+    // calculation
+    if (!ParseOptValCheckRange(node, "motor_encoder_gear_ratio",
+                               params_.motor_encoder_gear_ratio, 0.0, 9999.0)) {
       // If not found then set to 1.0
-      motor_encoder_gear_ratio_ = 1.0;
+      params_.motor_encoder_gear_ratio = 1.0;
     }
   }
 
@@ -168,15 +175,16 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     }
   }
 
-  if (!ParseOptVal(node, "absolute_encoder", actuator_absolute_encoder_)) {
+  if (!ParseOptVal(node, "absolute_encoder",
+                   params_.actuator_absolute_encoder)) {
     // If we do not find this parameter then set it to false
-    actuator_absolute_encoder_ = false;
+    params_.actuator_absolute_encoder = false;
   }
 
   // Whether position should be actively controlled after a profile position
   // command is concluded.
-  if (!ParseOptVal(node, "prof_pos_hold", prof_pos_hold_)) {
-    prof_pos_hold_ = false;
+  if (!ParseOptVal(node, "prof_pos_hold", params_.prof_pos_hold)) {
+    params_.prof_pos_hold = false;
   }
 
   // Parse parameters specific to the particular Elmo drive line (e.g.
@@ -187,10 +195,11 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
 
   // overall_reduction must be set before using EuToCnts/CntsToEu
   if (actuator_type == ACTUATOR_TYPE_REVOLUTE) {
-    overall_reduction_ = counts_per_rev * gear_ratio_ / (2.0 * M_PI);
+    overall_reduction_ =
+        params_.counts_per_rev * params_.gear_ratio / (2.0 * M_PI);
 
   } else if (actuator_type == ACTUATOR_TYPE_PRISMATIC) {
-    overall_reduction_ = counts_per_rev * gear_ratio_;
+    overall_reduction_ = params_.counts_per_rev * params_.gear_ratio;
 
   } else {
     ERROR("Bad actuator_type: %d", actuator_type);
@@ -224,10 +233,9 @@ bool fastcat::Actuator::Read()
 
 bool fastcat::Actuator::Write(DeviceCmd& cmd)
 {
-
   // If device supports async SDO requests
   AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
-  if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
+  if (sdoResult != SDO_RET_VAL_NOT_APPLICABLE) {
     return (sdoResult == SDO_RET_VAL_SUCCESS);
   }
 
@@ -250,8 +258,8 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       // This application may choose to set this during motions
       // in order to boost current during acceleration/decel
       // phases so don't check the state machine
-      peak_current_limit_amps_ = cmd.actuator_set_max_current_cmd.current;
-      ElmoSetPeakCurrent(peak_current_limit_amps_);
+      params_.peak_current_limit_amps = cmd.actuator_set_max_current_cmd.current;
+      ElmoSetPeakCurrent(params_.peak_current_limit_amps);
       return true;
       break;
 
@@ -259,7 +267,7 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       if (!HandleNewSetUnitModeCmd(cmd)) {
         ERROR("Failed to handle Set Unit Mode Command");
         return false;
-      } 
+      }
       return true;
       break;
 
@@ -325,14 +333,13 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       // no-op
       break;
   }
-  
 
   // Return early if a fault is active
-  // So as to not honor these motion commands when faulted 
-  if(device_fault_active_){
+  // So as to not honor these motion commands when faulted
+  if (device_fault_active_) {
     return false;
   }
-  
+
   switch (cmd.type) {
     case ACTUATOR_CSP_CMD:
       if (!HandleNewCSPCmd(cmd)) {
@@ -464,6 +471,7 @@ fastcat::FaultType fastcat::Actuator::Process()
 void fastcat::Actuator::Fault()
 {
   WARNING("Faulting Actuator %s", name_.c_str());
+  ElmoFault();
 
   TransitionToState(ACTUATOR_SMS_FAULTED);
   ElmoHalt();
@@ -492,8 +500,9 @@ bool fastcat::Actuator::SetOutputPosition(double position)
   return true;
 }
 
-bool fastcat::Actuator::HasAbsoluteEncoder(){
-  return actuator_absolute_encoder_;
+bool fastcat::Actuator::HasAbsoluteEncoder()
+{
+  return params_.actuator_absolute_encoder;
 }
 
 double fastcat::Actuator::CntsToEu(int32_t cnts)
@@ -516,15 +525,15 @@ int32_t fastcat::Actuator::PosEuToCnts(double eu)
 
 bool fastcat::Actuator::PosExceedsCmdLimits(double pos_eu)
 {
-  if (pos_eu > high_pos_cmd_limit_eu_) {
+  if (pos_eu > params_.high_pos_cmd_limit_eu) {
     ERROR("Commanded Position (%lf) exceeds high cmd limit (%lf)", pos_eu,
-          high_pos_cmd_limit_eu_);
+          params_.high_pos_cmd_limit_eu);
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED;
     return true;
   }
-  if (pos_eu < low_pos_cmd_limit_eu_) {
+  if (pos_eu < params_.low_pos_cmd_limit_eu) {
     ERROR("Commanded Position (%lf) exceeds low cmd limit: (%lf)", pos_eu,
-          low_pos_cmd_limit_eu_);
+          params_.low_pos_cmd_limit_eu);
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED;
     return true;
   }
@@ -533,9 +542,9 @@ bool fastcat::Actuator::PosExceedsCmdLimits(double pos_eu)
 
 bool fastcat::Actuator::VelExceedsCmdLimits(double vel_eu)
 {
-  if (fabs(vel_eu) > max_speed_eu_per_sec_) {
+  if (fabs(vel_eu) > params_.max_speed_eu_per_sec) {
     ERROR("Commanded Velocity (%lf) exceeds max speed limit (%lf)", vel_eu,
-          max_speed_eu_per_sec_);
+          params_.max_speed_eu_per_sec);
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED;
     return true;
   }
@@ -544,9 +553,9 @@ bool fastcat::Actuator::VelExceedsCmdLimits(double vel_eu)
 
 bool fastcat::Actuator::AccExceedsCmdLimits(double acc_eu)
 {
-  if (fabs(acc_eu) > max_accel_eu_per_sec2_) {
+  if (fabs(acc_eu) > params_.max_accel_eu_per_sec2) {
     ERROR("Commanded Acceleration (%lf) exceeds max limit (%lf)", acc_eu,
-          max_accel_eu_per_sec2_);
+          params_.max_accel_eu_per_sec2);
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED;
     return true;
   }
@@ -555,16 +564,16 @@ bool fastcat::Actuator::AccExceedsCmdLimits(double acc_eu)
 
 bool fastcat::Actuator::CurrentExceedsCmdLimits(double current)
 {
-  if (fabs(current) > continuous_current_limit_amps_) {
+  if (fabs(current) > params_.continuous_current_limit_amps) {
     WARNING(
         "Commanded current (%lf) exceeds max continuous current limit (%lf)",
-        current, continuous_current_limit_amps_);
+        current, params_.continuous_current_limit_amps);
     // Not issuing fault for now
   }
 
-  if (fabs(current) > peak_current_limit_amps_) {
+  if (fabs(current) > params_.peak_current_limit_amps) {
     ERROR("Commanded current (%lf) exceeds max peak current limit (%lf)",
-          current, peak_current_limit_amps_);
+          current, params_.peak_current_limit_amps);
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED;
     return true;
   }
