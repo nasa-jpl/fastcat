@@ -12,6 +12,7 @@ namespace fastcat
 {
 class ActuatorOffline : public Actuator
 {
+
  public:
   ActuatorOffline();
 
