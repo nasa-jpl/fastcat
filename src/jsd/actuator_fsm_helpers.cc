@@ -106,7 +106,7 @@ bool fastcat::Actuator::HandleNewCSPCmd(DeviceCmd& cmd)
     return false;
   }
 
-  jsd_egd_motion_command_csp_t jsd_cmd;
+  jsd_elmo_motion_command_csp_t jsd_cmd;
   jsd_cmd.target_position = PosEuToCnts(cmd.actuator_csp_cmd.target_position);
   jsd_cmd.position_offset = EuToCnts(cmd.actuator_csp_cmd.position_offset);
   jsd_cmd.velocity_offset = EuToCnts(cmd.actuator_csp_cmd.velocity_offset);
@@ -136,7 +136,7 @@ bool fastcat::Actuator::HandleNewCSVCmd(DeviceCmd& cmd)
     return false;
   }
 
-  jsd_egd_motion_command_csv_t jsd_cmd;
+  jsd_elmo_motion_command_csv_t jsd_cmd;
   jsd_cmd.target_velocity    = EuToCnts(cmd.actuator_csv_cmd.target_velocity);
   jsd_cmd.velocity_offset    = EuToCnts(cmd.actuator_csv_cmd.velocity_offset);
   jsd_cmd.torque_offset_amps = cmd.actuator_csv_cmd.torque_offset_amps;
@@ -165,7 +165,7 @@ bool fastcat::Actuator::HandleNewCSTCmd(DeviceCmd& cmd)
     return false;
   }
 
-  jsd_egd_motion_command_cst_t jsd_cmd;
+  jsd_elmo_motion_command_cst_t jsd_cmd;
   jsd_cmd.target_torque_amps = cmd.actuator_cst_cmd.target_torque_amps;
   jsd_cmd.torque_offset_amps = cmd.actuator_cst_cmd.torque_offset_amps;
 
@@ -524,11 +524,11 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
     return true;
   }
   if (state_->actuator_state.egd_state_machine_state ==
-          JSD_EGD_STATE_MACHINE_STATE_QUICK_STOP_ACTIVE ||
+          JSD_ELMO_STATE_MACHINE_STATE_QUICK_STOP_ACTIVE ||
       state_->actuator_state.egd_state_machine_state ==
-          JSD_EGD_STATE_MACHINE_STATE_FAULT_REACTION_ACTIVE ||
+          JSD_ELMO_STATE_MACHINE_STATE_FAULT_REACTION_ACTIVE ||
       state_->actuator_state.egd_state_machine_state ==
-          JSD_EGD_STATE_MACHINE_STATE_FAULT) {
+          JSD_ELMO_STATE_MACHINE_STATE_FAULT) {
     ERROR("%s: EGD state machine state is off nominal", name_.c_str());
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_EGD_SMS_DURING_MOTION;
     return true;
@@ -568,7 +568,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfPos()
     return ALL_DEVICE_FAULT;
   }
 
-  jsd_egd_motion_command_csp_t jsd_cmd;
+  jsd_elmo_motion_command_csp_t jsd_cmd;
 
   double pos_eu, vel;
   int    complete = trap_update(&trap_, state_->time, &pos_eu, &vel);
@@ -594,7 +594,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfVel()
     return ALL_DEVICE_FAULT;
   }
 
-  jsd_egd_motion_command_csv_t jsd_cmd;
+  jsd_elmo_motion_command_csv_t jsd_cmd;
 
   double pos_eu, vel;
   int    complete = trap_update_vel(&trap_, state_->time, &pos_eu, &vel);
@@ -620,7 +620,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfTorque()
     return ALL_DEVICE_FAULT;
   }
 
-  jsd_egd_motion_command_cst_t jsd_cmd;
+  jsd_elmo_motion_command_cst_t jsd_cmd;
 
   double dummy_pos_eu, current;
   int complete = trap_update_vel(&trap_, state_->time, &dummy_pos_eu, &current);
@@ -678,7 +678,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
     TransitionToState(ACTUATOR_SMS_CAL_AT_HARDSTOP);
   }
 
-  jsd_egd_motion_command_csp_t jsd_cmd;
+  jsd_elmo_motion_command_csp_t jsd_cmd;
 
   double pos_eu, vel;
   int    complete = trap_update(&trap_, state_->time, &pos_eu, &vel);
@@ -713,7 +713,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
   // Loop here until the drive is no longer faulted
 
   if (state_->actuator_state.egd_state_machine_state !=
-          JSD_EGD_STATE_MACHINE_STATE_OPERATION_ENABLED &&
+          JSD_ELMO_STATE_MACHINE_STATE_OPERATION_ENABLED &&
       state_->actuator_state.jsd_fault_code != 0) {
     // We have waited too long, fault
     if ((state_->time - last_transition_time_) > 5.0) {
@@ -785,7 +785,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfPosDisengaging()
     // Otherwise, command the current position to trigger the transition and
     // wait
 
-    jsd_egd_motion_command_csp_t jsd_cmd;
+    jsd_elmo_motion_command_csp_t jsd_cmd;
 
     jsd_cmd.target_position =
         PosEuToCnts(state_->actuator_state.actual_position);
@@ -831,7 +831,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfVelDisengaging()
   } else {
     // Otherwise, command the current position to trigger the transition and
     // wait
-    jsd_egd_motion_command_csv_t jsd_cmd;
+    jsd_elmo_motion_command_csv_t jsd_cmd;
 
     jsd_cmd.target_velocity    = 0;
     jsd_cmd.velocity_offset    = 0;
@@ -873,7 +873,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfTorqueDisengaging()
   } else {
     // Otherwise, command the current position to trigger the transition and
     // wait
-    jsd_egd_motion_command_cst_t jsd_cmd;
+    jsd_elmo_motion_command_cst_t jsd_cmd;
 
     jsd_cmd.target_torque_amps = 0;
     jsd_cmd.torque_offset_amps = 0;

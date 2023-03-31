@@ -262,7 +262,7 @@ bool fastcat::Egd::ConfigFromYamlCommon(YAML::Node node)
   } else {
     // Use mode saved in driver's non-volatile memory.
     jsd_slave_config_.egd.ctrl_gain_scheduling_mode =
-        JSD_EGD_GAIN_SCHEDULING_MODE_PRELOADED;
+        JSD_ELMO_GAIN_SCHEDULING_MODE_PRELOADED;
   }
 
   return true;
@@ -289,7 +289,7 @@ bool fastcat::Egd::WriteProfiledMode(DeviceCmd& cmd)
 {
   switch (cmd.type) {
     case EGD_PROF_POS_CMD: {
-      jsd_egd_motion_command_prof_pos_t jsd_cmd;
+      jsd_elmo_motion_command_prof_pos_t jsd_cmd;
       jsd_cmd.target_position  = cmd.egd_prof_pos_cmd.target_position;
       jsd_cmd.profile_velocity = cmd.egd_prof_pos_cmd.profile_velocity;
       jsd_cmd.end_velocity     = cmd.egd_prof_pos_cmd.end_velocity;
@@ -301,7 +301,7 @@ bool fastcat::Egd::WriteProfiledMode(DeviceCmd& cmd)
       break;
     }
     case EGD_PROF_VEL_CMD: {
-      jsd_egd_motion_command_prof_vel_t jsd_cmd;
+      jsd_elmo_motion_command_prof_vel_t jsd_cmd;
       jsd_cmd.target_velocity = cmd.egd_prof_vel_cmd.target_velocity;
       jsd_cmd.profile_accel   = cmd.egd_prof_vel_cmd.profile_accel;
       jsd_cmd.profile_decel   = cmd.egd_prof_vel_cmd.profile_decel;
@@ -310,7 +310,7 @@ bool fastcat::Egd::WriteProfiledMode(DeviceCmd& cmd)
       break;
     }
     case EGD_PROF_TORQUE_CMD: {
-      jsd_egd_motion_command_prof_torque_t jsd_cmd;
+      jsd_elmo_motion_command_prof_torque_t jsd_cmd;
       jsd_cmd.target_torque_amps = cmd.egd_prof_torque_cmd.target_torque_amps;
 
       jsd_egd_set_motion_command_prof_torque(context_, slave_id_, jsd_cmd);
@@ -338,25 +338,25 @@ bool fastcat::Egd::WriteProfiledMode(DeviceCmd& cmd)
     }
     case EGD_SDO_DISABLE_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED,
+          context_, slave_id_, JSD_ELMO_GAIN_SCHEDULING_MODE_DISABLED,
           cmd.egd_sdo_disable_gain_scheduling_cmd.app_id);
       break;
     }
     case EGD_SDO_ENABLE_SPEED_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_SPEED,
+          context_, slave_id_, JSD_ELMO_GAIN_SCHEDULING_MODE_SPEED,
           cmd.egd_sdo_enable_speed_gain_scheduling_cmd.app_id);
       break;
     }
     case EGD_SDO_ENABLE_POSITION_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_POSITION,
+          context_, slave_id_, JSD_ELMO_GAIN_SCHEDULING_MODE_POSITION,
           cmd.egd_sdo_enable_position_gain_scheduling_cmd.app_id);
       break;
     }
     case EGD_SDO_ENABLE_MANUAL_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW,
+          context_, slave_id_, JSD_ELMO_GAIN_SCHEDULING_MODE_MANUAL_LOW,
           cmd.egd_sdo_enable_position_gain_scheduling_cmd.app_id);
       break;
     }
@@ -372,7 +372,7 @@ bool fastcat::Egd::WriteCSMode(DeviceCmd& cmd)
 {
   switch (cmd.type) {
     case EGD_CSP_CMD: {
-      jsd_egd_motion_command_csp_t jsd_cmd;
+      jsd_elmo_motion_command_csp_t jsd_cmd;
       jsd_cmd.target_position    = cmd.egd_csp_cmd.target_position;
       jsd_cmd.position_offset    = cmd.egd_csp_cmd.position_offset;
       jsd_cmd.velocity_offset    = cmd.egd_csp_cmd.velocity_offset;
@@ -382,7 +382,7 @@ bool fastcat::Egd::WriteCSMode(DeviceCmd& cmd)
       break;
     }
     case EGD_CSV_CMD: {
-      jsd_egd_motion_command_csv_t jsd_cmd;
+      jsd_elmo_motion_command_csv_t jsd_cmd;
       jsd_cmd.target_velocity    = cmd.egd_csv_cmd.target_velocity;
       jsd_cmd.velocity_offset    = cmd.egd_csv_cmd.velocity_offset;
       jsd_cmd.torque_offset_amps = cmd.egd_csv_cmd.torque_offset_amps;
@@ -391,7 +391,7 @@ bool fastcat::Egd::WriteCSMode(DeviceCmd& cmd)
       break;
     }
     case EGD_CST_CMD: {
-      jsd_egd_motion_command_cst_t jsd_cmd = {0};
+      jsd_elmo_motion_command_cst_t jsd_cmd = {0};
       jsd_cmd.target_torque_amps           = cmd.egd_cst_cmd.target_torque_amps;
       jsd_cmd.torque_offset_amps           = cmd.egd_cst_cmd.torque_offset_amps;
 
@@ -426,25 +426,25 @@ bool fastcat::Egd::WriteCSMode(DeviceCmd& cmd)
     }
     case EGD_SDO_DISABLE_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED,
+          context_, slave_id_, JSD_ELMO_GAIN_SCHEDULING_MODE_DISABLED,
           cmd.egd_sdo_disable_gain_scheduling_cmd.app_id);
       break;
     }
     case EGD_SDO_ENABLE_SPEED_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_SPEED,
+          context_, slave_id_, JSD_ELMO_GAIN_SCHEDULING_MODE_SPEED,
           cmd.egd_sdo_enable_speed_gain_scheduling_cmd.app_id);
       break;
     }
     case EGD_SDO_ENABLE_POSITION_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_POSITION,
+          context_, slave_id_, JSD_ELMO_GAIN_SCHEDULING_MODE_POSITION,
           cmd.egd_sdo_enable_position_gain_scheduling_cmd.app_id);
       break;
     }
     case EGD_SDO_ENABLE_MANUAL_GAIN_SCHEDULING_CMD: {
       jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode(
-          context_, slave_id_, JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW,
+          context_, slave_id_, JSD_ELMO_GAIN_SCHEDULING_MODE_MANUAL_LOW,
           cmd.egd_sdo_enable_position_gain_scheduling_cmd.app_id);
       break;
     }
@@ -457,17 +457,17 @@ bool fastcat::Egd::WriteCSMode(DeviceCmd& cmd)
 }
 
 bool fastcat::Egd::GSModeFromString(std::string gs_mode_string,
-                                    jsd_egd_gain_scheduling_mode_t& gs_mode)
+                                    jsd_elmo_gain_scheduling_mode_t& gs_mode)
 {
   MSG("Converting gain scheduling mode to string.");
   if (gs_mode_string.compare("DISABLED") == 0) {
-    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED;
+    gs_mode = JSD_ELMO_GAIN_SCHEDULING_MODE_DISABLED;
   } else if (gs_mode_string.compare("SPEED") == 0) {
-    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_SPEED;
+    gs_mode = JSD_ELMO_GAIN_SCHEDULING_MODE_SPEED;
   } else if (gs_mode_string.compare("POSITION") == 0) {
-    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_POSITION;
+    gs_mode = JSD_ELMO_GAIN_SCHEDULING_MODE_POSITION;
   } else if (gs_mode_string.compare("MANUAL") == 0) {
-    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW;
+    gs_mode = JSD_ELMO_GAIN_SCHEDULING_MODE_MANUAL_LOW;
   } else {
     ERROR("Gain scheduling mode %s is invalid", gs_mode_string.c_str());
     return false;

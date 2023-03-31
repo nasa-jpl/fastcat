@@ -150,14 +150,15 @@ class Actuator : public JsdDeviceBase
   virtual void EgdSetConfig();
   virtual void EgdProcess();
   virtual void EgdClearErrors();
+  virtual void EgdFault();
   virtual void EgdReset();
   virtual void EgdHalt();
   virtual void EgdSetPeakCurrent(double current);
   virtual void EgdSetUnitMode(int32_t mode, uint16_t app_id);
-  virtual void EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd);
-  virtual void EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd);
-  virtual void EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd);
-  virtual void EgdSetGainSchedulingMode(jsd_egd_gain_scheduling_mode_t mode,
+  virtual void EgdCSP(jsd_elmo_motion_command_csp_t jsd_csp_cmd);
+  virtual void EgdCSV(jsd_elmo_motion_command_csv_t jsd_csv_cmd);
+  virtual void EgdCST(jsd_elmo_motion_command_cst_t jsd_cst_cmd);
+  virtual void EgdSetGainSchedulingMode(jsd_elmo_gain_scheduling_mode_t mode,
                                         uint16_t                       app_id);
   virtual void EgdSetGainSchedulingIndex(uint16_t index);
 
@@ -181,7 +182,7 @@ class Actuator : public JsdDeviceBase
 
  private:
   bool GSModeFromString(std::string                     gs_mode_string,
-                        jsd_egd_gain_scheduling_mode_t& gs_mode);
+                        jsd_elmo_gain_scheduling_mode_t& gs_mode);
 
   bool prof_pos_hold_;
 

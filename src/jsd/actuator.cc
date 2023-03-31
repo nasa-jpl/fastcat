@@ -172,7 +172,7 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
   } else {
     // Use mode saved in driver's non-volatile memory.
     jsd_slave_config_.egd.ctrl_gain_scheduling_mode =
-        JSD_EGD_GAIN_SCHEDULING_MODE_PRELOADED;
+        JSD_ELMO_GAIN_SCHEDULING_MODE_PRELOADED;
   }
 
   if (!ParseOptVal(node, "absolute_encoder",
@@ -361,7 +361,7 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         return false;
       }
       EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED,
+          JSD_ELMO_GAIN_SCHEDULING_MODE_DISABLED,
           cmd.actuator_sdo_disable_gain_scheduling_cmd.app_id);
       return true;
       break;
@@ -373,7 +373,7 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         return false;
       }
       EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_SPEED,
+          JSD_ELMO_GAIN_SCHEDULING_MODE_SPEED,
           cmd.actuator_sdo_enable_speed_gain_scheduling_cmd.app_id);
       return true;
       break;
@@ -385,7 +385,7 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         return false;
       }
       EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_POSITION,
+          JSD_ELMO_GAIN_SCHEDULING_MODE_POSITION,
           cmd.actuator_sdo_enable_position_gain_scheduling_cmd.app_id);
       return true;
       break;
@@ -397,7 +397,7 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         return false;
       }
       EgdSetGainSchedulingMode(
-          JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW,
+          JSD_ELMO_GAIN_SCHEDULING_MODE_MANUAL_LOW,
           cmd.actuator_sdo_enable_manual_gain_scheduling_cmd.app_id);
       return true;
       break;
@@ -555,6 +555,7 @@ fastcat::FaultType fastcat::Actuator::Process()
 void fastcat::Actuator::Fault()
 {
   WARNING("Faulting Actuator %s", name_.c_str());
+  EgdFault();
 
   // need to clear so that old commands are not left over 
   //  for new commands
@@ -757,6 +758,12 @@ void fastcat::Actuator::EgdClearErrors()
   jsd_egd_clear_errors((jsd_t*)context_, slave_id_);
 }
 
+void fastcat::Actuator::EgdFault()
+{
+  MSG("Faulting EGD through JSD: %s", name_.c_str());
+  jsd_egd_fault((jsd_t*)context_, slave_id_);
+}
+
 void fastcat::Actuator::EgdReset()
 {
   MSG("Resetting EGD through JSD: %s", name_.c_str());
@@ -776,23 +783,23 @@ void fastcat::Actuator::EgdSetUnitMode(int32_t mode, uint16_t app_id)
   jsd_egd_async_sdo_set_unit_mode((jsd_t*)context_, slave_id_, mode, app_id);
 }
 
-void fastcat::Actuator::EgdCSP(jsd_egd_motion_command_csp_t jsd_csp_cmd)
+void fastcat::Actuator::EgdCSP(jsd_elmo_motion_command_csp_t jsd_csp_cmd)
 {
   jsd_egd_set_motion_command_csp((jsd_t*)context_, slave_id_, jsd_csp_cmd);
 }
 
-void fastcat::Actuator::EgdCSV(jsd_egd_motion_command_csv_t jsd_csv_cmd)
+void fastcat::Actuator::EgdCSV(jsd_elmo_motion_command_csv_t jsd_csv_cmd)
 {
   jsd_egd_set_motion_command_csv((jsd_t*)context_, slave_id_, jsd_csv_cmd);
 }
 
-void fastcat::Actuator::EgdCST(jsd_egd_motion_command_cst_t jsd_cst_cmd)
+void fastcat::Actuator::EgdCST(jsd_elmo_motion_command_cst_t jsd_cst_cmd)
 {
   jsd_egd_set_motion_command_cst((jsd_t*)context_, slave_id_, jsd_cst_cmd);
 }
 
 void fastcat::Actuator::EgdSetGainSchedulingMode(
-    jsd_egd_gain_scheduling_mode_t mode, uint16_t app_id)
+    jsd_elmo_gain_scheduling_mode_t mode, uint16_t app_id)
 {
   jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode((jsd_t*)context_, slave_id_,
                                                   mode, app_id);
@@ -804,17 +811,17 @@ void fastcat::Actuator::EgdSetGainSchedulingIndex(uint16_t index)
 }
 
 bool fastcat::Actuator::GSModeFromString(
-    std::string gs_mode_string, jsd_egd_gain_scheduling_mode_t& gs_mode)
+    std::string gs_mode_string, jsd_elmo_gain_scheduling_mode_t& gs_mode)
 {
   MSG("Converting gain scheduling mode to string.");
   if (gs_mode_string.compare("DISABLED") == 0) {
-    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_DISABLED;
+    gs_mode = JSD_ELMO_GAIN_SCHEDULING_MODE_DISABLED;
   } else if (gs_mode_string.compare("SPEED") == 0) {
-    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_SPEED;
+    gs_mode = JSD_ELMO_GAIN_SCHEDULING_MODE_SPEED;
   } else if (gs_mode_string.compare("POSITION") == 0) {
-    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_POSITION;
+    gs_mode = JSD_ELMO_GAIN_SCHEDULING_MODE_POSITION;
   } else if (gs_mode_string.compare("MANUAL") == 0) {
-    gs_mode = JSD_EGD_GAIN_SCHEDULING_MODE_MANUAL_LOW;
+    gs_mode = JSD_ELMO_GAIN_SCHEDULING_MODE_MANUAL_LOW;
   } else {
     ERROR("Gain scheduling mode %s is invalid", gs_mode_string.c_str());
     return false;
