@@ -76,7 +76,7 @@ states:
     - name: tared_tz
       type: double
 
-  - name: actuator
+  - name: egd_actuator
     fields:
     - name: actual_position
       type: double
@@ -94,10 +94,10 @@ states:
       type: double
     - name: cmd_max_current
       type: double
-    - name: egd_state_machine_state
+    - name: elmo_state_machine_state
       type: uint32_t
-      comment: "From jsd_egd_state_machine_state_t"
-    - name: egd_mode_of_operation
+      comment: "From jsd_elmo_state_machine_state_t"
+    - name: elmo_mode_of_operation
       type: uint32_t
       comment: "From jsd_egd_mode_of_operation_t"
     - name: sto_engaged
@@ -106,8 +106,6 @@ states:
       type: uint8_t
     - name: target_reached
       type: uint8_t
-    - name: setpoint_ack_rise
-      type: bool
     - name: motor_on
       type: uint8_t
     - name: servo_enabled
@@ -123,13 +121,77 @@ states:
       type: double
     - name: drive_temperature
       type: uint32_t
-    - name: egd_actual_position
+    - name: elmo_actual_position
       type: int32_t
-    - name: egd_cmd_position
+    - name: elmo_cmd_position
       type: int32_t
     - name: actuator_state_machine_state
       type: uint32_t
-      comment: "From jsd_egd_State_machine_state_t"
+    - name: power
+      type: double
+
+  - name: epd_actuator
+    fields:
+    - name: actual_position
+      type: double
+    - name: actual_velocity
+      type: double
+    - name: actual_current
+      type: double
+    - name: faulted
+      type: bool
+    - name: cmd_position
+      type: double
+    - name: cmd_velocity
+      type: double
+    - name: cmd_current
+      type: double
+    - name: cmd_prof_velocity
+      type: double
+      comment: "Commanded velocity in Position Profiled mode."
+    - name: cmd_prof_end_velocity
+      type: double
+      comment: "Commanded end velocity in Position Profiled mode."
+    - name: cmd_prof_accel
+      type: double
+      comment: "Commanded acceleration/deceleration in Position and Velocity Profiled modes."
+    - name: cmd_max_current
+      type: double
+    - name: elmo_state_machine_state
+      type: uint32_t
+      comment: "From jsd_elmo_state_machine_state_t"
+    - name: elmo_mode_of_operation
+      type: uint32_t
+      comment: "From jsd_epd_mode_of_operation_t"
+    - name: sto_engaged
+      type: uint8_t
+    - name: hall_state
+      type: uint8_t
+    - name: target_reached
+      type: uint8_t
+    - name: setpoint_ack_rise
+      type: bool
+    - name: motor_on
+      type: uint8_t
+    - name: servo_enabled
+      type: uint8_t
+    - name: jsd_fault_code
+      type: uint32_t
+      comment: "From jsd_epd_fault_code_t"
+    - name: fastcat_fault_code
+      type: uint32_t
+    - name: emcy_error_code
+      type: uint16_t
+    - name: bus_voltage
+      type: double
+    - name: drive_temperature
+      type: double
+    - name: elmo_actual_position
+      type: int32_t
+    - name: elmo_cmd_position
+      type: int32_t
+    - name: actuator_state_machine_state
+      type: uint32_t
     - name: power
       type: double
 

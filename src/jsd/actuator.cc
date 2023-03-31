@@ -21,7 +21,6 @@ fastcat::Actuator::Actuator()
   MSG_DEBUG("Constructed Actuator");
 
   state_                = std::make_shared<DeviceState>();
-  state_->type          = ACTUATOR_STATE;
   actuator_sms_         = ACTUATOR_SMS_HALTED;
   last_transition_time_ = jsd_time_get_mono_time_sec();
 }
@@ -124,17 +123,18 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseVal(node, "egd_brake_engage_msec", elmo_brake_engage_msec_)) {
+  if (!ParseVal(node, "elmo_brake_engage_msec", elmo_brake_engage_msec_)) {
     return false;
   }
-  if (!ParseVal(node, "egd_brake_disengage_msec", elmo_brake_disengage_msec_)) {
+  if (!ParseVal(node, "elmo_brake_disengage_msec",
+                elmo_brake_disengage_msec_)) {
     return false;
   }
 
-  if (!ParseVal(node, "egd_crc", elmo_crc_)) {
+  if (!ParseVal(node, "elmo_crc", elmo_crc_)) {
     return false;
   }
-  if (!ParseVal(node, "egd_drive_max_current_limit",
+  if (!ParseVal(node, "elmo_drive_max_current_limit",
                 elmo_drive_max_cur_limit_amps_)) {
     return false;
   }
@@ -163,14 +163,9 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
 
   std::string ctrl_gs_mode_string;
   if (ParseOptVal(node, "ctrl_gain_scheduling_mode", ctrl_gs_mode_string)) {
-    if (!GSModeFromString(ctrl_gs_mode_string,
-                          jsd_slave_config_.egd.ctrl_gain_scheduling_mode)) {
+    if (!GSModeFromString(ctrl_gs_mode_string, ctrl_gs_mode_)) {
       return false;
     }
-  } else {
-    // Use mode saved in driver's non-volatile memory.
-    jsd_slave_config_.egd.ctrl_gain_scheduling_mode =
-        JSD_ELMO_GAIN_SCHEDULING_MODE_PRELOADED;
   }
 
   if (!ParseOptVal(node, "absolute_encoder", actuator_absolute_encoder_)) {
@@ -223,26 +218,6 @@ bool fastcat::Actuator::Read()
   ElmoRead();
 
   PopulateState();
-
-  if (compute_power_) {
-    double motor_velocity =
-      fabs(state_->actuator_state.actual_velocity) *
-      gear_ratio_ *
-      motor_encoder_gear_ratio_;
-
-    double current = fabs(state_->actuator_state.actual_current);
-
-    // P = R I^2 + K_T * I * \omega
-    state_->actuator_state.power = current *
-      (winding_resistance_ * current +
-       torque_constant_ * motor_velocity);
-
-    // Should check, but assuming motor_on > 0 means brakes powered/disengaged
-    if (state_->actuator_state.motor_on)
-      state_->actuator_state.power += brake_power_;
-  }
-  // else
-  // state_->actuator_state.power = 0;
 
   return true;
 }
@@ -509,11 +484,11 @@ void fastcat::Actuator::Reset()
 bool fastcat::Actuator::SetOutputPosition(double position)
 {
   MSG("Act %s: %s%lf %s%lf", name_.c_str(),
-      "Changing Position from: ", state_->actuator_state.actual_position,
+      "Changing Position from: ", GetActualPosition(*state_),
       "to : ", position);
 
-  elmo_pos_offset_cnts_ = state_->actuator_state.egd_actual_position -
-                          (int32_t)(position * overall_reduction_);
+  elmo_pos_offset_cnts_ =
+      GetElmoActualPosition() - (int32_t)(position * overall_reduction_);
   return true;
 }
 
@@ -690,9 +665,15 @@ std::string fastcat::Actuator::GetFastcatFaultCodeAsString(
 {
   std::string fault_str;
 
-  if (state.type == ACTUATOR_STATE) {
-    auto fault = static_cast<ActuatorFastcatFault>(
-        state.actuator_state.fastcat_fault_code);
+  if (state.type == EGD_ACTUATOR_STATE || state.type == EPD_ACTUATOR_STATE) {
+    ActuatorFastcatFault fault;
+    if (state.type == EGD_ACTUATOR_STATE) {
+      fault = static_cast<ActuatorFastcatFault>(
+          state.egd_actuator_state.fastcat_fault_code);
+    } else {
+      fault = static_cast<ActuatorFastcatFault>(
+          state.epd_actuator_state.fastcat_fault_code);
+    }
 
     switch (fault) {
       case ACTUATOR_FASTCAT_FAULT_OKAY:
@@ -729,11 +710,10 @@ std::string fastcat::Actuator::GetFastcatFaultCodeAsString(
         fault_str = "ACTUATOR_FASTCAT_FAULT_PROF_POS_CMD_ACK_TIMEOUT_EXCEEDED";
         break;
       default:
-        fault_str = "Bad Fastcat fault code: " +
-                    std::to_string(state.actuator_state.fastcat_fault_code);
+        fault_str = "Bad Fastcat fault code";
     }
   } else {
-    fault_str = "State is not type ACTUATOR_STATE";
+    fault_str = "State is not an Elmo actuator type.";
   }
 
   return fault_str;
@@ -743,18 +723,16 @@ std::string fastcat::Actuator::GetJSDFaultCodeAsString(const DeviceState& state)
 {
   std::string fault_str;
 
-  if (state.type == ACTUATOR_STATE) {
-    if (state.actuator_state.jsd_fault_code >= JSD_EPD_FAULT_OKAY) {
-      auto fault = static_cast<jsd_epd_fault_code_t>(
-          state.actuator_state.jsd_fault_code);
-      fault_str = std::string(jsd_epd_fault_code_to_string(fault));
-    } else {
-      auto fault = static_cast<jsd_egd_fault_code_t>(
-          state.actuator_state.jsd_fault_code);
-      fault_str = std::string(jsd_egd_fault_code_to_string(fault));
-    }
+  if (state.type == EGD_ACTUATOR_STATE) {
+    auto fault = static_cast<jsd_egd_fault_code_t>(
+        state.egd_actuator_state.jsd_fault_code);
+    fault_str = std::string(jsd_egd_fault_code_to_string(fault));
+  } else if (state.type == EPD_ACTUATOR_STATE) {
+    auto fault = static_cast<jsd_epd_fault_code_t>(
+        state.epd_actuator_state.jsd_fault_code);
+    fault_str = std::string(jsd_epd_fault_code_to_string(fault));
   } else {
-    fault_str = "State is not type ACTUATOR_STATE";
+    fault_str = "State is not an Elmo actuator type.";
   }
 
   return fault_str;
@@ -764,31 +742,70 @@ bool fastcat::Actuator::IsJsdFaultCodePresent(const DeviceState& state)
 {
   bool fault_present = false;
 
-  if (state.type == ACTUATOR_STATE) {
-    if (state.actuator_state.jsd_fault_code != JSD_EGD_FAULT_OKAY &&
-        state.actuator_state.jsd_fault_code != JSD_EPD_FAULT_OKAY) {
+  if (state.type == EGD_ACTUATOR_STATE) {
+    if (state.egd_actuator_state.jsd_fault_code != JSD_EGD_FAULT_OKAY) {
+      fault_present = true;
+    }
+  } else if (state.type == EPD_ACTUATOR_STATE) {
+    if (state.epd_actuator_state.jsd_fault_code != JSD_EPD_FAULT_OKAY) {
       fault_present = true;
     }
   } else {
     ERROR(
-        "IsJsdFaultCodePresent must be called on states of type "
-        "ACTUATOR_STATE.");
+        "IsJsdFaultCodePresent must be called on states of Elmo actuator "
+        "type.");
     assert(false);
   }
 
   return fault_present;
 }
 
+double fastcat::Actuator::GetActualPosition(const DeviceState& state)
+{
+  double actual_position;
+  if (state.type == EGD_ACTUATOR_STATE) {
+    actual_position = state.egd_actuator_state.actual_position;
+  } else if (state.type == EPD_ACTUATOR_STATE) {
+    actual_position = state.epd_actuator_state.actual_position;
+  } else {
+    ERROR(
+        "GetActualPosition must be called on states of Elmo actuator "
+        "type.");
+    assert(false);
+  }
+  return actual_position;
+}
+
 double fastcat::Actuator::ComputeTargetPosProfPosCmd(const DeviceCmd& cmd)
 {
   double target_position = 0;
   if (cmd.actuator_prof_pos_cmd.relative) {
-    target_position = cmd.actuator_prof_pos_cmd.target_position +
-                      state_->actuator_state.actual_position;
+    target_position =
+        cmd.actuator_prof_pos_cmd.target_position + GetActualPosition(*state_);
   } else {
     target_position = cmd.actuator_prof_pos_cmd.target_position;
   }
   return target_position;
+}
+
+double fastcat::Actuator::ComputePower(double actual_velocity,
+                                       double actual_current, bool motor_is_on)
+{
+  double motor_velocity =
+      fabs(actual_velocity) * gear_ratio_ * motor_encoder_gear_ratio_;
+
+  double current = fabs(actual_current);
+
+  // P = R I^2 + K_T * I * \omega
+  double power = current * (winding_resistance_ * current +
+                            torque_constant_ * motor_velocity);
+
+  // Should check, but assuming motor_on > 0 means brakes powered/disengaged
+  if (motor_is_on) {
+    power += brake_power_;
+  }
+
+  return power;
 }
 
 void fastcat::Actuator::ElmoSetConfig()

@@ -13,6 +13,12 @@ namespace fastcat
 {
 class EpdActuator : public Actuator
 {
+ public:
+  EpdActuator();
+
+ protected:
+  jsd_epd_state_t jsd_epd_state_;
+
  private:
   void PopulateJsdSlaveConfig() override;
   void PopulateState() override;
@@ -41,8 +47,10 @@ class EpdActuator : public Actuator
   void ElmoHalt() override;
   void ElmoProcess() override;
 
-  jsd_epd_state_t jsd_epd_state_;
-  DeviceCmd       last_cmd_;
+  double                         GetActualVelocity() override;
+  double                         GetElmoActualPosition() override;
+  jsd_elmo_state_machine_state_t GetElmoStateMachineState() override;
+  bool                           IsStoEngaged() override;
 };
 
 }  // namespace fastcat

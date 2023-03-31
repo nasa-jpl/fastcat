@@ -3,7 +3,7 @@
 #include <cmath>
 
 #include "fastcat/config.h"
-#include "fastcat/jsd/actuator_offline.h"
+#include "fastcat/jsd/egd_actuator_offline.h"
 #include "fastcat/signal_handling.h"
 #include "jsd/jsd_print.h"
 #include "jsd/jsd_pub.h"
@@ -34,7 +34,7 @@ class ActuatorTest : public ::testing::Test
   jsd_t* jsd_context_;
   std::string base_dir_;
   YAML::Node node_;
-  fastcat::ActuatorOffline device_;
+  fastcat::EgdActuatorOffline device_;
 };
 
   TEST_F(ActuatorTest, ParseValidWithPower) {

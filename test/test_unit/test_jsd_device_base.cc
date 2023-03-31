@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "fastcat/config.h"
+#include "fastcat/jsd/egd_actuator_offline.h"
 #include "fastcat/jsd/jsd_device_base.h"
-#include "fastcat/jsd/actuator_offline.h"
 
 namespace
 {
@@ -15,7 +15,7 @@ class JsdDeviceBaseTest : public ::testing::Test
     device_.SetOffline(true);
   }
 
-  fastcat::ActuatorOffline device_;
+  fastcat::EgdActuatorOffline                       device_;
   std::shared_ptr<std::queue<fastcat::SdoResponse>> sdo_response_queue_;
 };
 

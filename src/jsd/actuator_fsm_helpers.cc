@@ -416,22 +416,21 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
 
   double target_position;
   if (cmd.actuator_calibrate_cmd.velocity > 0) {
-    target_position = state_->actuator_state.actual_position + cal_range;
+    target_position = GetActualPosition(*state_) + cal_range;
   } else {
-    target_position = state_->actuator_state.actual_position - cal_range;
+    target_position = GetActualPosition(*state_) - cal_range;
   }
 
   MSG("Setting Peak Current to calibration level: %lf", cal_cmd_.max_current);
   ElmoSetPeakCurrent(cal_cmd_.max_current);
 
-  trap_generate(
-      &trap_, state_->time,
-      state_->actuator_state.actual_position,  // consider cmd position
-      target_position,
-      state_->actuator_state.actual_velocity,  // consider cmd velocity
-      0,  // pt2pt motion always uses terminating traps
-      fabs(cmd.actuator_calibrate_cmd.velocity),
-      cmd.actuator_calibrate_cmd.accel);
+  trap_generate(&trap_, state_->time,
+                GetActualPosition(*state_),  // consider cmd position
+                target_position,
+                GetActualVelocity(),  // consider cmd velocity
+                0,  // pt2pt motion always uses terminating traps
+                fabs(cmd.actuator_calibrate_cmd.velocity),
+                cmd.actuator_calibrate_cmd.accel);
 
   TransitionToState(ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP);
 
@@ -440,7 +439,7 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
 
 bool fastcat::Actuator::IsIdleFaultConditionMet()
 {
-  if (state_->actuator_state.sto_engaged) {
+  if (IsStoEngaged()) {
     ERROR("%s: STO Engaged", name_.c_str());
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_STO_ENGAGED;
     return true;
@@ -455,7 +454,7 @@ bool fastcat::Actuator::IsIdleFaultConditionMet()
 
 bool fastcat::Actuator::IsMotionFaultConditionMet()
 {
-  if (state_->actuator_state.sto_engaged) {
+  if (IsStoEngaged()) {
     ERROR("%s: STO Engaged", name_.c_str());
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_STO_ENGAGED;
     return true;
@@ -465,12 +464,12 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
     ERROR("%s: jsd_fault_code indicates active fault", name_.c_str());
     return true;
   }
-  if (state_->actuator_state.egd_state_machine_state ==
+  auto elmo_state_machine_state = GetElmoStateMachineState();
+  if (elmo_state_machine_state ==
           JSD_ELMO_STATE_MACHINE_STATE_QUICK_STOP_ACTIVE ||
-      state_->actuator_state.egd_state_machine_state ==
+      elmo_state_machine_state ==
           JSD_ELMO_STATE_MACHINE_STATE_FAULT_REACTION_ACTIVE ||
-      state_->actuator_state.egd_state_machine_state ==
-          JSD_ELMO_STATE_MACHINE_STATE_FAULT) {
+      elmo_state_machine_state == JSD_ELMO_STATE_MACHINE_STATE_FAULT) {
     ERROR("%s: Elmo drive state machine state is off nominal", name_.c_str());
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION;
     return true;
@@ -549,7 +548,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
 fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
 {
   // add other reasons as needed...
-  if (state_->actuator_state.sto_engaged) {
+  if (IsStoEngaged()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_STO_ENGAGED;
 
@@ -562,9 +561,9 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
   // assume pos/vel tracking fault
   if (IsJsdFaultCodePresent(*state_)) {
     ElmoHalt();
-    MSG("Act %s: %s: %d", name_.c_str(),
-        "Detected Hardstop, EGD jsd_fault_code",
-        state_->actuator_state.jsd_fault_code);
+    MSG("Act %s: %s: %s", name_.c_str(),
+        "Detected Hardstop, Elmo jsd_fault_code",
+        GetJSDFaultCodeAsString(*state_).c_str());
 
     MSG("Restoring Current after calibration: %lf", peak_current_limit_amps_);
     ElmoSetPeakCurrent(peak_current_limit_amps_);
@@ -602,10 +601,10 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
 fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
 {
   // no need to check faults in this state
-  // And clear the EGD fault that is generated from contacting the hardstop
+  // And clear the Elmo fault that is generated from contacting the hardstop
   // Loop here until the drive is no longer faulted
 
-  if (state_->actuator_state.egd_state_machine_state !=
+  if (GetElmoStateMachineState() !=
           JSD_ELMO_STATE_MACHINE_STATE_OPERATION_ENABLED &&
       IsJsdFaultCodePresent(*state_)) {
     // We have waited too long, fault

@@ -26,11 +26,11 @@
 #include "fastcat/fastcat_devices/schmitt_trigger.h"
 #include "fastcat/fastcat_devices/signal_generator.h"
 #include "fastcat/fastcat_devices/virtual_fts.h"
-#include "fastcat/jsd/actuator_offline.h"
 #include "fastcat/jsd/ati_fts.h"
 #include "fastcat/jsd/ati_fts_offline.h"
 #include "fastcat/jsd/egd.h"
 #include "fastcat/jsd/egd_actuator.h"
+#include "fastcat/jsd/egd_actuator_offline.h"
 #include "fastcat/jsd/egd_offline.h"
 #include "fastcat/jsd/el2124.h"
 #include "fastcat/jsd/el2124_offline.h"
@@ -49,6 +49,7 @@
 #include "fastcat/jsd/el4102.h"
 #include "fastcat/jsd/el4102_offline.h"
 #include "fastcat/jsd/epd_actuator.h"
+#include "fastcat/jsd/epd_actuator_offline.h"
 #include "fastcat/jsd/ild1900.h"
 #include "fastcat/jsd/ild1900_offline.h"
 #include "fastcat/jsd/jed0101.h"
@@ -416,26 +417,12 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900>();
 
-    } else if (0 == device_class.compare("Actuator")) {
-      std::string elmo_drive_line_string;
-      if (ParseOptVal(*device_node, "elmo_drive_line",
-                      elmo_drive_line_string)) {
-        // Convert read string to upper case
-        std::transform(elmo_drive_line_string.begin(),
-                       elmo_drive_line_string.end(),
-                       elmo_drive_line_string.begin(), ::toupper);
-        if (elmo_drive_line_string.compare("GOLD") == 0) {
-          device = std::make_shared<EgdActuator>();
-        } else if (elmo_drive_line_string.compare("PLATINUM") == 0) {
-          device = std::make_shared<EpdActuator>();
-        } else {
-          ERROR("Unknown Elmo drive line");
-          return false;
-        }
-      } else {
-        // Assume Gold Line if line is not specified.
-        device = std::make_shared<EgdActuator>();
-      }
+    } else if (0 == device_class.compare("Egd_Actuator")) {
+      device = std::make_shared<EgdActuator>();
+
+    } else if (0 == device_class.compare("Epd_Actuator")) {
+      device = std::make_shared<EpdActuator>();
+
     } else if (0 == device_class.compare("Jed0101")) {
       device = std::make_shared<Jed0101>();
 
@@ -624,8 +611,11 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900Offline>();
 
-    } else if (0 == device_class.compare("Actuator")) {
-      device = std::make_shared<ActuatorOffline>();
+    } else if (0 == device_class.compare("Egd_Actuator")) {
+      device = std::make_shared<EgdActuatorOffline>();
+
+    } else if (0 == device_class.compare("Epd_Actuator")) {
+      device = std::make_shared<EpdActuatorOffline>();
 
     } else if (0 == device_class.compare("Jed0101")) {
       device = std::make_shared<Jed0101Offline>();
@@ -883,7 +873,8 @@ bool fastcat::Manager::LoadActuatorPosFile()
   bool actuators_in_topo = false;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end(); ++device) 
   {
-    if ((*device)->GetState()->type == ACTUATOR_STATE) {
+    if ((*device)->GetState()->type == EGD_ACTUATOR_STATE ||
+        (*device)->GetState()->type == EPD_ACTUATOR_STATE) {
       actuators_in_topo = true;
       break;
     }
@@ -980,7 +971,8 @@ bool fastcat::Manager::ValidateActuatorPosFile()
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != ACTUATOR_STATE) {
+    if (dev_state->type != EGD_ACTUATOR_STATE &&
+        dev_state->type != EPD_ACTUATOR_STATE) {
       continue;
     }
 
@@ -1024,10 +1016,11 @@ bool fastcat::Manager::SetActuatorPositions()
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != ACTUATOR_STATE) {
+    if (dev_state->type != EGD_ACTUATOR_STATE &&
+        dev_state->type != EPD_ACTUATOR_STATE) {
       continue;
     }
-    
+
     actuator = std::dynamic_pointer_cast<Actuator>(*device);
 
     if (actuator->HasAbsoluteEncoder()) {
@@ -1059,7 +1052,8 @@ void fastcat::Manager::GetActuatorPositions()
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != ACTUATOR_STATE) {
+    if (dev_state->type != EGD_ACTUATOR_STATE &&
+        dev_state->type != EPD_ACTUATOR_STATE) {
       continue;
     }
 
@@ -1070,7 +1064,7 @@ void fastcat::Manager::GetActuatorPositions()
     }
 
     ActuatorPosData apd         = {0};
-    apd.position                = dev_state->actuator_state.actual_position;
+    apd.position                = Actuator::GetActualPosition(*dev_state);
     actuator_pos_map_[dev_name] = apd;
 
     MSG("Actuator: %s position is %lf", dev_name.c_str(), apd.position);

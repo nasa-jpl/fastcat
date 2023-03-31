@@ -7,6 +7,8 @@
 
 // Include external then project includes
 
+fastcat::EpdActuator::EpdActuator() { state_->type = EPD_ACTUATOR_STATE; }
+
 void fastcat::EpdActuator::PopulateJsdSlaveConfig()
 {
   jsd_slave_config_.product_code = JSD_EPD_PRODUCT_CODE;
@@ -40,57 +42,69 @@ void fastcat::EpdActuator::PopulateJsdSlaveConfig()
   jsd_slave_config_.epd.brake_disengage_msec = elmo_brake_disengage_msec_;
   jsd_slave_config_.epd.crc                  = elmo_crc_;
   jsd_slave_config_.epd.smooth_factor        = smooth_factor_;
+  jsd_slave_config_.epd.ctrl_gain_scheduling_mode = ctrl_gs_mode_;
 }
 
 void fastcat::EpdActuator::PopulateState()
 {
-  state_->actuator_state.actual_position =
+  state_->epd_actuator_state.actual_position =
       PosCntsToEu(jsd_epd_state_.actual_position);
-  state_->actuator_state.actual_velocity =
+  state_->epd_actuator_state.actual_velocity =
       CntsToEu(jsd_epd_state_.actual_velocity);
-  state_->actuator_state.actual_current = jsd_epd_state_.actual_current;
+  state_->epd_actuator_state.actual_current = jsd_epd_state_.actual_current;
 
-  state_->actuator_state.cmd_position =
+  state_->epd_actuator_state.cmd_position =
       PosCntsToEu(jsd_epd_state_.cmd_position + jsd_epd_state_.cmd_ff_position);
-  state_->actuator_state.cmd_velocity =
+  state_->epd_actuator_state.cmd_velocity =
       CntsToEu(jsd_epd_state_.cmd_velocity + jsd_epd_state_.cmd_ff_velocity);
-  state_->actuator_state.cmd_current =
+  state_->epd_actuator_state.cmd_current =
       jsd_epd_state_.cmd_current + jsd_epd_state_.cmd_ff_current;
 
-  // TODO(dloret): Expand ActuatorState to include profile command variables
-  // such as cmd_prof_velocity or cmd_prof_accel which are recorded in EPD's JSD
-  // state.
+  state_->epd_actuator_state.cmd_prof_velocity =
+      jsd_epd_state_.cmd_prof_velocity;
+  state_->epd_actuator_state.cmd_prof_end_velocity =
+      jsd_epd_state_.cmd_prof_end_velocity;
+  state_->epd_actuator_state.cmd_prof_accel = jsd_epd_state_.cmd_prof_accel;
 
-  state_->actuator_state.cmd_max_current = jsd_epd_state_.cmd_max_current;
+  state_->epd_actuator_state.cmd_max_current = jsd_epd_state_.cmd_max_current;
 
-  state_->actuator_state.egd_state_machine_state =
+  state_->epd_actuator_state.elmo_state_machine_state =
       static_cast<uint32_t>(jsd_epd_state_.actual_state_machine_state);
-  state_->actuator_state.egd_mode_of_operation =
+  state_->epd_actuator_state.elmo_mode_of_operation =
       static_cast<uint32_t>(jsd_epd_state_.actual_mode_of_operation);
 
-  state_->actuator_state.sto_engaged       = jsd_epd_state_.sto_engaged;
-  state_->actuator_state.hall_state        = jsd_epd_state_.hall_state;
-  state_->actuator_state.target_reached    = jsd_epd_state_.target_reached;
-  state_->actuator_state.setpoint_ack_rise = jsd_epd_state_.setpoint_ack_rise;
-  state_->actuator_state.motor_on          = jsd_epd_state_.motor_on;
-  state_->actuator_state.servo_enabled     = jsd_epd_state_.servo_enabled;
+  state_->epd_actuator_state.sto_engaged    = jsd_epd_state_.sto_engaged;
+  state_->epd_actuator_state.hall_state     = jsd_epd_state_.hall_state;
+  state_->epd_actuator_state.target_reached = jsd_epd_state_.target_reached;
+  state_->epd_actuator_state.setpoint_ack_rise =
+      jsd_epd_state_.setpoint_ack_rise;
+  state_->epd_actuator_state.motor_on      = jsd_epd_state_.motor_on;
+  state_->epd_actuator_state.servo_enabled = jsd_epd_state_.servo_enabled;
 
-  state_->actuator_state.jsd_fault_code =
+  state_->epd_actuator_state.jsd_fault_code =
       static_cast<uint32_t>(jsd_epd_state_.fault_code);
-  state_->actuator_state.fastcat_fault_code =
+  state_->epd_actuator_state.fastcat_fault_code =
       static_cast<uint32_t>(fastcat_fault_);
-  state_->actuator_state.emcy_error_code = jsd_epd_state_.emcy_error_code;
-  state_->actuator_state.faulted = (actuator_sms_ == ACTUATOR_SMS_FAULTED);
+  state_->epd_actuator_state.emcy_error_code = jsd_epd_state_.emcy_error_code;
+  state_->epd_actuator_state.faulted = (actuator_sms_ == ACTUATOR_SMS_FAULTED);
 
-  state_->actuator_state.bus_voltage = jsd_epd_state_.bus_voltage;
-  state_->actuator_state.drive_temperature =
+  state_->epd_actuator_state.bus_voltage = jsd_epd_state_.bus_voltage;
+  state_->epd_actuator_state.drive_temperature =
       static_cast<uint32_t>(jsd_epd_state_.drive_temperature);
 
-  state_->actuator_state.egd_actual_position = jsd_epd_state_.actual_position;
-  state_->actuator_state.egd_cmd_position    = jsd_epd_state_.cmd_position;
+  state_->epd_actuator_state.elmo_actual_position =
+      jsd_epd_state_.actual_position;
+  state_->epd_actuator_state.elmo_cmd_position = jsd_epd_state_.cmd_position;
 
-  state_->actuator_state.actuator_state_machine_state =
+  state_->epd_actuator_state.actuator_state_machine_state =
       static_cast<uint32_t>(actuator_sms_);
+
+  if (compute_power_) {
+    state_->epd_actuator_state.power =
+        ComputePower(state_->epd_actuator_state.actual_velocity,
+                     state_->epd_actuator_state.actual_current,
+                     state_->epd_actuator_state.motor_on);
+  }
 }
 
 bool fastcat::EpdActuator::HandleNewProfPosCmdImpl(const DeviceCmd& cmd)
@@ -168,7 +182,7 @@ fastcat::FaultType fastcat::EpdActuator::ProcessProfPosDisengaging()
   // completion of the command (i.e. target_reached) might refer to a previous
   // command. If the drive does not acknowledge the command within 1 second,
   // fault.
-  if (state_->actuator_state.setpoint_ack_rise) {
+  if (state_->epd_actuator_state.setpoint_ack_rise) {
     TransitionToState(ACTUATOR_SMS_PROF_POS);
   } else if ((cycle_mono_time_ - last_transition_time_) >
              (1.0 + 2.0 * loop_period_)) {
@@ -192,7 +206,7 @@ fastcat::FaultType fastcat::EpdActuator::ProcessProfPos()
 
   // Transition to ACTUATOR_SMS_HOLDING once profile execution is complete if
   // the option to actively hold position is not on.
-  if (state_->actuator_state.target_reached && !prof_pos_hold_) {
+  if (state_->epd_actuator_state.target_reached && !prof_pos_hold_) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
   }
 
@@ -320,4 +334,25 @@ void fastcat::EpdActuator::ElmoHalt()
 void fastcat::EpdActuator::ElmoProcess()
 {
   jsd_epd_process((jsd_t*)context_, slave_id_);
+}
+
+double fastcat::EpdActuator::GetActualVelocity()
+{
+  return state_->epd_actuator_state.actual_velocity;
+}
+
+double fastcat::EpdActuator::GetElmoActualPosition()
+{
+  return state_->epd_actuator_state.elmo_actual_position;
+}
+
+jsd_elmo_state_machine_state_t fastcat::EpdActuator::GetElmoStateMachineState()
+{
+  return static_cast<jsd_elmo_state_machine_state_t>(
+      state_->epd_actuator_state.elmo_state_machine_state);
+}
+
+bool fastcat::EpdActuator::IsStoEngaged()
+{
+  return state_->epd_actuator_state.sto_engaged;
 }

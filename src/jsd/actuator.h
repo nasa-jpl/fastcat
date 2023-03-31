@@ -8,6 +8,7 @@
 // Include external then project includes
 #include "fastcat/jsd/jsd_device_base.h"
 #include "fastcat/trap.h"
+#include "jsd/jsd_elmo_common_types.h"
 
 namespace fastcat
 {
@@ -64,6 +65,7 @@ class Actuator : public JsdDeviceBase
   static std::string GetFastcatFaultCodeAsString(const DeviceState& state);
   static std::string GetJSDFaultCodeAsString(const DeviceState& state);
   static bool        IsJsdFaultCodePresent(const DeviceState& state);
+  static double      GetActualPosition(const DeviceState& state);
 
  protected:
   double  CntsToEu(int32_t cnts);
@@ -78,6 +80,8 @@ class Actuator : public JsdDeviceBase
   FaultType ProcessProfPosTrapImpl();
 
   double ComputeTargetPosProfPosCmd(const DeviceCmd& cmd);
+  double ComputePower(double actual_velocity, double actual_current,
+                      bool motor_is_on);
 
   double  max_speed_eu_per_sec_          = 0.0;
   double  max_accel_eu_per_sec2_         = 0.0;
@@ -93,6 +97,10 @@ class Actuator : public JsdDeviceBase
   int64_t elmo_crc_                      = 0;
   double  elmo_drive_max_cur_limit_amps_ = 0.0;
   double  smooth_factor_                 = 0.0;
+  bool    compute_power_                 = false;
+  // Use mode saved in driver's volatile memory.
+  jsd_elmo_gain_scheduling_mode_t ctrl_gs_mode_ =
+      JSD_ELMO_GAIN_SCHEDULING_MODE_PRELOADED;
 
   jsd_slave_config_t jsd_slave_config_;
 
@@ -103,6 +111,8 @@ class Actuator : public JsdDeviceBase
   bool                      prof_pos_hold_ = false;
 
   ActuatorFastcatFault fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
+
+  DeviceCmd last_cmd_;
 
  private:
   bool PosExceedsCmdLimits(double pos_eu);
@@ -166,6 +176,11 @@ class Actuator : public JsdDeviceBase
   virtual void ElmoHalt()                                                = 0;
   virtual void ElmoProcess()                                             = 0;
 
+  virtual double                         GetActualVelocity()        = 0;
+  virtual double                         GetElmoActualPosition()    = 0;
+  virtual jsd_elmo_state_machine_state_t GetElmoStateMachineState() = 0;
+  virtual bool                           IsStoEngaged()             = 0;
+
   double gear_ratio_               = 1.0;
   double overall_reduction_        = 1.0;
   double low_pos_cal_limit_eu_     = 0.0;
@@ -177,7 +192,6 @@ class Actuator : public JsdDeviceBase
   double winding_resistance_       = 0.0;
   double brake_power_              = 0.0;
   double motor_encoder_gear_ratio_ = 0.0;
-  bool   compute_power_            = false;
 
   ActuatorCalibrateCmd cal_cmd_;
 

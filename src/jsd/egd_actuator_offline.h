@@ -1,5 +1,5 @@
-#ifndef FASTCAT_ACTUATOR_OFFLINE_H_
-#define FASTCAT_ACTUATOR_OFFLINE_H_
+#ifndef FASTCAT_EGD_ACTUATOR_OFFLINE_H_
+#define FASTCAT_EGD_ACTUATOR_OFFLINE_H_
 
 // Include related header (for cc files)
 
@@ -10,11 +10,10 @@
 
 namespace fastcat
 {
-// ActuatorOffline simulates both EgdActuator and EpdActuator.
-class ActuatorOffline : public EgdActuator
+class EgdActuatorOffline : public EgdActuator
 {
  public:
-  ActuatorOffline();
+  EgdActuatorOffline();
 
  private:
   void ElmoSetConfig() override;
@@ -32,7 +31,7 @@ class ActuatorOffline : public EgdActuator
   void ElmoSetGainSchedulingIndex(uint16_t index) override;
   void ElmoHalt() override;
 
-  double motor_on_start_time_;
+  double  motor_on_start_time_;
   uint8_t last_motor_on_state_;
 };
 
