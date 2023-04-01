@@ -6,6 +6,8 @@
 // Include external then project includes
 #include "jsd/jsd_print.h"
 
+fastcat::DeviceBase::~DeviceBase() {}
+
 void fastcat::DeviceBase::RegisterCmdQueue(
     std::shared_ptr<std::queue<DeviceCmd>> cmd_queue)
 {

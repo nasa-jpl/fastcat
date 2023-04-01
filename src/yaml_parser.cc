@@ -65,6 +65,28 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, std::string& val)
   return true;
 }
 
+bool fastcat::ParseVal(YAML::Node node, std::string field, int64_t& val)
+{
+  if (!node[field]) {
+    ERROR("Expecting int64_t field: %s", field.c_str());
+    return false;
+  }
+  val = node[field].as<int64_t>();
+  MSG_DEBUG("Parsed int64_t field %s: %li", field.c_str(), val);
+  return true;
+}
+
+bool fastcat::ParseVal(YAML::Node node, std::string field, uint64_t& val)
+{
+  if (!node[field]) {
+    ERROR("Expecting uint64_t field: %s", field.c_str());
+    return false;
+  }
+  val = node[field].as<uint64_t>();
+  MSG_DEBUG("Parsed uint64_t field %s: %lu", field.c_str(), val);
+  return true;
+}
+
 bool fastcat::ParseVal(YAML::Node node, std::string field, int32_t& val)
 {
   if (!node[field]) {

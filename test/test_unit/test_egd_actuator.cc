@@ -3,29 +3,30 @@
 #include <cmath>
 
 #include "fastcat/config.h"
-#include "fastcat/jsd/actuator_offline.h"
+#include "fastcat/jsd/egd_actuator_offline.h"
 #include "fastcat/signal_handling.h"
 #include "jsd/jsd_print.h"
+#include "jsd/jsd_pub.h"
 
 namespace fastcat
 {
 
 class Tester {
   public:
-  jsd_egd_state_t* GetEgdState(Actuator& device){
+  jsd_egd_state_t* GetEgdState(EgdActuator& device){
     return &device.jsd_egd_state_;
   }
   
-  ActuatorStateMachineState GetSMS(Actuator& device){
+  ActuatorStateMachineState GetSMS(EgdActuator& device){
     return device.actuator_sms_;
   }
 
   
-  double  CntsToEu(Actuator& device, int32_t cnts){
+  double  CntsToEu(EgdActuator& device, int32_t cnts){
     return device.CntsToEu(cnts);
   }
 
-  double  PosCntsToEu(Actuator& device, int32_t cnts){
+  double  PosCntsToEu(EgdActuator& device, int32_t cnts){
     return device.PosCntsToEu(cnts);
   }
 
@@ -42,7 +43,7 @@ class ActuatorTest : public ::testing::Test
 
     // FASTCAT_UNIT_TEST_DIR contains path to .
     base_dir_ = FASTCAT_UNIT_TEST_DIR;
-    base_dir_ += "test_actuator_yamls/";
+    base_dir_ += "test_egd_actuator_yamls/";
 
     device_.SetSlaveId(0);
     device_.SetContext(jsd_context_);
@@ -51,10 +52,10 @@ class ActuatorTest : public ::testing::Test
 
   void TearDown() override { jsd_free(jsd_context_); }
 
-  jsd_t*                   jsd_context_;
-  std::string              base_dir_;
-  YAML::Node               node_;
-  fastcat::ActuatorOffline device_;
+  jsd_t* jsd_context_;
+  std::string base_dir_;
+  YAML::Node node_;
+  fastcat::EgdActuatorOffline device_;
 };
 
 TEST_F(ActuatorTest, ParseValidWithPower)
@@ -206,19 +207,19 @@ TEST_F(ActuatorTest, RejectMotionCommandsWhenFaulted)
     double expected_cur = 1234;
     
     device_.Read();
-    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_position, expected_pos, 1e-2);
-    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_velocity, expected_vel, 1e-2);
-    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_current, expected_cur, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_position, expected_pos, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_velocity, expected_vel, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_current, expected_cur, 1e-2);
 
     device_.Fault();
-    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_position, expected_pos, 1e-2);
-    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_velocity, expected_vel, 1e-2);
-    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_current, expected_cur, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_position, expected_pos, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_velocity, expected_vel, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_current, expected_cur, 1e-2);
     
     device_.Read();
-    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_position, 0, 1e-2);
-    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_velocity, 0, 1e-2);
-    EXPECT_NEAR(device_.GetState()->actuator_state.cmd_current, 0, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_position, 0, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_velocity, 0, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_current, 0, 1e-2);
 
   }
 
