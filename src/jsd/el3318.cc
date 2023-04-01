@@ -45,9 +45,9 @@ bool fastcat::El3318::ConfigFromYamlCommon(YAML::Node node)
   }
 
   int i;
-  for(i=0; i < JSD_EL3318_NUM_CHANNELS; i++) {
-    jsd_slave_config_.el3318.element[i] = element_;
-    jsd_slave_config_.el3318.filter[i] = JSD_BECKHOFF_FILTER_50HZ;
+  for (i = 0; i < JSD_EL3318_NUM_CHANNELS; i++) {
+    jsd_slave_config_.el3318.element[i]      = element_;
+    jsd_slave_config_.el3318.filter[i]       = JSD_BECKHOFF_FILTER_50HZ;
     jsd_slave_config_.el3318.presentation[i] = JSD_EL3318_PRESENTATION_SIGNED;
   }
 
@@ -61,14 +61,14 @@ bool fastcat::El3318::Read()
   const jsd_el3318_state_t* jsd_state =
       jsd_el3318_get_state((jsd_t*)context_, slave_id_);
 
-  state_->el3318_state.output_eu_ch1   = jsd_state->output_eu[0];
-  state_->el3318_state.output_eu_ch2   = jsd_state->output_eu[1];
-  state_->el3318_state.output_eu_ch3   = jsd_state->output_eu[2];
-  state_->el3318_state.output_eu_ch4   = jsd_state->output_eu[3];
-  state_->el3318_state.output_eu_ch5   = jsd_state->output_eu[4];
-  state_->el3318_state.output_eu_ch6   = jsd_state->output_eu[5];
-  state_->el3318_state.output_eu_ch7   = jsd_state->output_eu[6];
-  state_->el3318_state.output_eu_ch8   = jsd_state->output_eu[7];
+  state_->el3318_state.output_eu_ch1 = jsd_state->output_eu[0];
+  state_->el3318_state.output_eu_ch2 = jsd_state->output_eu[1];
+  state_->el3318_state.output_eu_ch3 = jsd_state->output_eu[2];
+  state_->el3318_state.output_eu_ch4 = jsd_state->output_eu[3];
+  state_->el3318_state.output_eu_ch5 = jsd_state->output_eu[4];
+  state_->el3318_state.output_eu_ch6 = jsd_state->output_eu[5];
+  state_->el3318_state.output_eu_ch7 = jsd_state->output_eu[6];
+  state_->el3318_state.output_eu_ch8 = jsd_state->output_eu[7];
   state_->el3318_state.adc_value_ch1 = jsd_state->adc_value[0];
   state_->el3318_state.adc_value_ch2 = jsd_state->adc_value[1];
   state_->el3318_state.adc_value_ch3 = jsd_state->adc_value[2];
@@ -81,7 +81,7 @@ bool fastcat::El3318::Read()
   return true;
 }
 
-bool fastcat::El3318::ElementFromString(std::string element_string,
+bool fastcat::El3318::ElementFromString(std::string           element_string,
                                         jsd_el3318_element_t& element)
 {
   MSG("Converting element to string.");

@@ -8,10 +8,10 @@
 #include "fastcat/fastcat.h"
 #include "jsd/jsd_timer.h"
 
-pthread_mutex_t   fastcat_mutex = PTHREAD_MUTEX_INITIALIZER;
-fastcat::Manager  manager;
-double            cli_start_time;
-FILE*             file;
+pthread_mutex_t  fastcat_mutex = PTHREAD_MUTEX_INITIALIZER;
+fastcat::Manager manager;
+double           cli_start_time;
+FILE*            file;
 
 void print_header(std::vector<fastcat::DeviceState> states)
 {
@@ -129,7 +129,7 @@ void print_header(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%s_elmo_actual_position, ", state->name.c_str());
         fprintf(file, "%s_elmo_cmd_position, ", state->name.c_str());
 
-        fprintf(file, "%s_motor_on, ",  state->name.c_str());
+        fprintf(file, "%s_motor_on, ", state->name.c_str());
         fprintf(file, "%s_servo_enabled, ", state->name.c_str());
         break;
       case fastcat::LINEAR_INTERPOLATION_STATE:
@@ -395,17 +395,16 @@ void* cli_process(void*)
     } else if (tokens[0].compare("jed0101_set_cmd_value") == 0 &&
                tokens.size() == 3) {
       MSG("Issuing jed0101_set_cmd_value command");
-      cmd.name                      = tokens[1];
+      cmd.name                          = tokens[1];
       cmd.jed0101_set_cmd_value_cmd.cmd = atoi(tokens[2].c_str());
-      cmd.type                      = fastcat::JED0101_SET_CMD_VALUE_CMD;
-
+      cmd.type                          = fastcat::JED0101_SET_CMD_VALUE_CMD;
 
     } else if (tokens[0].compare("jed0200_set_cmd_value") == 0 &&
                tokens.size() == 3) {
       MSG("Issuing jed0200_set_cmd_value command");
-      cmd.name                      = tokens[1];
+      cmd.name                          = tokens[1];
       cmd.jed0200_set_cmd_value_cmd.cmd = atoi(tokens[2].c_str());
-      cmd.type                      = fastcat::JED0200_SET_CMD_VALUE_CMD;
+      cmd.type                          = fastcat::JED0200_SET_CMD_VALUE_CMD;
 
     } else if (tokens[0].compare("actuator_set_output_position") == 0 &&
                tokens.size() == 3) {

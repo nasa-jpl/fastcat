@@ -59,15 +59,27 @@ void fastcat::EgdActuatorOffline::ElmoProcess()
   //
   if (!jsd_egd_state_.servo_enabled && jsd_egd_state_.motor_on) {
     double brake_on_dur = jsd_time_get_time_sec() - motor_on_start_time_;
-    if (brake_on_dur > elmo_brake_disengage_msec_ / 1000.0) {
+    if (brake_on_dur > params_.elmo_brake_disengage_msec / 1000.0) {
       jsd_egd_state_.servo_enabled = 1;
     }
   }
 }
 
+void fastcat::EgdActuatorOffline::ElmoFault()
+{
+  MSG("Faulting EGD through JSD: %s", name_.c_str());
+
+  // TODO review with david
+  // need to clear so that old commands are not left over 
+  //  for new commands
+  jsd_egd_state_.cmd_position = 0;
+  jsd_egd_state_.cmd_velocity = 0;
+  jsd_egd_state_.cmd_current  = 0;
+}
+
 void fastcat::EgdActuatorOffline::ElmoReset()
 {
-  // no-op
+  MSG("Resetting EGD through JSD: %s", name_.c_str());
 }
 
 void fastcat::EgdActuatorOffline::ElmoHalt()
@@ -139,7 +151,7 @@ void fastcat::EgdActuatorOffline::ElmoCSV(
   jsd_egd_state_.cmd_ff_velocity = jsd_csv_cmd.velocity_offset;
   jsd_egd_state_.cmd_ff_current  = jsd_csv_cmd.torque_offset_amps;
 
-  // simulate actuals
+  // simulate velocity
   jsd_egd_state_.actual_velocity =
       jsd_egd_state_.cmd_velocity + jsd_egd_state_.cmd_ff_velocity;
   jsd_egd_state_.actual_current =
@@ -159,15 +171,15 @@ void fastcat::EgdActuatorOffline::ElmoCST(
   jsd_egd_state_.cmd_ff_velocity = 0;
   jsd_egd_state_.cmd_ff_current  = jsd_cst_cmd.torque_offset_amps;
 
-  // simulate actuals
+  // simulate position and velocity
   jsd_egd_state_.actual_position =
       jsd_egd_state_.cmd_position + jsd_egd_state_.cmd_ff_position;
   jsd_egd_state_.actual_current =
       jsd_egd_state_.cmd_current + jsd_egd_state_.cmd_ff_current;
 
-  double pct = jsd_egd_state_.actual_current / continuous_current_limit_amps_;
-  jsd_egd_state_.actual_velocity =
-      pct * max_speed_eu_per_sec_;  // sure, why not
+  double pct =
+      jsd_egd_state_.actual_current / params_.continuous_current_limit_amps;
+  jsd_egd_state_.actual_velocity = pct * params_.max_speed_eu_per_sec;
   jsd_egd_state_.actual_position +=
       jsd_egd_state_.actual_velocity * loop_period_;  // integrated
 }

@@ -18,6 +18,7 @@ class EgdActuatorOffline : public EgdActuator
  private:
   void ElmoSetConfig() override;
   void ElmoProcess() override;
+  void ElmoFault() override;
   void ElmoReset() override;
   void ElmoRead() override;
   void ElmoClearErrors() override;

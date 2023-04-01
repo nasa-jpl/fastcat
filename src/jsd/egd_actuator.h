@@ -13,6 +13,9 @@ namespace fastcat
 {
 class EgdActuator : public Actuator
 {
+
+ friend class Tester;
+
  public:
   EgdActuator();
 
@@ -41,6 +44,7 @@ class EgdActuator : public Actuator
   void ElmoSetGainSchedulingMode(jsd_elmo_gain_scheduling_mode_t mode,
                                  uint16_t app_id) override;
   void ElmoSetGainSchedulingIndex(uint16_t index) override;
+  void ElmoFault() override;
   void ElmoReset() override;
   void ElmoCSP(const jsd_elmo_motion_command_csp_t& jsd_csp_cmd) override;
   void ElmoCSV(const jsd_elmo_motion_command_csv_t& jsd_csv_cmd) override;
