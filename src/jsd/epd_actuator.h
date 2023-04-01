@@ -35,7 +35,7 @@ class EpdActuator : public Actuator
   FaultType ProcessProfTorque() override;
 
   void ElmoRead() override;
-  void ElmoFault() override;
+  void ElmoFault() override{};
   void ElmoReset() override;
   void ElmoSetPeakCurrent(double current) override;
   void ElmoSetUnitMode(int32_t mode, uint16_t app_id) override;

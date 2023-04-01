@@ -71,31 +71,34 @@ class Actuator : public JsdDeviceBase
 
   struct ActuatorParams {
     std::string actuator_type_str;
-    double      gear_ratio                    = 1;
-    double      counts_per_rev                = 1;
-    double      max_speed_eu_per_sec          = 0;
-    double      max_accel_eu_per_sec2         = 0;
-    double      over_speed_multiplier         = 1;
-    double      vel_tracking_error_eu_per_sec = 0;
-    double      pos_tracking_error_eu         = 0;
-    double      peak_current_limit_amps       = 0;
-    double      peak_current_time_sec         = 0;
-    double      continuous_current_limit_amps = 0;
-    double      torque_slope_amps_per_sec     = 0;
-    double      low_pos_cal_limit_eu          = 0;
-    double      low_pos_cmd_limit_eu          = 0;
-    double      high_pos_cmd_limit_eu         = 0;
-    double      high_pos_cal_limit_eu         = 0;
-    double      holding_duration_sec          = 0;
-    double      elmo_brake_engage_msec        = 0;
-    double      elmo_brake_disengage_msec     = 0;
-    double      elmo_crc                      = 0;
-    double      elmo_drive_max_cur_limit_amps = 0;
-    double      smooth_factor                 = 0;
-    double      torque_constant               = 0;
-    double      winding_resistance            = 0;
-    double      brake_power                   = 0;
-    double      motor_encoder_gear_ratio      = 0;
+    // TODO: populate ctrl_gs_mode_str from ctrl_gs_mode_ once JSD function is
+    // available.
+    std::string ctrl_gs_mode_str;
+    double      gear_ratio                    = 1.0;
+    double      counts_per_rev                = 1.0;
+    double      max_speed_eu_per_sec          = 0.0;
+    double      max_accel_eu_per_sec2         = 0.0;
+    double      over_speed_multiplier         = 1.0;
+    double      vel_tracking_error_eu_per_sec = 0.0;
+    double      pos_tracking_error_eu         = 0.0;
+    double      peak_current_limit_amps       = 0.0;
+    double      peak_current_time_sec         = 0.0;
+    double      continuous_current_limit_amps = 0.0;
+    double      torque_slope_amps_per_sec     = 0.0;
+    double      low_pos_cal_limit_eu          = 0.0;
+    double      low_pos_cmd_limit_eu          = 0.0;
+    double      high_pos_cmd_limit_eu         = 0.0;
+    double      high_pos_cal_limit_eu         = 0.0;
+    double      holding_duration_sec          = 0.0;
+    double      elmo_brake_engage_msec        = 0.0;
+    double      elmo_brake_disengage_msec     = 0.0;
+    int64_t     elmo_crc                      = 0;
+    double      elmo_drive_max_cur_limit_amps = 0.0;
+    double      smooth_factor                 = 0.0;
+    double      torque_constant               = 0.0;
+    double      winding_resistance            = 0.0;
+    double      brake_power                   = 0.0;
+    double      motor_encoder_gear_ratio      = 0.0;
     bool        actuator_absolute_encoder     = false;
     bool        prof_pos_hold                 = false;
   };
@@ -118,6 +121,7 @@ class Actuator : public JsdDeviceBase
   double ComputeTargetPosProfPosCmd(const DeviceCmd& cmd);
   double ComputePower(double actual_velocity, double actual_current,
                       bool motor_is_on);
+
   bool   compute_power_ = false;
 
 
@@ -205,17 +209,7 @@ class Actuator : public JsdDeviceBase
   virtual jsd_elmo_state_machine_state_t GetElmoStateMachineState() = 0;
   virtual bool                           IsStoEngaged()             = 0;
 
-  double gear_ratio_               = 1.0;
-  double overall_reduction_        = 1.0;
-  double low_pos_cal_limit_eu_     = 0.0;
-  double low_pos_cmd_limit_eu_     = 0.0;
-  double high_pos_cmd_limit_eu_    = 0.0;
-  double high_pos_cal_limit_eu_    = 0.0;
-  double holding_duration_sec_     = 0.0;
-  double torque_constant_          = 0.0;
-  double winding_resistance_       = 0.0;
-  double brake_power_              = 0.0;
-  double motor_encoder_gear_ratio_ = 0.0;
+  double overall_reduction_ = 1.0;
 
   ActuatorCalibrateCmd cal_cmd_;
 

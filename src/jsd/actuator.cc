@@ -31,21 +31,20 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  std::string actuator_type_str;
-  if (!ParseVal(node, "actuator_type", actuator_type_str)) {
+  if (!ParseVal(node, "actuator_type", params_.actuator_type_str)) {
     return false;
   }
 
   ActuatorType actuator_type;
-  if (0 == actuator_type_str.compare("revolute")) {
+  if (0 == params_.actuator_type_str.compare("revolute")) {
     actuator_type = ACTUATOR_TYPE_REVOLUTE;
 
-  } else if (0 == actuator_type_str.compare("prismatic")) {
+  } else if (0 == params_.actuator_type_str.compare("prismatic")) {
     actuator_type = ACTUATOR_TYPE_PRISMATIC;
 
   } else {
     ERROR("Failed to parse actuator_type string: %s must be %s or %s",
-          actuator_type_str.c_str(), "revolute", "prismatic");
+          params_.actuator_type_str.c_str(), "revolute", "prismatic");
     return false;
   }
 
@@ -800,18 +799,18 @@ double fastcat::Actuator::ComputeTargetPosProfPosCmd(const DeviceCmd& cmd)
 double fastcat::Actuator::ComputePower(double actual_velocity,
                                        double actual_current, bool motor_is_on)
 {
-  double motor_velocity =
-      fabs(actual_velocity) * gear_ratio_ * motor_encoder_gear_ratio_;
+  double motor_velocity = fabs(actual_velocity) * params_.gear_ratio *
+                          params_.motor_encoder_gear_ratio;
 
   double current = fabs(actual_current);
 
   // P = R I^2 + K_T * I * \omega
-  double power = current * (winding_resistance_ * current +
-                            torque_constant_ * motor_velocity);
+  double power = current * (params_.winding_resistance * current +
+                            params_.torque_constant * motor_velocity);
 
   // Should check, but assuming motor_on > 0 means brakes powered/disengaged
   if (motor_is_on) {
-    power += brake_power_;
+    power += params_.brake_power;
   }
 
   return power;

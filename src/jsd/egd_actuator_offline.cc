@@ -51,13 +51,13 @@ void fastcat::EgdActuatorOffline::ElmoProcess()
   }
 
   // reset motor_on timer on rising edge
-  if (!last_motor_on_state_ and jsd_egd_state_.motor_on) {
+  if (!last_motor_on_state_ && jsd_egd_state_.motor_on) {
     motor_on_start_time_ = jsd_time_get_time_sec();
   }
   last_motor_on_state_ = jsd_egd_state_.motor_on;
 
   //
-  if (!jsd_egd_state_.servo_enabled and jsd_egd_state_.motor_on) {
+  if (!jsd_egd_state_.servo_enabled && jsd_egd_state_.motor_on) {
     double brake_on_dur = jsd_time_get_time_sec() - motor_on_start_time_;
     if (brake_on_dur > params_.elmo_brake_disengage_msec / 1000.0) {
       jsd_egd_state_.servo_enabled = 1;

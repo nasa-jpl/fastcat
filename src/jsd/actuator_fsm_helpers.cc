@@ -499,7 +499,8 @@ fastcat::FaultType fastcat::Actuator::ProcessHolding()
     return ALL_DEVICE_FAULT;
   }
 
-  if ((cycle_mono_time_ - last_transition_time_) > holding_duration_sec_) {
+  if ((cycle_mono_time_ - last_transition_time_) >
+      params_.holding_duration_sec) {
     ElmoHalt();
     TransitionToState(ACTUATOR_SMS_HALTED);
   }

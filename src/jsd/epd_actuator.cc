@@ -280,12 +280,6 @@ void fastcat::EpdActuator::ElmoRead()
          sizeof(jsd_epd_state_t));
 }
 
-void fastcat::EpdActuator::ElmoFault()
-{
-  // TODO review with dloret
-  //jsd_epd_fault((jsd_t*)context_, slave_id_);
-}
-
 void fastcat::EpdActuator::ElmoReset()
 {
   jsd_epd_reset((jsd_t*)context_, slave_id_);
