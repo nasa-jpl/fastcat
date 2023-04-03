@@ -236,10 +236,10 @@ Engineering Units (EU) are radians for revolute actuators and meters for linear 
       high_pos_cmd_limit_eu:         1e15
       high_pos_cal_limit_eu:         1e15
       holding_duration_sec:          5.0
-      egd_brake_engage_msec:         10 
-      egd_brake_disengage_msec:      10
-      egd_crc:                       -3260
-      egd_drive_max_current_limit:   10
+      elmo_brake_engage_msec:         10 
+      elmo_brake_disengage_msec:      10
+      elmo_crc:                       -3260
+      elmo_drive_max_current_limit:   10
       smooth_factor:                 0
 ```
 
