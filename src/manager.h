@@ -66,7 +66,7 @@ class Manager
    *   @return Return true if bus is not faulted, otherwise a bus fault is
    * active.
    */
-  bool Process(double process_time=0);
+  bool Process(double external_time=0.0);
 
   /** @brief Interface to command devices on the bus
    *
