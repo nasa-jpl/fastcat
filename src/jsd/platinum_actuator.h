@@ -1,5 +1,5 @@
-#ifndef FASTCAT_EPD_ACTUATOR_H_
-#define FASTCAT_EPD_ACTUATOR_H_
+#ifndef FASTCAT_PLATINUM_ACTUATOR_H_
+#define FASTCAT_PLATINUM_ACTUATOR_H_
 
 // Include related header (for cc files)
 
@@ -11,10 +11,10 @@
 
 namespace fastcat
 {
-class EpdActuator : public Actuator
+class PlatinumActuator : public Actuator
 {
  public:
-  EpdActuator();
+  PlatinumActuator();
 
  protected:
   jsd_epd_state_t jsd_epd_state_;

@@ -2,7 +2,7 @@ find_package(Threads REQUIRED)
 
 
 set(TEST_SOURCES
-    test_egd_actuator.cc
+    test_gold_actuator.cc
     test_commander.cc
     test_conditional.cc
     test_function.cc

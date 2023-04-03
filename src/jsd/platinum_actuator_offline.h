@@ -1,21 +1,33 @@
-#ifndef FASTCAT_EGD_ACTUATOR_OFFLINE_H_
-#define FASTCAT_EGD_ACTUATOR_OFFLINE_H_
+#ifndef FASTCAT_PLATINUM_ACTUATOR_OFFLINE_H_
+#define FASTCAT_PLATINUM_ACTUATOR_OFFLINE_H_
 
 // Include related header (for cc files)
 
 // Include c then c++ libraries
 
 // Include external then project includes
-#include "fastcat/jsd/egd_actuator.h"
+#include "fastcat/jsd/platinum_actuator.h"
 
 namespace fastcat
 {
-class EgdActuatorOffline : public EgdActuator
+// ActuatorOffline simulates both GoldActuator and PlatinumActuator.
+class PlatinumActuatorOffline : public PlatinumActuator
 {
  public:
-  EgdActuatorOffline();
+  PlatinumActuatorOffline();
 
  private:
+  bool HandleNewProfPosCmdImpl(const DeviceCmd& cmd) override;
+  bool HandleNewProfVelCmdImpl(const DeviceCmd& cmd) override;
+  bool HandleNewProfTorqueCmdImpl(const DeviceCmd& cmd) override;
+
+  FaultType ProcessProfPos() override;
+  FaultType ProcessProfVel() override;
+  FaultType ProcessProfTorque() override;
+  FaultType ProcessProfPosDisengaging() override;
+  FaultType ProcessProfVelDisengaging() override;
+  FaultType ProcessProfTorqueDisengaging() override;
+
   void ElmoSetConfig() override;
   void ElmoProcess() override;
   void ElmoFault() override;
