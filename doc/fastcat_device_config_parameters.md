@@ -273,7 +273,20 @@ This is a thin wrapper around the JSD EGD device. This does not have fastcat-sid
 | `crc`                            | CRC of the flashed parameter set |
 | `drive_max_current_limit`        | The fixed, Maximum drive current for the EGD |
 
-`drive_cmd_mode` 
+`drive_cmd_mode` controls the structure of the Process Data Objects (PDO) exchanged with the device during nominal runtime. The Gold Drive has a fixed limit on the size of the PDO which means that it cannot support all DS-402 commands in the same configuration (in the preferred manner we like to use the drive anyways). 
+The Elmo Platinum Drive does not have this PDO limitation so it will accept all 6 command modes.
+
+`drive_cmd_mode: PROFILED` means that ONLY profiled commands are accepted:
+ - `egd_prof_pos`
+ - `egd_prof_vel`
+ - `egd_prof_torque`
+
+`drive_cmd_mode: CS` means that ONLY Cyclic-Synchronous commands are accepted:
+ - `egd_csp`
+ - `egd_csv`
+ - `egd_cst`
+
+Note: the `GoldActuator` device uses the `Egd` device in `CS` mode. Profiled commands like `ACTUATOR_PROF_POS` are implemented with fastcat-side profiling. 
 
 
 
