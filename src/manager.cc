@@ -438,10 +438,18 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900>();
 
-    } else if (0 == device_class.compare("Egd_Actuator")) {
+    } else if (0 == device_class.compare("Actuator")) {
+      WARNING("Starting in v0.12.0, Platinum device support has been added to Fastcat!");
+      WARNING("Therefore the 'Actuator' class has been renamed to the 'GoldActuator' to make room for the new 'PlatinumActuator' device");
+      WARNING("Support for 'Actuator' is eventually going to be dropped in v1.0.0 so " 
+              "update your YAML now to prevent testbed downtime");
+      MSG("Interpreting device class 'Actuator' as 'GoldActuator'");
       device = std::make_shared<GoldActuator>();
 
-    } else if (0 == device_class.compare("Epd_Actuator")) {
+    } else if (0 == device_class.compare("GoldActuator")) {
+      device = std::make_shared<GoldActuator>();
+
+    } else if (0 == device_class.compare("PlatinumActuator")) {
       device = std::make_shared<PlatinumActuator>();
 
     } else if (0 == device_class.compare("Jed0101")) {
@@ -632,10 +640,18 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900Offline>();
 
-    } else if (0 == device_class.compare("Egd_Actuator")) {
+    } else if (0 == device_class.compare("Actuator")) {
+      WARNING("Starting in v0.12.0, Platinum device support has been added to Fastcat!");
+      WARNING("Therefore the 'Actuator' class has been renamed to the 'GoldActuator' to make room for the new 'PlatinumActuator' device");
+      WARNING("Support for 'Actuator' is eventually going to be dropped in v1.0.0 so " 
+              "update your YAML now to prevent testbed downtime");
+      MSG("Interpreting device class 'Actuator' as 'GoldActuator'");
       device = std::make_shared<GoldActuatorOffline>();
 
-    } else if (0 == device_class.compare("Epd_Actuator")) {
+    } else if (0 == device_class.compare("GoldActuator")) {
+      device = std::make_shared<GoldActuatorOffline>();
+
+    } else if (0 == device_class.compare("PlatinumActuator")) {
       device = std::make_shared<PlatinumActuatorOffline>();
 
     } else if (0 == device_class.compare("Jed0101")) {

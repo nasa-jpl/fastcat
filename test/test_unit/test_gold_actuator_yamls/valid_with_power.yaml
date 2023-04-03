@@ -1,4 +1,4 @@
-device_class:                    EgdActuator
+device_class:                    GoldActuator
 name:                            act_1
 actuator_type:                   revolute # revolute: eu = radians
 gear_ratio:                      100 
