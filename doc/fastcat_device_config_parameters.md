@@ -4,19 +4,20 @@
 
 For every `JSD Device` there is an `Offline Device` to emulate the behavior of the hardware.
 
-| Name     | Manufacturer | Description                         |
-| -------- | ------------ | ----------------------------------- |
-| Actuator | Elmo         | EGD with extra features             |
-| Egd      | Elmo         | Elmo Gold Drive line of controllers |
-| El3208   | Beckhoff     | 8-channel RTD Input                 |
-| El3162   | Beckhoff     | 2-channel 0-10v SE Analog Input     |
-| El3602   | Beckhoff     | 2-channel +/-10v Diff. Analog Input |
-| El2124   | Beckhoff     | 4-channel 5v Digital Output         |
-| El4102   | Beckhoff     | 2-channel 0-10v Analog Output       |
-| Ild1900  | Micro-Epsilon | Distance Laser Sensor |
-| AtiFts   | ATI          | Force-Torque Sensor                 |
-| JED0101  | JPL          | JPL EtherCAT Device 0101 - EELS     |
-| JED0200  | JPL          | JPL EtherCAT Device 0200 - SAEL     |
+| Name             | Manufacturer  | Description                         |
+| ---------------- | ------------- | ----------------------------------- |
+| PlatinumActuator | Elmo          | EPD with extra features             |
+| GoldActuator     | Elmo          | EGD with extra features             |
+| Egd              | Elmo          | Elmo Gold Drive line of controllers |
+| El3208           | Beckhoff      | 8-channel RTD Input                 |
+| El3162           | Beckhoff      | 2-channel 0-10v SE Analog Input     |
+| El3602           | Beckhoff      | 2-channel +/-10v Diff. Analog Input |
+| El2124           | Beckhoff      | 4-channel 5v Digital Output         |
+| El4102           | Beckhoff      | 2-channel 0-10v Analog Output       |
+| Ild1900          | Micro-Epsilon | Distance Laser Sensor |
+| AtiFts           | ATI           | Force-Torque Sensor                 |
+| JED0101          | JPL           | JPL EtherCAT Device 0101 - EELS     |
+| JED0200          | JPL           | JPL EtherCAT Device 0200 - SAEL     |
 
 **Fastcat Devices**
 
@@ -164,7 +165,11 @@ These two parameters, `device_class` and `name`, are not explicitly covered in t
 
 ## JSD and Offline Device Parameters
 
-## Actuator
+## GoldActuator and PlatinumActuator
+
+Care was taken to ensure the Gold and Platinum device configuration parameters are shared between these two device drivers. 
+
+Note: the `egd_` suffix was changed to `elmo_` in `v0.12.0` 
 
 Engineering Units (EU) are radians for revolute actuators and meters for linear actuators.
 
@@ -187,10 +192,10 @@ Engineering Units (EU) are radians for revolute actuators and meters for linear 
 | `high_pos_cal_limit_eu`         | Upper Position Limit typically corresponding to a hardstop. Used for Calibration Command |
 | `high_pos_cmd_limit_eu`         | Highest allowable command position value                     |
 | `holding_duration_sec`          | Duration to hold position after reset or after a motion command before re-engaging brakes |
-| `egd_brake_engage_msec`         | How long it takes to re-engage the brakes                    |
-| `egd_brake_disengage_msec`      | How long it takes to disengaged the brakes                   |
-| `egd_crc`                       | CRC of the flashed Elmo parameter set                        |
-| `egd_drive_max_current_limit`   | The Maximum drive current for the Elmo Gold Drive            |
+| `elmo_brake_engage_msec`         | How long it takes to re-engage the brakes                    |
+| `elmo_brake_disengage_msec`      | How long it takes to disengaged the brakes                   |
+| `elmo_crc`                       | CRC of the flashed Elmo parameter set                        |
+| `elmo_drive_max_current_limit`   | The fixed, aximum drive current for the Elmo Drive           |
 | `smooth_factor`                 | Affects controller smoothing, defaults to `0`                |
 | `winding_resistance`            | OPTIONAL: Winding resistance of motor for optional power calculation |
 | `torque_constant`               | OPTIONAL: Torque constant of motor for optional power calculation  |
@@ -212,7 +217,7 @@ Engineering Units (EU) are radians for revolute actuators and meters for linear 
 ### Example
 
 ``` yaml
-    - device_class:                  Actuator
+    - device_class:                  PlatinumActuator #or GoldActuator 
       name:                          tool
       actuator_type:                 revolute # eu = radians
       gear_ratio:                    19
@@ -240,7 +245,63 @@ Engineering Units (EU) are radians for revolute actuators and meters for linear 
 
 
 
-## Egd (Elmo Gold Drive) TODO
+## Egd (Elmo Gold Drive) 
+
+This is a thin wrapper around the JSD EGD device. This does not have fastcat-side profiling nor any notion of gear ratio so the drive must be commanded in encoder counts.
+
+| Parameter                        | Description                                                  |
+| -------------------------------- | ------------------------------------------------------------ |
+| `cs_cmd_freq_hz`                 | The Target loop rate to command the drive in {CSP, CSV, CST} modes |
+| `drive_cmd_mode`                 | Either `CS` or `PROFILED` see notes below for more details |
+| `max_motor_speed`                | Maximum speed this drive may be commanded in counts/sec   |
+| `torque_slope`                   | Rate to apply torque in certain profiled torque command modes |
+| `max_profile_accel`              | ELMO-side profiler acceleration in counts/sec |
+| `max_profile_decel`              | ELMO-side profiler deceleration in counts/sec |
+| `velocity_tracking_error`        | ELMO-side velocity tracking error in counts/sec |
+| `position_tracking_error`        | ELMO-side position tracking error in counts |
+| `peak_current_limit`             | Peak instantaneous current in Amp |
+| `peak_current_time`              | Max apply duration of Peak current before dropping down to Max Continuous current |
+| `continuous_current_limit`       | Max continuously supplied current permitted to actuator |
+| `motor_stuck_current_level_pct`  | See Elmo docs for details on this feature, `0` disables|
+| `motor_stuck_velocity_threshold` | See Elmo docs for details on this feature, `0` disables|
+| `motor_stuck_timeout`            | See Elmo docs for details on this feature |
+| `over_speed_threshold`           | Multiplicative factor over `max_motor_speed` that triggers a fault |
+| `low_position_limit`             | Lower position the drive can move to in position mode, in counts |
+| `high_position_limit`            | Upper position the drive can move to in position mode, in counts|
+| `brake_enage_msec`               | How long it takes to re-engage the brake |
+| `brake_disengage_msec`           | How long it takes to disengage the brake |
+| `crc`                            | CRC of the flashed parameter set |
+| `drive_max_current_limit`        | The fixed, Maximum drive current for the EGD |
+
+`drive_cmd_mode` 
+
+
+
+``` yaml
+    - device_class:                    Egd
+      name:                            egd_1
+      cs_cmd_freq_hz:                  100
+      drive_cmd_mode:                  PROFILED
+      max_motor_speed:                 50000
+      torque_slope:                    0.25
+      max_profile_accel:               50000
+      max_profile_decel:               50000
+      velocity_tracking_error:         10000000
+      position_tracking_error:         100000000
+      peak_current_limit:              1.5
+      peak_current_time:               0.5
+      continuous_current_limit:        1.0
+      motor_stuck_current_level_pct:   0
+      motor_stuck_velocity_threshold:  0
+      motor_stuck_timeout:             1.0
+      over_speed_threshold:            100000
+      low_position_limit:              0
+      high_position_limit:             0
+      brake_engage_msec:               0
+      brake_disengage_msec:            0
+      crc:                             0
+      drive_max_current_limit:         5
+```
 
 
 
