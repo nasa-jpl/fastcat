@@ -214,7 +214,7 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
   return true;
 }
 
-bool fastcat::Manager::Process()
+bool fastcat::Manager::Process(double external_time)
 {
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     jsd_read(it->second, 1e6 / target_loop_rate_hz_);
@@ -222,7 +222,15 @@ bool fastcat::Manager::Process()
 
   // Pass the PDO read time for consistent timestamping before the device Read()
   //   method is invoked
-  double read_time = jsd_time_get_time_sec();
+  double read_time;
+  if (external_time > -1e9 && external_time < 1e9)
+  { // external time is zero so use JSD time
+    read_time = jsd_time_get_time_sec();
+  }
+  else
+  { // use supplied external time
+    read_time = external_time;
+  }
 
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
     (*it)->SetTime(read_time);
