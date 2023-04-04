@@ -54,8 +54,8 @@ find_package(YamlCpp REQUIRED 0.6.3)
 include(FetchContent)
 FetchContent_Declare(jsd
     GIT_REPOSITORY https://github.com/nasa-jpl/jsd.git
-    GIT_TAG v2.3.0
-    #GIT_TAG davkim-add-el6001
+    #GIT_TAG v2.3.0
+    GIT_TAG davkim-add-el6001
     )
 FetchContent_MakeAvailable(jsd)
 
