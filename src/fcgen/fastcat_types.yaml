@@ -432,6 +432,17 @@ states:
       - name: adc_value_ch8
         type: int16_t
 
+  - name: el6001
+    fields:
+      - name: statusword
+        type: uint16_t
+      - name: controlword
+        type: uint16_t
+      - name: data_in_bytes[22]
+        type: uint8_t
+      - name: data_out_bytes[22]
+        type: uint8_t
+
   - name: ild1900
     fields:
     - name: distance_m
@@ -651,6 +662,13 @@ commands:
       type: uint8_t
     - name: voltage_output
       type: double
+
+  - name: el6001_write_data
+    fields:
+    - name: data_size
+      type: uint8_t
+    - name: data_out_bytes[22]
+      type: uint8_t    
 
   - name: el4102_write_all_channels
     fields:
