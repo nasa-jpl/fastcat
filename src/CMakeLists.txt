@@ -57,6 +57,7 @@ add_custom_target(fcgen
     ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
     )
 
+# Build a library regardless of BUILD_TESTS flag
 add_library(fastcat STATIC
     trap.c
     device_base.cc
@@ -69,6 +70,8 @@ add_library(fastcat STATIC
 
     jsd/actuator.cc
     jsd/actuator_fsm_helpers.cc
+    jsd/egd_actuator.cc
+    jsd/epd_actuator.cc
     jsd/egd.cc
     jsd/el3208.cc
     jsd/el3602.cc
@@ -84,7 +87,7 @@ add_library(fastcat STATIC
     jsd/jed0200.cc
     jsd/ati_fts.cc
 
-    jsd/actuator_offline.cc
+    jsd/egd_actuator_offline.cc
     jsd/egd_offline.cc
     jsd/el2124_offline.cc
     jsd/el4102_offline.cc
@@ -94,6 +97,7 @@ add_library(fastcat STATIC
     jsd/el3104_offline.cc
     jsd/el3202_offline.cc
     jsd/el3318_offline.cc
+    jsd/epd_actuator_offline.cc
     jsd/ild1900_offline.cc
     jsd/jed0101_offline.cc
     jsd/jed0200_offline.cc

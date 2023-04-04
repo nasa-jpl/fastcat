@@ -20,6 +20,8 @@ bool ParseVal(YAML::Node node, std::string field, float& val);
 bool ParseVal(YAML::Node node, std::string field, std::string& val);
 bool ParseVal(YAML::Node node, std::string field, int32_t& val);
 bool ParseVal(YAML::Node node, std::string field, uint32_t& val);
+bool ParseVal(YAML::Node node, std::string field, int64_t& val);
+bool ParseVal(YAML::Node node, std::string field, uint64_t& val);
 bool ParseVal(YAML::Node node, std::string field, int16_t& val);
 bool ParseVal(YAML::Node node, std::string field, uint16_t& val);
 bool ParseVal(YAML::Node node, std::string field, int8_t& val);
