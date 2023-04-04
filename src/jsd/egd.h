@@ -36,7 +36,7 @@ class Egd : public JsdDeviceBase
  private:
   bool WriteProfiledMode(DeviceCmd& cmd);
   bool WriteCSMode(DeviceCmd& cmd);
-  bool GSModeFromString(std::string                     gs_mode_string,
+  bool GSModeFromString(std::string                      gs_mode_string,
                         jsd_elmo_gain_scheduling_mode_t& gs_mode);
 };
 

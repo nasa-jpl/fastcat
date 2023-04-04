@@ -3,12 +3,37 @@
 #include <cmath>
 
 #include "fastcat/config.h"
-#include "fastcat/jsd/actuator_offline.h"
+#include "fastcat/jsd/egd_actuator_offline.h"
 #include "fastcat/signal_handling.h"
 #include "jsd/jsd_print.h"
+#include "jsd/jsd_pub.h"
 
-namespace
+namespace fastcat
 {
+
+class Tester {
+  public:
+  jsd_egd_state_t* GetEgdState(EgdActuator& device){
+    return &device.jsd_egd_state_;
+  }
+  
+  ActuatorStateMachineState GetSMS(EgdActuator& device){
+    return device.actuator_sms_;
+  }
+
+  
+  double  CntsToEu(EgdActuator& device, int32_t cnts){
+    return device.CntsToEu(cnts);
+  }
+
+  double  PosCntsToEu(EgdActuator& device, int32_t cnts){
+    return device.PosCntsToEu(cnts);
+  }
+
+};
+
+Tester tester;
+
 class ActuatorTest : public ::testing::Test
 {
  protected:
@@ -18,7 +43,7 @@ class ActuatorTest : public ::testing::Test
 
     // FASTCAT_UNIT_TEST_DIR contains path to .
     base_dir_ = FASTCAT_UNIT_TEST_DIR;
-    base_dir_ += "test_actuator_yamls/";
+    base_dir_ += "test_egd_actuator_yamls/";
 
     device_.SetSlaveId(0);
     device_.SetContext(jsd_context_);
@@ -27,10 +52,10 @@ class ActuatorTest : public ::testing::Test
 
   void TearDown() override { jsd_free(jsd_context_); }
 
-  jsd_t*                   jsd_context_;
-  std::string              base_dir_;
-  YAML::Node               node_;
-  fastcat::ActuatorOffline device_;
+  jsd_t* jsd_context_;
+  std::string base_dir_;
+  YAML::Node node_;
+  fastcat::EgdActuatorOffline device_;
 };
 
 TEST_F(ActuatorTest, ParseValidWithPower)
@@ -156,4 +181,49 @@ TEST_F(ActuatorTest, RejectMotionCommandsWhenFaulted)
   }
 }
 
-}  // namespace
+  TEST_F(ActuatorTest, NominalResetFunction) {
+    EXPECT_TRUE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_+"valid.yaml")));
+    device_.Fault();    
+    EXPECT_TRUE(tester.GetSMS(device_) == fastcat::ACTUATOR_SMS_FAULTED);
+
+    device_.Reset();
+    EXPECT_TRUE(tester.GetSMS(device_) == fastcat::ACTUATOR_SMS_HALTED);
+  }
+
+  TEST_F(ActuatorTest, FixDirtyCmdVelocityValues) {
+    EXPECT_TRUE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_+"valid.yaml")));
+    // Set the jsd egd device state to known, dirty values
+    // TODO setup for pos, and current values too
+
+    
+    jsd_egd_state_t* jsd_egd_state = tester.GetEgdState(device_);
+
+    jsd_egd_state->cmd_position = 1234;
+    jsd_egd_state->cmd_velocity = 1234;
+    jsd_egd_state->cmd_current = 1234;
+    
+    double expected_pos = tester.PosCntsToEu(device_, 1234);
+    double expected_vel = tester.CntsToEu(device_, 1234);
+    double expected_cur = 1234;
+    
+    device_.Read();
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_position, expected_pos, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_velocity, expected_vel, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_current, expected_cur, 1e-2);
+
+    device_.Fault();
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_position, expected_pos, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_velocity, expected_vel, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_current, expected_cur, 1e-2);
+    
+    device_.Read();
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_position, 0, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_velocity, 0, 1e-2);
+    EXPECT_NEAR(device_.GetState()->egd_actuator_state.cmd_current, 0, 1e-2);
+
+  }
+
+
+
+
+} // namespace

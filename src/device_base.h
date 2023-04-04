@@ -18,6 +18,7 @@ namespace fastcat
 class DeviceBase
 {
  public:
+  virtual ~DeviceBase();
   // Pure virtual methods
   virtual bool ConfigFromYaml(YAML::Node node) = 0;
   virtual bool Read()                          = 0;

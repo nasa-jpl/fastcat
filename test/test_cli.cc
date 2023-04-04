@@ -115,7 +115,8 @@ void print_header(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%s_enable, ", state->name.c_str());
         fprintf(file, "%s_fault_active, ", state->name.c_str());
         break;
-      case fastcat::ACTUATOR_STATE:
+      case fastcat::EGD_ACTUATOR_STATE:
+      case fastcat::EPD_ACTUATOR_STATE:
         fprintf(file, "%s_actual_position, ", state->name.c_str());
         fprintf(file, "%s_actual_velocity, ", state->name.c_str());
         fprintf(file, "%s_actual_current, ", state->name.c_str());
@@ -125,8 +126,8 @@ void print_header(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%s_cmd_current, ", state->name.c_str());
 
         fprintf(file, "%s_target_reached, ", state->name.c_str());
-        fprintf(file, "%s_egd_actual_position, ", state->name.c_str());
-        fprintf(file, "%s_egd_cmd_position, ", state->name.c_str());
+        fprintf(file, "%s_elmo_actual_position, ", state->name.c_str());
+        fprintf(file, "%s_elmo_cmd_position, ", state->name.c_str());
 
         fprintf(file, "%s_motor_on, ", state->name.c_str());
         fprintf(file, "%s_servo_enabled, ", state->name.c_str());
@@ -245,22 +246,39 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%u, ", state->faulter_state.enable);
         fprintf(file, "%u, ", state->faulter_state.fault_active);
         break;
-      case fastcat::ACTUATOR_STATE:
-        fprintf(file, "%lf, ", state->actuator_state.actual_position);
-        fprintf(file, "%lf, ", state->actuator_state.actual_velocity);
-        fprintf(file, "%lf, ", state->actuator_state.actual_current);
+      case fastcat::EGD_ACTUATOR_STATE:
+        fprintf(file, "%lf, ", state->egd_actuator_state.actual_position);
+        fprintf(file, "%lf, ", state->egd_actuator_state.actual_velocity);
+        fprintf(file, "%lf, ", state->egd_actuator_state.actual_current);
 
-        fprintf(file, "%lf, ", state->actuator_state.cmd_position);
-        fprintf(file, "%lf, ", state->actuator_state.cmd_velocity);
-        fprintf(file, "%lf, ", state->actuator_state.cmd_current);
+        fprintf(file, "%lf, ", state->egd_actuator_state.cmd_position);
+        fprintf(file, "%lf, ", state->egd_actuator_state.cmd_velocity);
+        fprintf(file, "%lf, ", state->egd_actuator_state.cmd_current);
 
-        fprintf(file, "%u, ", state->actuator_state.target_reached);
+        fprintf(file, "%u, ", state->egd_actuator_state.target_reached);
 
-        fprintf(file, "%i, ", state->actuator_state.egd_actual_position);
-        fprintf(file, "%i, ", state->actuator_state.egd_cmd_position);
+        fprintf(file, "%i, ", state->egd_actuator_state.elmo_actual_position);
+        fprintf(file, "%i, ", state->egd_actuator_state.elmo_cmd_position);
 
-        fprintf(file, "%u, ", state->actuator_state.motor_on);
-        fprintf(file, "%u, ", state->actuator_state.servo_enabled);
+        fprintf(file, "%u, ", state->egd_actuator_state.motor_on);
+        fprintf(file, "%u, ", state->egd_actuator_state.servo_enabled);
+        break;
+      case fastcat::EPD_ACTUATOR_STATE:
+        fprintf(file, "%lf, ", state->epd_actuator_state.actual_position);
+        fprintf(file, "%lf, ", state->epd_actuator_state.actual_velocity);
+        fprintf(file, "%lf, ", state->epd_actuator_state.actual_current);
+
+        fprintf(file, "%lf, ", state->epd_actuator_state.cmd_position);
+        fprintf(file, "%lf, ", state->epd_actuator_state.cmd_velocity);
+        fprintf(file, "%lf, ", state->epd_actuator_state.cmd_current);
+
+        fprintf(file, "%u, ", state->epd_actuator_state.target_reached);
+
+        fprintf(file, "%i, ", state->epd_actuator_state.elmo_actual_position);
+        fprintf(file, "%i, ", state->epd_actuator_state.elmo_cmd_position);
+
+        fprintf(file, "%u, ", state->epd_actuator_state.motor_on);
+        fprintf(file, "%u, ", state->epd_actuator_state.servo_enabled);
         break;
       case fastcat::LINEAR_INTERPOLATION_STATE:
         fprintf(file, "%lf, ", state->linear_interpolation_state.output);
