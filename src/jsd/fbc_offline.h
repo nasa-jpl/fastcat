@@ -1,16 +1,16 @@
-#ifndef FASTCAT_EL6001_OFFLINE_H_
-#define FASTCAT_EL6001_OFFLINE_H_
+#ifndef FASTCAT_FBC_OFFLINE_H_
+#define FASTCAT_FBC_OFFLINE_H_
 
 // Include related header (for cc files)
 
 // Include c then c++ libraries
 
 // Include external then project includes
-#include "fastcat/jsd/el6001.h"
+#include "fastcat/jsd/fbc.h"
 
 namespace fastcat
 {
-class El6001Offline : public El6001
+class FbcOffline : public Fbc
 {
  public:
   bool      ConfigFromYaml(YAML::Node node) override;

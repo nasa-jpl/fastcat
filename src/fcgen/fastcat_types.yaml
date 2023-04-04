@@ -445,9 +445,58 @@ states:
 
   - name: fbc
     fields:
-    - name: status      
-      type: uint32_t
-      comment: "From FbcStatus"
+      - name: status      
+        type: uint32_t
+        comment: "From FbcStatus"
+      - name: op_code      
+        type: uint8_t
+        comment: "From FbcOpCode"      
+      - name: raw_byte_02
+        type: uint8_t
+      - name: raw_byte_03
+        type: uint8_t
+      - name: raw_byte_04
+        type: uint8_t
+      - name: raw_byte_05
+        type: uint8_t
+      - name: raw_byte_06
+        type: uint8_t
+      - name: raw_byte_07
+        type: uint8_t
+      - name: raw_byte_08
+        type: uint8_t
+      - name: raw_byte_09
+        type: uint8_t
+      - name: raw_byte_10
+        type: uint8_t
+      - name: raw_byte_11
+        type: uint8_t
+      - name: latched_fault_byte
+        type: int8_t
+      - name: latched_fault_bit
+        type: int8_t
+      - name: safety_relay_enabled
+        type: bool
+      - name: efuses_enabled
+        type: bool
+      - name: heartbeat_protection_enabled
+        type: bool
+      - name: straingauge_efuse_ok
+        type: bool
+      - name: mr_sensor_efuse_ok
+        type: bool
+      - name: heartbeat_detected[6]
+        type: bool
+      - name: elmo_efuse_ok[6]
+        type: bool
+      - name: hall_efuse_ok[6]
+        type: bool
+      - name: resolver_efuse_ok[6]
+        type: bool
+      - name: heater_efuse_ok[6][2]
+        type: bool
+      - name: brake_efuse_ok[6][2]
+        type: bool
 
   - name: ild1900
     fields:

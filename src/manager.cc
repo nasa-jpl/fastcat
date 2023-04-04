@@ -48,8 +48,12 @@
 #include "fastcat/jsd/el3602_offline.h"
 #include "fastcat/jsd/el4102.h"
 #include "fastcat/jsd/el4102_offline.h"
+#include "fastcat/jsd/el6001.h"
+#include "fastcat/jsd/el6001_offline.h"
 #include "fastcat/jsd/epd_actuator.h"
 #include "fastcat/jsd/epd_actuator_offline.h"
+#include "fastcat/jsd/fbc.h"
+#include "fastcat/jsd/fbc_offline.h"
 #include "fastcat/jsd/ild1900.h"
 #include "fastcat/jsd/ild1900_offline.h"
 #include "fastcat/jsd/jed0101.h"
@@ -435,6 +439,9 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("El3318")) {
       device = std::make_shared<El3318>();
 
+    } else if (0 == device_class.compare("El6001")) {
+      device = std::make_shared<El6001>();
+
     } else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900>();
 
@@ -443,6 +450,9 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("Epd_Actuator")) {
       device = std::make_shared<EpdActuator>();
+    
+    } else if (0 == device_class.compare("Fbc")) {
+      device = std::make_shared<Fbc>();
 
     } else if (0 == device_class.compare("Jed0101")) {
       device = std::make_shared<Jed0101>();
@@ -628,6 +638,9 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("El3162")) {
       device = std::make_shared<El3162Offline>();
+    
+    } else if (0 == device_class.compare("El6001")) {
+      device = std::make_shared<El6001Offline>();
 
     } else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900Offline>();
@@ -637,6 +650,9 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("Epd_Actuator")) {
       device = std::make_shared<EpdActuatorOffline>();
+
+    } else if (0 == device_class.compare("Fbc")) {
+      device = std::make_shared<FbcOffline>();
 
     } else if (0 == device_class.compare("Jed0101")) {
       device = std::make_shared<Jed0101Offline>();

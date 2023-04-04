@@ -30,7 +30,7 @@ typedef enum {
   FBC_BYTE_ELMO_CHANNEL_3,
   FBC_BYTE_ELMO_CHANNEL_4,
   FBC_BYTE_ELMO_CHANNEL_5,
-  FBC_BYTE_MCU_STATE,
+  FBC_BYTE_MCU_STATUS,
   FBC_BYTE_LATCHED_FAULT,
   FBC_BYTE_CHECKSUM
 } FbcResponseBytes;
@@ -96,12 +96,12 @@ class Fbc : public JsdDeviceBase
  protected:
   bool ConfigFromYamlCommon(YAML::Node node);
   
-  virtual void EgdRead();
-  virtual void EgdSetConfig();
-  virtual void EgdProcess();
-  virtual void EgdClearErrors();
-  virtual void EgdFault();
-  virtual void EgdReset();
+  // virtual void EgdRead();
+  // virtual void EgdSetConfig();
+  // virtual void EgdProcess();
+  // virtual void EgdClearErrors();
+  // virtual void EgdFault();
+  // virtual void EgdReset();
     
   jsd_el6001_state_t jsd_el6001_state_;
   DeviceCmd          last_cmd_;

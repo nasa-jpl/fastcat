@@ -17,6 +17,9 @@
 #define FBC_STOP_BYTE  0x45  ///< ACSII 'E'
 #define FBC_DATA_PACKET_SIZE 13
 
+#define FBC_NUM_HEATER_PER_CHANNEL 2
+#define FBC_NUM_BRAKE_PER_ELMO 2
+
 fastcat::Fbc::Fbc()
 {
   MSG_DEBUG("Constructed Fbc");
@@ -75,8 +78,103 @@ bool fastcat::Fbc::Read()
 
   if (ready_to_parse){
     // parse received bytes into FBC State
-  }  
+    for (int i = FBC_BYTE_COUNTER; i <= FBC_BYTE_LATCHED_FAULT; i++) {
+      // Copy over the received bytes for telem and diagnostics
+      switch(i)
+      {
+        case FBC_BYTE_COUNTER:
+          state_->fbc_state.raw_byte_02 = received_bytes[i];
+          break;
+        case FBC_BYTE_STATUS:
+          state_->fbc_state.raw_byte_03 = received_bytes[i];
+          break;
+        case FBC_BYTE_AUX_CHANNEL:
+          state_->fbc_state.raw_byte_04 = received_bytes[i];
+          break;
+        case FBC_BYTE_ELMO_CHANNEL_1:
+          state_->fbc_state.raw_byte_05 = received_bytes[i];
+          break;
+        case FBC_BYTE_ELMO_CHANNEL_2:
+          state_->fbc_state.raw_byte_06 = received_bytes[i];
+          break;
+        case FBC_BYTE_ELMO_CHANNEL_3:
+          state_->fbc_state.raw_byte_07 = received_bytes[i];
+          break;
+        case FBC_BYTE_ELMO_CHANNEL_4:
+          state_->fbc_state.raw_byte_08 = received_bytes[i];
+          break;
+        case FBC_BYTE_ELMO_CHANNEL_5:
+          state_->fbc_state.raw_byte_09 = received_bytes[i];
+          break;
+        case FBC_BYTE_MCU_STATUS:
+          state_->fbc_state.raw_byte_10 = received_bytes[i];
+          break;
+        case FBC_BYTE_LATCHED_FAULT:
+          state_->fbc_state.raw_byte_11 = received_bytes[i];
+          break;
+        default:
+          break;
+      }
 
+      // Set the downstream (derived) variables
+      switch(i)
+      {
+        case FBC_BYTE_COUNTER:
+          break;
+
+        case FBC_BYTE_STATUS:          
+          state_->fbc_state.safety_relay_enabled               = ( received_bytes[i]       & 0x01);
+          state_->fbc_state.efuses_enabled                     = ((received_bytes[i] >> 1) & 0x01);
+          state_->fbc_state.heartbeat_protection_enabled       = ((received_bytes[i] >> 2) & 0x01);
+          state_->fbc_state.heartbeat_detected[FBC_M1_CHANNEL] = ((received_bytes[i] >> 3) & 0x01);
+          state_->fbc_state.heartbeat_detected[FBC_M2_CHANNEL] = ((received_bytes[i] >> 4) & 0x01);
+          state_->fbc_state.heartbeat_detected[FBC_M3_CHANNEL] = ((received_bytes[i] >> 5) & 0x01);
+          state_->fbc_state.heartbeat_detected[FBC_M4_CHANNEL] = ((received_bytes[i] >> 6) & 0x01);
+          state_->fbc_state.heartbeat_detected[FBC_M5_CHANNEL] = ((received_bytes[i] >> 7) & 0x01);          
+          break;
+
+        case FBC_BYTE_AUX_CHANNEL:
+          state_->fbc_state.straingauge_efuse_ok       = ( received_bytes[i]       & 0x01);
+          state_->fbc_state.heater_efuse_ok[0][0] = ((received_bytes[i] >> 1) & 0x01);
+          state_->fbc_state.heater_efuse_ok[0][1] = ((received_bytes[i] >> 1) & 0x01);
+          state_->fbc_state.resolver_efuse_ok[0]        = ((received_bytes[i] >> 3) & 0x01);
+          state_->fbc_state.mr_sensor_efuse_ok    = ((received_bytes[i] >> 4) & 0x01);          
+          break;
+
+        case FBC_BYTE_ELMO_CHANNEL_1:
+        case FBC_BYTE_ELMO_CHANNEL_2:
+        case FBC_BYTE_ELMO_CHANNEL_3:
+        case FBC_BYTE_ELMO_CHANNEL_4:
+        case FBC_BYTE_ELMO_CHANNEL_5:
+          {
+            int elmo_index = (i - FBC_BYTE_ELMO_CHANNEL_1 + FBC_M1_CHANNEL);
+            state_->fbc_state.elmo_efuse_ok[elmo_index]      = ( received_bytes[i]       & 0x01);
+            state_->fbc_state.hall_efuse_ok[elmo_index]      = ((received_bytes[i] >> 1) & 0x01);
+            state_->fbc_state.resolver_efuse_ok[elmo_index]        = ((received_bytes[i] >> 2) & 0x01);
+            state_->fbc_state.heater_efuse_ok[elmo_index][0] = ((received_bytes[i] >> 3) & 0x01);
+            state_->fbc_state.heater_efuse_ok[elmo_index][1] = ((received_bytes[i] >> 4) & 0x01);
+            state_->fbc_state.brake_efuse_ok[elmo_index][0]  = ((received_bytes[i] >> 5) & 0x01);
+            state_->fbc_state.brake_efuse_ok[elmo_index][1]  = ((received_bytes[i] >> 6) & 0x01);
+          }
+          break;
+
+        case FBC_BYTE_MCU_STATUS:
+          // Pull out bits 0 and 1 (0000 0011)
+          state_->fbc_state.status = (FbcStatus) (received_bytes[i] & 0x03);
+          break;
+
+        case FBC_BYTE_LATCHED_FAULT:
+          state_->fbc_state.latched_fault_bit  = ( received_bytes[i]       & 0x0F); //0000 1111
+          state_->fbc_state.latched_fault_byte = ((received_bytes[i] >> 4) & 0x0F); //1111 0000
+          break;
+
+        default:
+          ERROR("Unhandled response byte for efuse mcu");
+          break;
+      }
+    }
+  }
+  
   return true;
 }
 
@@ -117,4 +215,24 @@ fastcat::FaultType fastcat::Fbc::Process()
   jsd_el6001_process(context_, slave_id_);
 
   return retval;
+}
+
+void fastcat::Fbc::Fault()
+{
+  WARNING("Faulting FBC %s", name_.c_str());
+  // ElmoFault(); //TODO: Invoke FBC fault
+
+}
+
+void fastcat::Fbc::Reset()
+{
+  WARNING("Resetting FBC device %s", name_.c_str());
+  // TODO: Invoke Reset FBC
+  // if (actuator_sms_ == ACTUATOR_SMS_FAULTED) {
+  //   // Resetting here would open brakes so we explicitly do not reset the EGD
+  //   // and instead only clear latched errors
+  //   ElmoClearErrors();
+  //   fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
+  //   TransitionToState(ACTUATOR_SMS_HALTED);
+  // }
 }

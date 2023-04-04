@@ -17,7 +17,7 @@ fastcat::FaultType fastcat::El6001Offline::Process()
   return DeviceBase::Process();
 }
 
-bool fastcat::El4102Offline::Write(DeviceCmd& cmd)
+bool fastcat::El6001Offline::Write(DeviceCmd& cmd)
 {
   // If device supports async SDO requests
   AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
