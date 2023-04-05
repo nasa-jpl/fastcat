@@ -10,7 +10,6 @@
 
 namespace fastcat
 {
-// ActuatorOffline simulates both GoldActuator and PlatinumActuator.
 class PlatinumActuatorOffline : public PlatinumActuator
 {
  public:

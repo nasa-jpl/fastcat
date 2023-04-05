@@ -4,20 +4,20 @@
 
 For every `JSD Device` there is an `Offline Device` to emulate the behavior of the hardware.
 
-| Name             | Manufacturer  | Description                         |
-| ---------------- | ------------- | ----------------------------------- |
-| PlatinumActuator | Elmo          | EPD with extra features             |
-| GoldActuator     | Elmo          | EGD with extra features             |
-| Egd              | Elmo          | Elmo Gold Drive line of controllers |
-| El3208           | Beckhoff      | 8-channel RTD Input                 |
-| El3162           | Beckhoff      | 2-channel 0-10v SE Analog Input     |
-| El3602           | Beckhoff      | 2-channel +/-10v Diff. Analog Input |
-| El2124           | Beckhoff      | 4-channel 5v Digital Output         |
-| El4102           | Beckhoff      | 2-channel 0-10v Analog Output       |
-| Ild1900          | Micro-Epsilon | Distance Laser Sensor |
-| AtiFts           | ATI           | Force-Torque Sensor                 |
-| JED0101          | JPL           | JPL EtherCAT Device 0101 - EELS     |
-| JED0200          | JPL           | JPL EtherCAT Device 0200 - SAEL     |
+| Name             | Manufacturer  | Description                               |
+| ---------------- | ------------- | ----------------------------------------- |
+| PlatinumActuator | Elmo          | Elmo Platinum derived Actuator controller |
+| GoldActuator     | Elmo          | Elmo Gold derived Actuator controller     |
+| Egd              | Elmo          | Elmo Gold Drive                           |
+| El3208           | Beckhoff      | 8-channel RTD Input                       |
+| El3162           | Beckhoff      | 2-channel 0-10v SE Analog Input           |
+| El3602           | Beckhoff      | 2-channel +/-10v Diff. Analog Input       |
+| El2124           | Beckhoff      | 4-channel 5v Digital Output               |
+| El4102           | Beckhoff      | 2-channel 0-10v Analog Output             |
+| Ild1900          | Micro-Epsilon | Distance Laser Sensor                     |
+| AtiFts           | ATI           | Force-Torque Sensor                       |
+| JED0101          | JPL           | JPL EtherCAT Device 0101 - EELS           |
+| JED0200          | JPL           | JPL EtherCAT Device 0200 - SAEL           |
 
 **Fastcat Devices**
 
@@ -192,10 +192,10 @@ Engineering Units (EU) are radians for revolute actuators and meters for linear 
 | `high_pos_cal_limit_eu`         | Upper Position Limit typically corresponding to a hardstop. Used for Calibration Command |
 | `high_pos_cmd_limit_eu`         | Highest allowable command position value                     |
 | `holding_duration_sec`          | Duration to hold position after reset or after a motion command before re-engaging brakes |
-| `elmo_brake_engage_msec`         | How long it takes to re-engage the brakes                    |
-| `elmo_brake_disengage_msec`      | How long it takes to disengaged the brakes                   |
-| `elmo_crc`                       | CRC of the flashed Elmo parameter set                        |
-| `elmo_drive_max_current_limit`   | The fixed, aximum drive current for the Elmo Drive           |
+| `elmo_brake_engage_msec`        | How long it takes to re-engage the brakes                    |
+| `elmo_brake_disengage_msec`     | How long it takes to disengaged the brakes                   |
+| `elmo_crc`                      | CRC of the flashed Elmo parameter set                        |
+| `elmo_drive_max_current_limit`  | The fixed, maximum drive current for the Elmo Drive          |
 | `smooth_factor`                 | Affects controller smoothing, defaults to `0`                |
 | `winding_resistance`            | OPTIONAL: Winding resistance of motor for optional power calculation |
 | `torque_constant`               | OPTIONAL: Torque constant of motor for optional power calculation  |
@@ -265,7 +265,7 @@ This is a thin wrapper around the JSD EGD device. This does not have fastcat-sid
 | `motor_stuck_current_level_pct`  | See Elmo docs for details on this feature, `0` disables|
 | `motor_stuck_velocity_threshold` | See Elmo docs for details on this feature, `0` disables|
 | `motor_stuck_timeout`            | See Elmo docs for details on this feature |
-| `over_speed_threshold`           | Multiplicative factor over `max_motor_speed` that triggers a fault |
+| `over_speed_threshold`           | High motor speed used for overspeed violations in counts/sec |
 | `low_position_limit`             | Lower position the drive can move to in position mode, in counts |
 | `high_position_limit`            | Upper position the drive can move to in position mode, in counts|
 | `brake_enage_msec`               | How long it takes to re-engage the brake |
