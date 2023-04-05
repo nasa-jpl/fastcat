@@ -76,7 +76,7 @@ states:
     - name: tared_tz
       type: double
 
-  - name: egd_actuator
+  - name: gold_actuator
     fields:
     - name: actual_position
       type: double
@@ -130,7 +130,7 @@ states:
     - name: power
       type: double
 
-  - name: epd_actuator
+  - name: platinum_actuator
     fields:
     - name: actual_position
       type: double

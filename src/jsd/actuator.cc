@@ -673,14 +673,14 @@ std::string fastcat::Actuator::GetFastcatFaultCodeAsString(
 {
   std::string fault_str;
 
-  if (state.type == EGD_ACTUATOR_STATE || state.type == EPD_ACTUATOR_STATE) {
+  if (state.type == GOLD_ACTUATOR_STATE || state.type == PLATINUM_ACTUATOR_STATE) {
     ActuatorFastcatFault fault;
-    if (state.type == EGD_ACTUATOR_STATE) {
+    if (state.type == GOLD_ACTUATOR_STATE) {
       fault = static_cast<ActuatorFastcatFault>(
-          state.egd_actuator_state.fastcat_fault_code);
+          state.gold_actuator_state.fastcat_fault_code);
     } else {
       fault = static_cast<ActuatorFastcatFault>(
-          state.epd_actuator_state.fastcat_fault_code);
+          state.platinum_actuator_state.fastcat_fault_code);
     }
 
     switch (fault) {
@@ -731,13 +731,13 @@ std::string fastcat::Actuator::GetJSDFaultCodeAsString(const DeviceState& state)
 {
   std::string fault_str;
 
-  if (state.type == EGD_ACTUATOR_STATE) {
+  if (state.type == GOLD_ACTUATOR_STATE) {
     auto fault = static_cast<jsd_egd_fault_code_t>(
-        state.egd_actuator_state.jsd_fault_code);
+        state.gold_actuator_state.jsd_fault_code);
     fault_str = std::string(jsd_egd_fault_code_to_string(fault));
-  } else if (state.type == EPD_ACTUATOR_STATE) {
+  } else if (state.type == PLATINUM_ACTUATOR_STATE) {
     auto fault = static_cast<jsd_epd_fault_code_t>(
-        state.epd_actuator_state.jsd_fault_code);
+        state.platinum_actuator_state.jsd_fault_code);
     fault_str = std::string(jsd_epd_fault_code_to_string(fault));
   } else {
     fault_str = "State is not an Elmo actuator type.";
@@ -750,12 +750,12 @@ bool fastcat::Actuator::IsJsdFaultCodePresent(const DeviceState& state)
 {
   bool fault_present = false;
 
-  if (state.type == EGD_ACTUATOR_STATE) {
-    if (state.egd_actuator_state.jsd_fault_code != JSD_EGD_FAULT_OKAY) {
+  if (state.type == GOLD_ACTUATOR_STATE) {
+    if (state.gold_actuator_state.jsd_fault_code != JSD_EGD_FAULT_OKAY) {
       fault_present = true;
     }
-  } else if (state.type == EPD_ACTUATOR_STATE) {
-    if (state.epd_actuator_state.jsd_fault_code != JSD_EPD_FAULT_OKAY) {
+  } else if (state.type == PLATINUM_ACTUATOR_STATE) {
+    if (state.platinum_actuator_state.jsd_fault_code != JSD_EPD_FAULT_OKAY) {
       fault_present = true;
     }
   } else {
@@ -771,10 +771,10 @@ bool fastcat::Actuator::IsJsdFaultCodePresent(const DeviceState& state)
 double fastcat::Actuator::GetActualPosition(const DeviceState& state)
 {
   double actual_position;
-  if (state.type == EGD_ACTUATOR_STATE) {
-    actual_position = state.egd_actuator_state.actual_position;
-  } else if (state.type == EPD_ACTUATOR_STATE) {
-    actual_position = state.epd_actuator_state.actual_position;
+  if (state.type == GOLD_ACTUATOR_STATE) {
+    actual_position = state.gold_actuator_state.actual_position;
+  } else if (state.type == PLATINUM_ACTUATOR_STATE) {
+    actual_position = state.platinum_actuator_state.actual_position;
   } else {
     ERROR(
         "GetActualPosition must be called on states of Elmo actuator "

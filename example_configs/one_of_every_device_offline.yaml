@@ -34,8 +34,8 @@ buses:
       crc:                             0
       drive_max_current_limit:         5
 
-    - device_class:                    Actuator
-      name:                            act_1
+    - device_class:                    GoldActuator
+      name:                            gold_act_1
       actuator_type:                   revolute # revolute: eu = radians
       gear_ratio:                      100 
       counts_per_rev:                  500
@@ -53,10 +53,35 @@ buses:
       high_pos_cmd_limit_eu:            3.14159
       high_pos_cal_limit_eu:            3.2 
       holding_duration_sec:            3.0 # chosen arbitrarily
-      egd_brake_engage_msec:           500 
-      egd_brake_disengage_msec:        1000
-      egd_crc:                         12345
-      egd_drive_max_current_limit:     10 # amps
+      elmo_brake_engage_msec:           500 
+      elmo_brake_disengage_msec:        1000
+      elmo_crc:                         12345
+      elmo_drive_max_current_limit:     10 # amps
+      smooth_factor:                   0 # default value is 0
+
+    - device_class:                    PlatinumActuator
+      name:                            plat_act_1
+      actuator_type:                   revolute # revolute: eu = radians
+      gear_ratio:                      100 
+      counts_per_rev:                  500
+      max_speed_eu_per_sec:            10  #rad/sec
+      max_accel_eu_per_sec2:           30  #rad/sec/sec 
+      over_speed_multiplier:           2 
+      vel_tracking_error_eu_per_sec:   1000 # chosen arbitrarily
+      pos_tracking_error_eu:           1000 # chosen arbitrarily
+      peak_current_limit_amps:         10
+      peak_current_time_sec:           3.0 # chosen arbitrarily
+      continuous_current_limit_amps:   5
+      torque_slope_amps_per_sec:       0.5 # amps/sec; chosen arbitrarily
+      low_pos_cal_limit_eu:            -3.2
+      low_pos_cmd_limit_eu:            -3.14159
+      high_pos_cmd_limit_eu:            3.14159
+      high_pos_cal_limit_eu:            3.2 
+      holding_duration_sec:            3.0 # chosen arbitrarily
+      elmo_brake_engage_msec:           500 
+      elmo_brake_disengage_msec:        1000
+      elmo_crc:                         12345
+      elmo_drive_max_current_limit:     10 # amps
       smooth_factor:                   0 # default value is 0
 
     - device_class: El2124

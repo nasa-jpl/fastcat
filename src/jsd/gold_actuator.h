@@ -1,5 +1,5 @@
-#ifndef FASTCAT_EGD_ACTUATOR_H_
-#define FASTCAT_EGD_ACTUATOR_H_
+#ifndef FASTCAT_GOLD_ACTUATOR_H_
+#define FASTCAT_GOLD_ACTUATOR_H_
 
 // Include related header (for cc files)
 
@@ -11,13 +11,13 @@
 
 namespace fastcat
 {
-class EgdActuator : public Actuator
+class GoldActuator : public Actuator
 {
 
  friend class Tester;
 
  public:
-  EgdActuator();
+  GoldActuator();
 
  protected:
   jsd_egd_state_t jsd_egd_state_;
