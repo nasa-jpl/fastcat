@@ -363,21 +363,21 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
 
     case ACTUATOR_PROF_POS_CMD:
       if (!HandleNewProfPosCmd(cmd)) {
-        ERROR("Failed to setup Actuator Profiled Pos command");
+        ERROR("Failed to setup Actuator Profiled Position command");
         return false;
       }
       break;
 
     case ACTUATOR_PROF_VEL_CMD:
       if (!HandleNewProfVelCmd(cmd)) {
-        ERROR("Failed to setup Actuator Profiled Pos command");
+        ERROR("Failed to setup Actuator Profiled Velocity command");
         return false;
       }
       break;
 
     case ACTUATOR_PROF_TORQUE_CMD:
       if (!HandleNewProfTorqueCmd(cmd)) {
-        ERROR("Failed to setup Actuator Profiled Pos command");
+        ERROR("Failed to setup Actuator Profiled Torque command");
         return false;
       }
       break;
