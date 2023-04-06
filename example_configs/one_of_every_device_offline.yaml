@@ -297,3 +297,26 @@ buses:
       signals:
       - observed_device_name: sig_gen_1
         request_signal_name:  output
+
+    - device_class: ThreeNodeThermalModel
+      name:         three_node_thermal_model_1 
+      thermal_mass_node_1: 1.0
+      thermal_mass_node_2: 2.0
+      thermal_res_nodes_1_to_2: 3.0
+      thermal_res_nodes_2_to_3: 4.0
+      winding_res: 5.0
+      winding_thermal_cor: 6.0
+      k1: 1.0
+      k3: 2.0
+      max_allowable_temp_1: 65.0
+      max_allowable_temp_1: 70.0
+      max_allowable_temp_1: 75.0
+      max_allowable_temp_1: 80.0
+      persistance_limit: 5
+      signals:
+      - observed_device_name: el3602
+        request_signal_name:  voltage_ch1
+      - observed_device_name: egd_1
+        request_signal_name:  actual_current
+
+
