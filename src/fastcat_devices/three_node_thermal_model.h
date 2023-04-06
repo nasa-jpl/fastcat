@@ -25,7 +25,7 @@ class ThreeNodeThermalModel : public DeviceBase
 
   /**
    * @brief Parses input yaml file to set model constants and temperature
-   * limits.
+   *        limits.
    * @param node The portion of the yaml file corresponding to this device.
    * @return True if configuration completes without error; false otherwise.
    */
@@ -56,7 +56,34 @@ class ThreeNodeThermalModel : public DeviceBase
   bool Write(DeviceCmd& cmd) override;
 
  protected:
-  // TODO: add constants and variables parsed from config
+  // declare motor parameters
+  double thermal_mass_node_1_{0.0};
+  double thermal_mass_node_2_{0.0};
+  double thermal_resistance_nodes_1_to_2_{0.0};
+  double thermal_resistance_nodes_2_to_3_{0.0};
+  double winding_resistance_{0.0};
+  double winding_thermal_cor_{0.0};  /// coefficient of resistance
+  double motor_resistance_{0.0};
+  double k1_{0.0}, k3_{0.0};  /// weights for T4 estimate
+
+  // declare fault protection parameters
+  double max_allowable_temp_1_{0.0};
+  double max_allowable_temp_2_{0.0};
+  double max_allowable_temp_3_{0.0};
+  double max_allowable_temp_4_{0.0};
+  size_t persistance_limit_{0};
+
+  // declare variables for storing signal data and estimates
+  double motor_current_{
+      0.0};  ///< this value is retrieved from a motor controller measurement
+  double node_1_temp_{0.0};  ///< this value is estimated from the model and
+                             ///< represents winding temperature
+  double node_2_temp_{0.0};  ///< this value is estimated from the model and
+                             ///< represents stator temperature
+  double node_3_temp_{0.0};  ///< this value is measured directly using a sensor
+  double node_4_temp_{
+      0.0};  ///< this value is estimated from the model and generally
+             ///< represents all other component temperatures
 };
 }  // namespace fastcat
 
