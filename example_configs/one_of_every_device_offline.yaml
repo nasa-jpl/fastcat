@@ -308,11 +308,8 @@ buses:
       winding_thermal_cor: 6.0
       k1: 1.0
       k3: 2.0
-      max_allowable_temp_1: 65.0
-      max_allowable_temp_1: 70.0
-      max_allowable_temp_1: 75.0
-      max_allowable_temp_1: 80.0
       persistance_limit: 5
+      max_allowable_temps: [65.0, 70.0, 75.0, 80.0]
       signals:
       - observed_device_name: el3602
         request_signal_name:  voltage_ch1

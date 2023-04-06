@@ -59,8 +59,7 @@ class ThreeNodeThermalModel : public DeviceBase
   // declare motor parameters
   double thermal_mass_node_1_{0.0};
   double thermal_mass_node_2_{0.0};
-  double thermal_res_nodes_1_to_2_{
-      0.0};  ///< thermal resistance from node 1 to 2 (deg C / W)
+  double{0.0};  ///< thermal resistance from node 1 to 2 (deg C / W)
   double thermal_res_nodes_2_to_3_{
       0.0};  ///< thermal resistance from node 2 to 3 (deg C / W)
   double winding_res_{0.0};  ///< motor winding electrical resistance (ohms)
@@ -68,10 +67,7 @@ class ThreeNodeThermalModel : public DeviceBase
   double k1_{0.0}, k3_{0.0};         ///< weights for T4 estimate
 
   // declare fault protection parameters
-  double max_allowable_temp_1_{0.0};
-  double max_allowable_temp_2_{0.0};
-  double max_allowable_temp_3_{0.0};
-  double max_allowable_temp_4_{0.0};
+  std::vector<double> max_allowable_temps_{0.0, 0.0, 0.0, 0.0};
   size_t persistance_limit_{
       0};  ///< represents how many time cycles a temperature limit is able to
            ///< be exceeded before throwing a fault
