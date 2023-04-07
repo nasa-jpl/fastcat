@@ -78,7 +78,7 @@ bool fastcat::Fts::ConfigFromYaml(YAML::Node node)
 
   size_t el = 0;
   for (auto cc = calib_node.begin(); cc != calib_node.end(); ++cc) {
-    calibration_[el / FC_FTS_N_DIMS][el % signals_.size()] = (*cc).as<double>();
+    calibration_[el / signals_.size()][el % signals_.size()] = (*cc).as<double>();
     el++;
   }
 
@@ -100,11 +100,17 @@ bool fastcat::Fts::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Fts::Read()
 {
-  for (int ii = 0; ii < FC_FTS_N_DIMS; ii++) {
-    if (!UpdateSignal(signals_[ii])) {
+  int i= 0;
+  for (auto& signal : signals_) {
+    if (!UpdateSignal(signal)) {
       ERROR("Could not extract signal");
       return false;
     }
+    MSG_DEBUG("Signal number %d is value %f", i, signal.value);
+    i++;
+  }
+
+  for (int ii = 0; ii < FC_FTS_N_DIMS; ii++) {
     wrench_[ii] = 0;
 
     for (size_t jj = 0; jj < signals_.size(); jj++) {

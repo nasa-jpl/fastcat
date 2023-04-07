@@ -48,7 +48,6 @@ TEST_F(FtsTest, RejectTareWhenFaulted)
 
 TEST_F(FtsTest, WideMatrixValid)
 {
-  MSG_DEBUG("before parse");
   EXPECT_TRUE(
       device_.ConfigFromYaml(YAML::LoadFile(base_dir_ + "fts_wide_cal_matrix.yaml")));
 
@@ -59,7 +58,6 @@ TEST_F(FtsTest, WideMatrixValid)
     auto &sgs = device_states[i]; 
     sgs.type = fastcat::SIGNAL_GENERATOR_STATE;
     sgs.signal_generator_state.output = 0.0;
-    device_states.push_back(sgs);
     fastcat::ConfigSignalByteIndexing(&sgs, device_.signals_[i]);
   }
   device_.Read();
@@ -68,7 +66,7 @@ TEST_F(FtsTest, WideMatrixValid)
 
   // Make non-zero final signal
   auto &last_state = device_states.back();
-  last_state.signal_generator_state.output = 10.0;
+  last_state.signal_generator_state.output = 35.0;
   device_.Read();
   EXPECT_EQ(
     35.0, device_.GetState()->fts_state.raw_tz);
