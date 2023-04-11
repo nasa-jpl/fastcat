@@ -29,7 +29,7 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | Conditional     | Logical test for signal with a boolean state data field      |
 | Faulter         | Emits a fault if a the input signal != 0                     |
 | Filter          | Supports Digital AB and Moving Average filtering on Signals  |
-| Fts             | Reads in 6 'raw' signals and multiplies them through a 6x6 calibration matrix to compute a wrench |
+| Fts             | Reads in N (some number >=6) 'raw' signals and multiplies them through a 6xN calibration matrix to compute a wrench |
 | Function        | Applies a function to a single input signal (e.g. parametrized N-order polynomial) |
 | Pid             | Applies a PID Controller to signal with deadband and persistence arguments |
 | Saturation      | Applies upper and lower saturation limits to a signal        |

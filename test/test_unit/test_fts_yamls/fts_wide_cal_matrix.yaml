@@ -1,0 +1,29 @@
+device_class: Fts
+name: fts_2
+calibration_matrix: [1,0,0,0,0,0,0,
+                     0,1,0,0,0,0,0,
+                     0,0,1,0,0,0,0,
+                     0,0,0,1,0,0,0,
+                     0,0,0,0,1,0,0,
+                     0,0,0,0,0,1,1]
+max_force_x:  100
+max_force_y:  200
+max_force_z:  300
+max_torque_x: 10
+max_torque_y: 20
+max_torque_z: 30
+signals:
+- observed_device_name: sig_gen_1
+  request_signal_name: output
+- observed_device_name: sig_gen_2
+  request_signal_name: output
+- observed_device_name: sig_gen_3
+  request_signal_name: output
+- observed_device_name: sig_gen_4
+  request_signal_name: output
+- observed_device_name: sig_gen_5
+  request_signal_name: output
+- observed_device_name: sig_gen_6
+  request_signal_name: output
+- observed_device_name: sig_gen_7
+  request_signal_name: output
