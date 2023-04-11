@@ -100,14 +100,11 @@ bool fastcat::Fts::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Fts::Read()
 {
-  int i= 0;
   for (auto& signal : signals_) {
     if (!UpdateSignal(signal)) {
       ERROR("Could not extract signal");
       return false;
     }
-    MSG_DEBUG("Signal number %d is value %f", i, signal.value);
-    i++;
   }
 
   for (int ii = 0; ii < FC_FTS_N_DIMS; ii++) {
