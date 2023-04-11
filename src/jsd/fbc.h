@@ -76,9 +76,9 @@ typedef enum {
 
 typedef enum {
   FBC_STATUS_ALL_OK = 0,
-  FBC_STATUS_FAULT,
+  FBC_STATUS_FAULTED,
   FBC_STATUS_STANDBY,
-  FBC_STATUS_HB_BYPASS,
+  FBC_STATUS_HB_BYPASSED,
 
 } FbcStatus;
 

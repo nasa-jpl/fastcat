@@ -134,10 +134,10 @@ bool fastcat::Fbc::Read()
           break;
 
         case FBC_BYTE_AUX_CHANNEL:
-          state_->fbc_state.straingauge_efuse_ok       = ( received_bytes[i]       & 0x01);
+          state_->fbc_state.straingauge_efuse_ok  = ( received_bytes[i]       & 0x01);
           state_->fbc_state.heater_efuse_ok[0][0] = ((received_bytes[i] >> 1) & 0x01);
           state_->fbc_state.heater_efuse_ok[0][1] = ((received_bytes[i] >> 1) & 0x01);
-          state_->fbc_state.resolver_efuse_ok[0]        = ((received_bytes[i] >> 3) & 0x01);
+          state_->fbc_state.resolver_efuse_ok[0]  = ((received_bytes[i] >> 3) & 0x01);
           state_->fbc_state.mr_sensor_efuse_ok    = ((received_bytes[i] >> 4) & 0x01);          
           break;
 
@@ -150,7 +150,7 @@ bool fastcat::Fbc::Read()
             int elmo_index = (i - FBC_BYTE_ELMO_CHANNEL_1 + FBC_M1_CHANNEL);
             state_->fbc_state.elmo_efuse_ok[elmo_index]      = ( received_bytes[i]       & 0x01);
             state_->fbc_state.hall_efuse_ok[elmo_index]      = ((received_bytes[i] >> 1) & 0x01);
-            state_->fbc_state.resolver_efuse_ok[elmo_index]        = ((received_bytes[i] >> 2) & 0x01);
+            state_->fbc_state.resolver_efuse_ok[elmo_index]  = ((received_bytes[i] >> 2) & 0x01);
             state_->fbc_state.heater_efuse_ok[elmo_index][0] = ((received_bytes[i] >> 3) & 0x01);
             state_->fbc_state.heater_efuse_ok[elmo_index][1] = ((received_bytes[i] >> 4) & 0x01);
             state_->fbc_state.brake_efuse_ok[elmo_index][0]  = ((received_bytes[i] >> 5) & 0x01);
