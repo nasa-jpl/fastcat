@@ -84,9 +84,8 @@ class ThreeNodeThermalModel : public DeviceBase
   double node_2_temp_{0.0};  ///< this value is estimated from the model and
                              ///< represents stator temperature
   double node_3_temp_{0.0};  ///< this value is measured directly using a sensor
-  double node_4_temp_{
-      0.0};  ///< this value is estimated from the model and generally
-             ///< represents all other component temperatures
+  double node_4_temp_{0.0};  ///< this value is estimated from the model and
+                             ///< represents all other component temperatures
 };
 }  // namespace fastcat
 

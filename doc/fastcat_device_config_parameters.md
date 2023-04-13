@@ -1137,3 +1137,52 @@ This example implements an absolute value function over the range of [-9, 9]
   - observed_device_name: sig_gen_1
     request_signal_name:  output
 ```
+
+
+## ThreeNodeThermalModel
+
+| Parameter   | Description |
+| ----------- | ----------- |
+| thermal_mass_node_1      | The thermal mass that represents the winding node (node 1) |
+| thermal_mass_node_2      | The thermal mass that represents the stator node (node 2) |
+| thermal_res_nodes_1_to_2      | The effective thermal resistance between nodes 1 and 2 |
+| thermal_res_nodes_2_to_3      | The effective thermal resistance between nodes 2 and 3 |
+| winding_res      | The electrical resistance of the motor windings at 20 deg C |
+| winding_thermal_cor      | The thermal coefficient of resistance (% / deg C) |
+| k1      | Weight for for node 1 used for the weighted-average temperature estimate of node |
+| k3      | Weight for for node 3 used for the weighted-average temperature estimate of node |
+| persistance_limit      | The number of allowable cycles to occur at or above the a temperature threshold before faulting |
+| max_allowable_temps      | An array of allow able temperatures at each node (in order) |
+
+The ThreeNodeThermalModel provides a simplified predictive thermal model used to estimate 
+temperature change over time in specific locations in a motor. This is primarily useful for
+estimating when a motor's internal temperature is at risk of exceeding a threshold that could
+damage it's operation. The maximum allowable temperature at each node is prescribable in the 
+`max_allowable_temps` parameter supplied to this device.
+
+If the temperature at any one node exceeds the specified max temperature for more the number
+of cycles specified by `persistance_limit`, then a Fastcat fault is emitted.
+
+**TODO:** determine how to add the ability to re-seed the temperatures at each node (useful for restarts of tests when sufficient time to dissipate heat hasn't occcured) 
+
+### Example
+
+``` yaml
+- device_class: ThreeNodeThermalModel
+  name:         three_node_thermal_model_1 
+  thermal_mass_node_1: 1.0
+  thermal_mass_node_2: 2.0
+  thermal_res_nodes_1_to_2: 3.0
+  thermal_res_nodes_2_to_3: 4.0
+  winding_res: 5.0
+  winding_thermal_cor: 6.0
+  k1: 1.0
+  k3: 2.0
+  persistance_limit: 5
+  max_allowable_temps: [65.0, 70.0, 75.0, 80.0]
+  signals:
+  - observed_device_name: el3602
+    request_signal_name:  voltage_ch1
+  - observed_device_name: egd_1
+    request_signal_name:  actual_current
+```

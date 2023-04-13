@@ -768,3 +768,9 @@ commands:
       type: jsd_sdo_data_type_t
     - name: app_id
       type: uint16_t
+
+  - name: three_node_thermal_model
+    fields:
+    - name: fault_active
+      type: bool
+      comment: "if true, the temperature conditions predicted for faulting have been exceeded"
