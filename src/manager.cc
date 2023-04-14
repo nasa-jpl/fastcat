@@ -287,7 +287,8 @@ bool fastcat::Manager::Process()
       } else {
         entry.device_name = "invalid name";
       }
-      MSG("JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)",
+      MSG_DEBUG(
+          "JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)",
           it->first.c_str(), entry.device_name.c_str(), entry.response.app_id);
       sdo_response_queue_->push(entry);
     }
