@@ -62,11 +62,13 @@ class Manager
    * Manager::Process() function at the same frequency as the input YAML field
    * `target_loop_rate_hz`. This parameter is needed by certain devices for
    * profiling and filtering.
-   *
+   *   
+   *   @param external_time Supply an external time if desired, otherwise
+   *          defaults to jsd supplied system time
    *   @return Return true if bus is not faulted, otherwise a bus fault is
    * active.
    */
-  bool Process(double external_time=0.0);
+  bool Process(double external_time = -1);
 
   /** @brief Interface to command devices on the bus
    *
@@ -196,6 +198,7 @@ class Manager
   bool                          zero_latency_required_              = true;
   bool                          faulted_                            = false;
   bool                          actuator_fault_on_missing_pos_file_ = true;
+  bool                          online_devices_exist_               = false;
   std::string                   actuator_position_directory_;
   std::map<std::string, jsd_t*> jsd_map_;
 

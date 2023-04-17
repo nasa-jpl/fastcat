@@ -223,13 +223,14 @@ bool fastcat::Manager::Process(double external_time)
   // Pass the PDO read time for consistent timestamping before the device Read()
   //   method is invoked
   double read_time;
-  if (external_time > -1e9 && external_time < 1e9)
-  { // external time is zero so use JSD time
-    read_time = jsd_time_get_time_sec();
-  }
-  else
-  { // use supplied external time
+  if (external_time > 0) {
+    if (online_devices_exist_) {
+      ERROR("Applications cannot use online devices and supply external time, refusing to run");
+      return false;
+    }
     read_time = external_time;
+  } else {
+    read_time = jsd_time_get_time_sec();
   }
 
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
@@ -394,6 +395,8 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
   if (!ParseList(node, "devices", devices_node)) {
     return false;
   }
+
+  online_devices_exist_ = true;
 
   jsd_t* jsd = jsd_alloc();
 
