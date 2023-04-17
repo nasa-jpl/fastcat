@@ -396,8 +396,6 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     return false;
   }
 
-  online_devices_exist_ = true;
-
   jsd_t* jsd = jsd_alloc();
 
   JSDPair pair(ifname, jsd);
@@ -485,6 +483,8 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     if (!CheckDeviceNameIsUnique(device->GetName())) {
       return false;
     }
+
+    online_devices_exist_ = true;
 
     DevicePair pair(device->GetName(), device);
     device_map_.insert(pair);
