@@ -433,6 +433,12 @@ states:
     - name: brake_cc_val
       type: uint16_t
 
+- name: three_node_thermal_model
+    fields:
+    - name: fault_active
+      type: bool
+      comment: "if true, the temperature conditions predicted for faulting have been exceeded"
+
 commands:
   - name: commander_enable
     fields:
@@ -769,8 +775,9 @@ commands:
     - name: app_id
       type: uint16_t
 
-  - name: three_node_thermal_model
+  - name: seed_thermal_model_temperature
+    comment: "command to reseed the temperatures, uniformly, of the nodes in a three node thermal model"
     fields:
-    - name: fault_active
-      type: bool
-      comment: "if true, the temperature conditions predicted for faulting have been exceeded"
+    - name: seed_temperature
+      type: double
+      

@@ -14,6 +14,15 @@
 
 namespace fastcat
 {
+static constexpr size_t FC_TNTM_NUM_SIGNALS =
+    2;  // the required number of signals for this device
+static constexpr size_t NODE_3_TEMP_IDX =
+    2;  // signal index for node 3 temperature
+static constexpr size_t MOTOR_CURRENT_IDX =
+    2;  // signal index for motor current
+static constexpr double REFERENCE_TEMPERATURE =
+    20.0;  // reference temperature for calculations
+
 /**
  * @brief Class implementing a Three-Node Thermal Model for estimating
  *         internal motor temperatures, through fastcat.
@@ -59,7 +68,8 @@ class ThreeNodeThermalModel : public DeviceBase
   // declare motor parameters
   double thermal_mass_node_1_{0.0};
   double thermal_mass_node_2_{0.0};
-  double{0.0};  ///< thermal resistance from node 1 to 2 (deg C / W)
+  double thermal_res_nodes_1_to_2_{
+      0.0};  ///< thermal resistance from node 1 to 2 (deg C / W)
   double thermal_res_nodes_2_to_3_{
       0.0};  ///< thermal resistance from node 2 to 3 (deg C / W)
   double winding_res_{0.0};  ///< motor winding electrical resistance (ohms)
@@ -68,24 +78,22 @@ class ThreeNodeThermalModel : public DeviceBase
 
   // declare fault protection parameters
   std::vector<double> max_allowable_temps_{0.0, 0.0, 0.0, 0.0};
-  size_t persistance_limit_{
+  size_t              persistence_limit_{
       0};  ///< represents how many time cycles a temperature limit is able to
-           ///< be exceeded before throwing a fault
+                        ///< be exceeded before throwing a fault
 
   // declare variables for storing signal data and estimates
   double motor_current_{
       0.0};  ///< this value is retrieved from a motor controller measurement
-  double motor_resistance_{
-      0.0};  ///< this value is estimated based on the temp 1 estimate and
-             ///< represents the resistance of the motor, which is used for
-             ///< calculated power
-  double node_1_temp_{0.0};  ///< this value is estimated from the model and
-                             ///< represents winding temperature
-  double node_2_temp_{0.0};  ///< this value is estimated from the model and
-                             ///< represents stator temperature
-  double node_3_temp_{0.0};  ///< this value is measured directly using a sensor
-  double node_4_temp_{0.0};  ///< this value is estimated from the model and
-                             ///< represents all other component temperatures
+  double motor_res_{0.0};  ///< this value is estimated based on the temp 1
+                           ///< estimate and represents the resistance of the
+                           ///< motor, which is used for calculated power
+  std::vector<double> node_temps_{
+      0.0, 0.0, 0.0, 0.0};  ///< this value is estimated from the model and
+                            ///< represents winding temperature
+  std::vector<size_t> node_overtemp_persistences_{
+      0, 0, 0, 0};  ///< this is used as a counter for how many cycles node 1
+                    ///< has been over the temperature limit
 };
 }  // namespace fastcat
 
