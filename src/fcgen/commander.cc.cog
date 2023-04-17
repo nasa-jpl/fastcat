@@ -33,7 +33,7 @@ fastcat::Commander::Commander()
 {
   MSG_DEBUG("Constructed Commander");
   state_       = std::make_shared<DeviceState>();
-  state_->type = COMMANDER_STATE;
+  state_->type = COMMANDER_DEVICE;
   
 }
 

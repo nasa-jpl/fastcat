@@ -19,11 +19,128 @@ cog.outl('// Please make modifications to fcgen/types.h.cog')
 
 
 #include <string>
+#include <variant>
 
 #include "jsd/jsd_types.h"
 
 namespace fastcat {
 
+//////////////////////////////////
+// Manager Configuration Struct
+//////////////////////////////////
+typedef struct {
+[[[cog
+for field in data['manager_config']:
+  cog.outl('%s %s;' % (field['type'], field['name']))
+]]]
+[[[end]]]
+} MangerConfig;
+
+
+//////////////////////////////////
+// Device Types
+//////////////////////////////////
+enum DeviceType {
+[[[cog
+for device in data['devices']:
+  cog.outl('%s_DEVICE,' % device['name'].upper())
+]]]
+[[[end]]]
+};
+
+
+//////////////////////////////////
+// Command Types
+//////////////////////////////////
+enum DeviceCmdType {
+[[[cog
+for cmd in data['commands']:
+  cog.outl('%s_CMD,' %cmd['name'].upper())
+]]]
+[[[end]]]
+  BAD_DEVICE_CMD
+};
+
+
+
+//////////////////////////////////
+// Device Configuration Types
+//////////////////////////////////
+[[[cog
+for this_enum in data['enumerations']:
+  cog.outl('enum %s {' % (this_enum['name']))
+  for entry in this_enum['entries']:
+    cog.outl('%s,' % entry['value'].upper())
+  cog.outl('};')
+]]]
+[[[end]]]
+
+
+//////////////////////////////////
+// Device States
+//////////////////////////////////
+[[[cog
+for device in data['devices']:
+  cog.outl('typedef struct {')
+  for field in device['state']:
+    cog.outl('%s %s;' % (field['type'], field['name']))
+  camel = snake2camel(device['name'])
+  cog.outl('} %sState;' % camel)
+  cog.outl('')
+
+]]]
+[[[end]]]
+
+typedef struct {
+  std::string name;
+  DeviceType type;
+  union {
+[[[cog
+for device in data['devices']:
+  camel = snake2camel(device['name'])
+  cog.outl('%sState %s_state;' % (camel, device['name']) )
+]]]
+[[[end]]]
+
+  };
+  double time;
+} DeviceState;
+
+//////////////////////////////////
+// Device Config
+//////////////////////////////////
+[[[cog
+for device in data['devices']:
+  cog.outl('typedef struct {')
+  if not 'config' in device:
+    cog.outl('bool dummy; // device does not have any config')
+  else:
+    for field in device['config']:
+        cog.outl('%s %s;' % (field['type'], field['name']))
+  camel = snake2camel(device['name'])
+  cog.outl('} %sConfig;' % camel)
+  cog.outl('')
+
+]]]
+[[[end]]]
+
+
+typedef std::variant<
+[[[cog
+for device in data['devices']:
+  if device in data['devices'][:-1]:
+    cog.out('%sConfig,' % (snake2camel(device['name'])) )
+  else:
+    cog.out('%sConfig' % (snake2camel(device['name'])) )
+  cog.out('\n')
+]]]
+[[[end]]]
+> DeviceConfigVariant;
+
+typedef struct{
+  std::string name;
+  DeviceConfigVariant config_variant;
+} DeviceConfig;
 
 
 //////////////////////////////////
@@ -42,20 +159,6 @@ for cmd in data['commands']:
 [[[end]]]
 
 
-
-//////////////////////////////////
-// Fastcat Commands
-//////////////////////////////////
-enum DeviceCmdType {
-[[[cog
-for cmd in data['commands']:
-  cog.outl('%s_CMD,' %cmd['name'].upper())
-]]]
-[[[end]]]
-  BAD_DEVICE_CMD
-};
-
-
 typedef struct {
   std::string name;
   DeviceCmdType type;
@@ -69,53 +172,6 @@ for cmd in data['commands']:
 
   };
 } DeviceCmd;
-
-
-
-
-//////////////////////////////////
-// Device States
-//////////////////////////////////
-[[[cog
-for state in data['states']:
-  cog.outl('typedef struct {')
-  for field in state['fields']:
-    cog.outl('%s %s;' % (field['type'], field['name']))
-  camel = snake2camel(state['name'])
-  cog.outl('} %sState;' % camel)
-  cog.outl('')
-
-]]]
-[[[end]]]
-
-
-//////////////////////////////////
-// Fastcat States
-//////////////////////////////////
-enum DeviceStateType {
-[[[cog
-for state in data['states']:
-  cog.outl('%s_STATE,' % state['name'].upper())
-]]]
-[[[end]]]
-  BAD_DEVICE_STATE
-};
-
-
-typedef struct {
-  std::string name;
-  DeviceStateType type;
-  union {
-[[[cog
-for state in data['states']:
-  camel = snake2camel(state['name'])
-  cog.outl('%sState %s_state;' % (camel, state['name']) )
-]]]
-[[[end]]]
-
-  };
-  double time;
-} DeviceState;
 
 
 //////////////////////////////////
@@ -136,7 +192,6 @@ typedef enum {
 
 typedef struct {
   // Yaml input fields
-
   std::string observed_device_name;
   std::string request_signal_name;
   std::string cmd_field_name;
