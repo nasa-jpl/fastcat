@@ -1151,7 +1151,7 @@ This example implements an absolute value function over the range of [-9, 9]
 | winding_thermal_cor      | The thermal coefficient of resistance (% / deg C) |
 | k1      | Weight for for node 1 used for the weighted-average temperature estimate of node |
 | k3      | Weight for for node 3 used for the weighted-average temperature estimate of node |
-| persistance_limit      | The number of allowable cycles to occur at or above the a temperature threshold before faulting |
+| persistence_limit      | The number of allowable cycles to occur at or above the a temperature threshold before faulting |
 | max_allowable_temps      | An array of allow able temperatures at each node (in order) |
 
 The ThreeNodeThermalModel provides a simplified predictive thermal model used to estimate 
@@ -1161,9 +1161,7 @@ damage it's operation. The maximum allowable temperature at each node is prescri
 `max_allowable_temps` parameter supplied to this device.
 
 If the temperature at any one node exceeds the specified max temperature for more the number
-of cycles specified by `persistance_limit`, then a Fastcat fault is emitted.
-
-**TODO:** determine how to add the ability to re-seed the temperatures at each node (useful for restarts of tests when sufficient time to dissipate heat hasn't occcured) 
+of cycles specified by `persistence_limit`, then a Fastcat fault is emitted.
 
 ### Example
 
@@ -1178,7 +1176,7 @@ of cycles specified by `persistance_limit`, then a Fastcat fault is emitted.
   winding_thermal_cor: 6.0
   k1: 1.0
   k3: 2.0
-  persistance_limit: 5
+  persistence_limit: 5
   max_allowable_temps: [65.0, 70.0, 75.0, 80.0]
   signals:
   - observed_device_name: el3602

@@ -17,9 +17,9 @@ namespace fastcat
 static constexpr size_t FC_TNTM_NUM_SIGNALS =
     2;  // the required number of signals for this device
 static constexpr size_t NODE_3_TEMP_IDX =
-    2;  // signal index for node 3 temperature
+    0;  // signal index for node 3 temperature
 static constexpr size_t MOTOR_CURRENT_IDX =
-    2;  // signal index for motor current
+    1;  // signal index for motor current
 static constexpr double REFERENCE_TEMPERATURE =
     20.0;  // reference temperature for calculations
 
@@ -57,7 +57,8 @@ class ThreeNodeThermalModel : public DeviceBase
 
   /**
    * @brief Commands device
-   *        TODO: describe the available commands
+   *        Currently, only the SEED_THERMAL_MODEL_TEMPERATURE_CMD, used to
+   * reseed the model is accepted
    * @param cmd Command provided to the device, of a type that is a subclass of
    * DeviceCmd
    * @return boolean for if the command was accepted and successful or not
@@ -78,9 +79,9 @@ class ThreeNodeThermalModel : public DeviceBase
 
   // declare fault protection parameters
   std::vector<double> max_allowable_temps_{0.0, 0.0, 0.0, 0.0};
-  size_t              persistence_limit_{
+  uint32_t            persistence_limit_{
       0};  ///< represents how many time cycles a temperature limit is able to
-                        ///< be exceeded before throwing a fault
+                      ///< be exceeded before throwing a fault
 
   // declare variables for storing signal data and estimates
   double motor_current_{

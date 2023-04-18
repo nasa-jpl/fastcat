@@ -7,7 +7,6 @@ ThreeNodeThermalModel::ThreeNodeThermalModel()
 {
   state_       = std::make_shared<DeviceState>();
   state_->type = THREE_NODE_THERMAL_MODEL_STATE;
-  // TODO: any other class setup
 }
 
 bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
@@ -45,7 +44,11 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseVal(node, "persistance_limit", persistance_limit_)) {
+  if (!ParseVal(node, "k3", k3_)) {
+    return false;
+  }
+
+  if (!ParseVal(node, "persistence_limit", persistence_limit_)) {
     return false;
   }
 
@@ -67,8 +70,8 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (signals_.size() < FC_TNTM_NUM_SIGNALS) {
-    ERROR("Expecting at least %d signals for Three Node Thermal Model device",
+  if (signals_.size() != FC_TNTM_NUM_SIGNALS) {
+    ERROR("Expecting exactly %ld signals for Three Node Thermal Model device",
           FC_TNTM_NUM_SIGNALS);
     return false;
   }
@@ -76,7 +79,7 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
   return true;
 }
 
-bool Read()
+bool ThreeNodeThermalModel::Read()
 {
   // update signals
   for (size_t idx = 0; idx < FC_TNTM_NUM_SIGNALS; idx++) {
@@ -87,22 +90,22 @@ bool Read()
   }
 
   // store them
-  node_3_temp_ =
+  node_temps_[2] =
       signals_[NODE_3_TEMP_IDX].value;  // node 3 temperature is directly taken
                                         // from the signal measurement
   motor_current_ = signals_[MOTOR_CURRENT_IDX].value;
   return true;
 }
 
-FaultType Process()
+FaultType ThreeNodeThermalModel::Process()
 {
-  // TODO
-  // update motor resistance
+  // TODO should there be a check/flag that's monitored for if the model has
+  // been initialized/seeded update motor resistance
   motor_res_ =
       winding_res_ *
       (1 + winding_thermal_cor_ * (node_temps_[0] - REFERENCE_TEMPERATURE));
   // calculate heat transfer rates
-  double q_in = motor_current_ * motor_current_ * motor_res_;
+  double q_in = motor_current_ * motor_current_ * motor_res_;  // I^2 * R
   double q_node_1_to_2 =
       (node_temps_[0] - node_temps_[1]) / thermal_res_nodes_1_to_2_;
   double q_node_2_to_3 =
@@ -114,7 +117,7 @@ FaultType Process()
       (q_node_1_to_2 - q_node_2_to_3) * (loop_period_ / thermal_mass_node_2_);
   node_temps_[3] = (k1_ * node_temps_[0] + k3_ * node_temps_[2]) / (k1_ + k3_);
   // update persistence counter for each node
-  for (size_t idx = 0; idx < node_temps_.size()) {
+  for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
     if (node_temps_[idx] > max_allowable_temps_[idx]) {
       node_overtemp_persistences_[idx]++;
     } else {
@@ -122,23 +125,26 @@ FaultType Process()
     }
     // throw fault if limit exceeded
     if (node_overtemp_persistences_[idx] > persistence_limit_) {
-      ERROR("Node %d temperature exceeded safety limit -- faulting", idx);
+      ERROR("Node %ld temperature exceeded safety limit -- faulting", idx + 1u);
       return ALL_DEVICE_FAULT;
     }
   }
+  state_->three_node_thermal_model_state.node_1_temp = node_temps_[0];
+  state_->three_node_thermal_model_state.node_2_temp = node_temps_[1];
+  state_->three_node_thermal_model_state.node_3_temp = node_temps_[2];
+  state_->three_node_thermal_model_state.node_4_temp = node_temps_[3];
+
   return NO_FAULT;
 }
 
-bool Write(DeviceCmd& cmd)
+bool ThreeNodeThermalModel::Write(DeviceCmd& cmd)
 {
-  // TODO
   if (cmd.type == SEED_THERMAL_MODEL_TEMPERATURE_CMD) {
-    for (size_t idx = 0; idx < node_temps_.size()) {
-      node_temps_[idx] = cmd.seed_thermal_model_temperature.seed_temperature;
+    for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
+      node_temps_[idx] =
+          cmd.seed_thermal_model_temperature_cmd.seed_temperature;
     }
   }
   return true;
 }
-
-// TODO: add function/action to seed temperature
 }  // namespace fastcat

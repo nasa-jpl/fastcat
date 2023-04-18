@@ -15,6 +15,7 @@ set(TEST_SOURCES
     test_fts.cc
     test_ati_fts.cc
     test_virtual_fts.cc
+    test_three_node_thermal_model.cc
     )
 
 foreach(TEST_SOURCE ${TEST_SOURCES})

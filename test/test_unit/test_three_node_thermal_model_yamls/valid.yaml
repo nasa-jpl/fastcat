@@ -1,0 +1,17 @@
+device_class: ThreeNodeThermalModel
+name:         three_node_thermal_model_1 
+thermal_mass_node_1: 1.0
+thermal_mass_node_2: 1.0
+thermal_res_nodes_1_to_2: 1.0
+thermal_res_nodes_2_to_3: 1.0
+winding_res: 1.0
+winding_thermal_cor: 0.0
+k1: 1.0
+k3: 1.0
+persistence_limit: 1
+max_allowable_temps: [100.0, 100.0, 100.0, 100.0]
+signals:
+- observed_device_name: FIXED_VALUE
+  fixed_value:          20 
+- observed_device_name: FIXED_VALUE
+  fixed_value:          1.0 
