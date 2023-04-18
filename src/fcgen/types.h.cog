@@ -71,6 +71,7 @@ for this_enum in data['enumerations']:
   cog.outl('enum %s {' % (this_enum['name']))
   for entry in this_enum['entries']:
     cog.outl('%s,' % entry['value'].upper())
+  cog.outl('BAD_%s' % snake2camel(this_enum['name']).upper())
   cog.outl('};')
 ]]]
 [[[end]]]

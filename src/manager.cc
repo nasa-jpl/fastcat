@@ -291,11 +291,11 @@ double fastcat::Manager::GetTargetLoopRate() { return target_loop_rate_hz_; }
 bool fastcat::Manager::IsFaulted() { return faulted_; }
 
 void fastcat::Manager::GetDeviceNamesByType(
-    std::vector<std::string>& names, fastcat::DeviceStateType device_state_type)
+    std::vector<std::string>& names, fastcat::DeviceType device_type)
 {
   names.clear();
   for (auto& device : jsd_device_list_) {
-    if (device->GetState()->type == device_state_type) {
+    if (device->GetState()->type == device_type) {
       names.push_back(device->GetName());
     }
   }
@@ -306,8 +306,8 @@ bool fastcat::Manager::GetActuatorParams(
 {
   if (device_map_.count(name)) {
     auto& device = device_map_[name];
-    if (device->GetState()->type == GOLD_ACTUATOR_STATE or
-        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+    if (device->GetState()->type == GOLD_ACTUATOR_DEVICE or
+        device->GetState()->type == PLATINUM_ACTUATOR_DEVICE) {
       auto actuator = std::dynamic_pointer_cast<Actuator>(device);
       params        = actuator->GetParams();
       return true;
@@ -403,12 +403,6 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("PlatinumActuator")) {
       device = std::make_shared<PlatinumActuator>();
-
-    } else if (0 == device_class.compare("Jed0101")) {
-      device = std::make_shared<Jed0101>();
-
-    } else if (0 == device_class.compare("Jed0200")) {
-      device = std::make_shared<Jed0200>();
 
     } else if (0 == device_class.compare("AtiFts")) {
       device = std::make_shared<AtiFts>();
@@ -603,12 +597,6 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("PlatinumActuator")) {
       device = std::make_shared<PlatinumActuatorOffline>();
-
-    } else if (0 == device_class.compare("Jed0101")) {
-      device = std::make_shared<Jed0101Offline>();
-
-    } else if (0 == device_class.compare("Jed0200")) {
-      device = std::make_shared<Jed0200Offline>();
 
     } else if (0 == device_class.compare("AtiFts")) {
       device = std::make_shared<AtiFtsOffline>();
@@ -866,8 +854,8 @@ bool fastcat::Manager::LoadActuatorPosFile()
   bool actuators_in_topo = false;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end(); ++device) 
   {
-    if ((*device)->GetState()->type == GOLD_ACTUATOR_STATE ||
-        (*device)->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+    if ((*device)->GetState()->type == GOLD_ACTUATOR_DEVICE ||
+        (*device)->GetState()->type == PLATINUM_ACTUATOR_DEVICE) {
       actuators_in_topo = true;
       break;
     }
@@ -964,8 +952,8 @@ bool fastcat::Manager::ValidateActuatorPosFile()
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != GOLD_ACTUATOR_STATE &&
-        dev_state->type != PLATINUM_ACTUATOR_STATE) {
+    if (dev_state->type != GOLD_ACTUATOR_DEVICE &&
+        dev_state->type != PLATINUM_ACTUATOR_DEVICE) {
       continue;
     }
 
@@ -1009,8 +997,8 @@ bool fastcat::Manager::SetActuatorPositions()
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != GOLD_ACTUATOR_STATE &&
-        dev_state->type != PLATINUM_ACTUATOR_STATE) {
+    if (dev_state->type != GOLD_ACTUATOR_DEVICE &&
+        dev_state->type != PLATINUM_ACTUATOR_DEVICE) {
       continue;
     }
 
@@ -1046,8 +1034,8 @@ void fastcat::Manager::GetActuatorPositions()
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != GOLD_ACTUATOR_STATE &&
-        dev_state->type != PLATINUM_ACTUATOR_STATE) {
+    if (dev_state->type != GOLD_ACTUATOR_DEVICE &&
+        dev_state->type != PLATINUM_ACTUATOR_DEVICE) {
       continue;
     }
 

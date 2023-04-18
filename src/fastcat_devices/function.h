@@ -10,15 +10,6 @@
 
 namespace fastcat
 {
-enum FunctionType {
-  POLYNOMIAL,
-  SUMMATION,
-  MULTIPLICATION,
-  POWER,
-  EXPONENTIAL,
-  SIGMOID,
-  BAD_FUNCTION_TYPE
-};
 FunctionType FunctionTypeFromString(const std::string&);
 
 typedef struct {

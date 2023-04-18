@@ -22,6 +22,7 @@ enumerations:
   - name: FunctionType
     entries:
     - value: POLYNOMIAL
+    - value: SUMMATION
     - value: MULTIPLICATION
     - value: POWER
     - value: EXPONENTIAL
@@ -397,6 +398,59 @@ devices:
       default: 1.0e-6
       comment: "Absolute-value torque above which a fault will be raised"
 
+
+  - name: ati_fts
+    type: jsd_device
+    state:
+    - name: raw_fx
+      type: double
+    - name: raw_fy
+      type: double
+    - name: raw_fz
+      type: double
+    - name: raw_tx
+      type: double
+    - name: raw_ty
+      type: double
+    - name: raw_tz
+      type: double
+    - name: tared_fx
+      type: double
+    - name: tared_fy
+      type: double
+    - name: tared_fz
+      type: double
+    - name: tared_tx
+      type: double
+    - name: tared_ty
+      type: double
+    - name: tared_tz
+      type: double
+    config: 
+    - name: max_force_x
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_force_y
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_force_z
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_torque_x
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+    - name: max_torque_y
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+    - name: max_torque_z
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
 
   - name: gold_actuator
     type: jsd_device

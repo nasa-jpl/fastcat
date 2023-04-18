@@ -10,17 +10,8 @@
 
 namespace fastcat
 {
-enum ConditionalType {
-  LT,  // <
-  LE,  // <=
-  GT,  // >
-  GE,  // >=
-  EQ,  // ==, limited use for double types
-  NE,  // !=, limited use for double types
-  BAD_CONDITIONAL_TYPE
-};
 
-ConditionalType ConditionalTypeFromString(std::string cond_type);
+ConditionalOperatorType ConditionalTypeFromString(std::string cond_type);
 
 class Conditional : public DeviceBase
 {
@@ -30,9 +21,9 @@ class Conditional : public DeviceBase
   bool Read() override;
 
  protected:
-  std::string          conditional_type_string_;
-  enum ConditionalType conditional_type_;
-  double               compare_rhs_value_{0};
+  std::string             conditional_type_string_;
+  ConditionalOperatorType conditional_type_;
+  double                  compare_rhs_value_{0};
 };
 
 }  // namespace fastcat
