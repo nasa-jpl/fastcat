@@ -108,6 +108,7 @@ class Fbc : public JsdDeviceBase
 
  private:
   jsd_slave_config_t jsd_slave_config_;
+  int counter;
 };
 
 }  // namespace fastcat

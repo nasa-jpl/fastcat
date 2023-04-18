@@ -26,6 +26,8 @@ fastcat::Fbc::Fbc()
 
   state_       = std::make_shared<DeviceState>();
   state_->type = FBC_STATE;
+
+  counter = 0;
 }
 
 bool fastcat::Fbc::ConfigFromYaml(YAML::Node node)
@@ -180,30 +182,52 @@ bool fastcat::Fbc::Read()
 
 bool fastcat::Fbc::Write(DeviceCmd& cmd)
 {
-
   // If device supports async SDO requests
   AsyncSdoRetVal sdoResult = WriteAsyncSdoRequest(cmd);
   if(sdoResult != SDO_RET_VAL_NOT_APPLICABLE){
     return (sdoResult == SDO_RET_VAL_SUCCESS);
   }
 
-  if (cmd.type == EL6001_WRITE_DATA_CMD) {
-    uint8_t data_size = cmd.el6001_write_data_cmd.data_size;
-    if (data_size > JSD_EL6001_NUM_DATA_BYTES) {
-      ERROR("Data size must be in range (0,%u)", JSD_EL6001_NUM_DATA_BYTES);
-      return false;
-    }
+  switch (cmd.type) {
+    case FBC_REQUEST_DATA_CMD:
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 0, 0x53);     // Byte 0: Start character "S"
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 1, 0x00);     // Byte 1: Arduino Address
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 2, 0x01);     // Byte 2: OpCode: Request Data
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 3, counter);  // Byte 3: counter
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 4, 0);        // Byte 4: checksum
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 5, 0x45);     // Byte 5: End character "E"
+      
+      jsd_el6001_request_transmit_data(context_, slave_id_, 6);
+      break;
 
-    for(int i =0; i < data_size; i++){
-      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, i, cmd.el6001_write_data_cmd.data_out_bytes[i]);
-    }    
+    case FBC_RESET_FAULT_CMD:
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 0, 0x53);     // Byte 0: Start character "S"
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 1, 0x00);     // Byte 1: Arduino Address
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 2, 0x04);     // Byte 2: OpCode: Reset fault
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 3, counter);  // Byte 3: counter
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 4, 0);        // Byte 4: checksum
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 5, 0x45);     // Byte 5: End character "E"
+      
+      jsd_el6001_request_transmit_data(context_, slave_id_, 6);
+      break;
 
-    jsd_el6001_request_transmit_data(context_, slave_id_, data_size);
+    case FBC_TRIGGER_ESTOP_CMD:
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 0, 0x53);     // Byte 0: Start character "S"
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 1, 0x00);     // Byte 1: Arduino Address
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 2, 0x05);     // Byte 2: OpCode: Trigger ESTOP
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 3, counter);  // Byte 3: counter
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 4, 0);        // Byte 4: checksum
+      jsd_el6001_set_transmit_data_8bits(context_, slave_id_, 5, 0x45);     // Byte 5: End character "E"
+      
+      jsd_el6001_request_transmit_data(context_, slave_id_, 6);
+      break;
+
+    default:
+      ERROR("Bad FBC command");
+      break;
   }
-  else {
-    ERROR("Bad EL6001 command");
-    return false;
-  }
+
+  counter++;
 
   return true;
 }

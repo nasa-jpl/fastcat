@@ -732,6 +732,24 @@ commands:
     - name: voltage_output_ch2
       type: double
 
+  - name: fbc_request_data
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: fbc_trigger_estop
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: fbc_reset_fault
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
   - name: actuator_csp
     fields: 
     - name: target_position
