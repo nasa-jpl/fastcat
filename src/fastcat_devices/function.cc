@@ -12,7 +12,7 @@
 fastcat::Function::Function()
 {
   state_       = std::make_shared<DeviceState>();
-  state_->type = FUNCTION_STATE;
+  state_->type = FUNCTION_DEVICE;
 }
 
 fastcat::FunctionType fastcat::FunctionTypeFromString(

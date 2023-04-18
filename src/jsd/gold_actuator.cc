@@ -8,7 +8,7 @@
 // Include external then project includes
 #include "jsd/jsd.h"
 
-fastcat::GoldActuator::GoldActuator() { state_->type = GOLD_ACTUATOR_STATE; }
+fastcat::GoldActuator::GoldActuator() { state_->type = GOLD_ACTUATOR_DEVICE; }
 
 void fastcat::GoldActuator::PopulateJsdSlaveConfig()
 {

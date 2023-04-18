@@ -12,7 +12,7 @@ fastcat::AtiFts::AtiFts()
   MSG_DEBUG("Constructed AtiFts");
 
   state_       = std::make_shared<DeviceState>();
-  state_->type = FTS_STATE;
+  state_->type = ATI_FTS_DEVICE;
 }
 
 bool fastcat::AtiFts::ConfigFromYamlCommon(YAML::Node node)

@@ -18,7 +18,7 @@ void print_header(std::vector<fastcat::DeviceState> states)
   fprintf(file, "rel_time_sec, ");
   for (auto state = states.begin(); state != states.end(); ++state) {
     switch (state->type) {
-      case fastcat::EGD_STATE:
+      case fastcat::EGD_DEVICE:
 
         fprintf(file, "%s_actual_position, ", state->name.c_str());
         fprintf(file, "%s_actual_velocity, ", state->name.c_str());
@@ -31,37 +31,37 @@ void print_header(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%s_target_reached, ", state->name.c_str());
 
         break;
-      case fastcat::SIGNAL_GENERATOR_STATE:
+      case fastcat::SIGNAL_GENERATOR_DEVICE:
         fprintf(file, "%s_output, ", state->name.c_str());
         break;
-      case fastcat::COMMANDER_STATE:
+      case fastcat::COMMANDER_DEVICE:
         fprintf(file, "%s_enable, ", state->name.c_str());
         break;
-      case fastcat::FUNCTION_STATE:
+      case fastcat::FUNCTION_DEVICE:
         fprintf(file, "%s_output, ", state->name.c_str());
         break;
-      case fastcat::CONDITIONAL_STATE:
+      case fastcat::CONDITIONAL_DEVICE:
         fprintf(file, "%s_output, ", state->name.c_str());
         break;
-      case fastcat::EL3602_STATE:
+      case fastcat::EL3602_DEVICE:
         fprintf(file, "%s_voltage_ch1, ", state->name.c_str());
         fprintf(file, "%s_voltage_ch2, ", state->name.c_str());
         fprintf(file, "%s_adc_value_ch1, ", state->name.c_str());
         fprintf(file, "%s_adc_value_ch2, ", state->name.c_str());
         break;
-      case fastcat::SCHMITT_TRIGGER_STATE:
+      case fastcat::SCHMITT_TRIGGER_DEVICE:
         fprintf(file, "%s_output, ", state->name.c_str());
         break;
-      case fastcat::EL2124_STATE:
+      case fastcat::EL2124_DEVICE:
         fprintf(file, "%s_level_ch1, ", state->name.c_str());
         fprintf(file, "%s_level_ch2, ", state->name.c_str());
         fprintf(file, "%s_level_ch3, ", state->name.c_str());
         fprintf(file, "%s_level_ch4, ", state->name.c_str());
         break;
-      case fastcat::FILTER_STATE:
+      case fastcat::FILTER_DEVICE:
         fprintf(file, "%s_output, ", state->name.c_str());
         break;
-      case fastcat::FTS_STATE:
+      case fastcat::FTS_DEVICE:
         fprintf(file, "%s_raw_fx, ", state->name.c_str());
         fprintf(file, "%s_raw_fy, ", state->name.c_str());
         fprintf(file, "%s_raw_fz, ", state->name.c_str());
@@ -75,33 +75,7 @@ void print_header(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%s_tared_ty, ", state->name.c_str());
         fprintf(file, "%s_tared_tz, ", state->name.c_str());
         break;
-      case fastcat::JED0101_STATE:
-        fprintf(file, "%s_status, ", state->name.c_str());
-        fprintf(file, "%s_w_raw, ", state->name.c_str());
-        fprintf(file, "%s_x_raw, ", state->name.c_str());
-        fprintf(file, "%s_y_raw, ", state->name.c_str());
-        fprintf(file, "%s_z_raw, ", state->name.c_str());
-        fprintf(file, "%s_w, ", state->name.c_str());
-        fprintf(file, "%s_x, ", state->name.c_str());
-        fprintf(file, "%s_y, ", state->name.c_str());
-        fprintf(file, "%s_z, ", state->name.c_str());
-        fprintf(file, "%s_cmd, ", state->name.c_str());
-        break;
-      case fastcat::JED0200_STATE:
-        fprintf(file, "%s_status, ", state->name.c_str());
-        fprintf(file, "%s_ticks, ", state->name.c_str());
-        fprintf(file, "%s_voltage_hv, ", state->name.c_str());
-        fprintf(file, "%s_voltage_lv, ", state->name.c_str());
-        fprintf(file, "%s_voltage_12v, ", state->name.c_str());
-        fprintf(file, "%s_temp_ambient, ", state->name.c_str());
-        fprintf(file, "%s_temp_actuator, ", state->name.c_str());
-        fprintf(file, "%s_humidity, ", state->name.c_str());
-        fprintf(file, "%s_pressure, ", state->name.c_str());
-        fprintf(file, "%s_brake_current, ", state->name.c_str());
-        fprintf(file, "%s_brake_cc_val, ", state->name.c_str());
-        fprintf(file, "%s_cmd, ", state->name.c_str());
-        break;
-      case fastcat::EL3208_STATE:
+      case fastcat::EL3208_DEVICE:
         fprintf(file, "%s_output_ch1, ", state->name.c_str());
         fprintf(file, "%s_output_ch2, ", state->name.c_str());
         fprintf(file, "%s_output_ch3, ", state->name.c_str());
@@ -111,12 +85,12 @@ void print_header(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%s_output_ch7, ", state->name.c_str());
         fprintf(file, "%s_output_ch8, ", state->name.c_str());
         break;
-      case fastcat::FAULTER_STATE:
+      case fastcat::FAULTER_DEVICE:
         fprintf(file, "%s_enable, ", state->name.c_str());
         fprintf(file, "%s_fault_active, ", state->name.c_str());
         break;
-      case fastcat::GOLD_ACTUATOR_STATE:
-      case fastcat::PLATINUM_ACTUATOR_STATE:
+      case fastcat::GOLD_ACTUATOR_DEVICE:
+      case fastcat::PLATINUM_ACTUATOR_DEVICE:
         fprintf(file, "%s_actual_position, ", state->name.c_str());
         fprintf(file, "%s_actual_velocity, ", state->name.c_str());
         fprintf(file, "%s_actual_current, ", state->name.c_str());
@@ -132,7 +106,7 @@ void print_header(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%s_motor_on, ", state->name.c_str());
         fprintf(file, "%s_servo_enabled, ", state->name.c_str());
         break;
-      case fastcat::LINEAR_INTERPOLATION_STATE:
+      case fastcat::LINEAR_INTERPOLATION_DEVICE:
         fprintf(file, "%s_output, ", state->name.c_str());
         fprintf(file, "%s_is_saturated, ", state->name.c_str());
 
@@ -150,7 +124,7 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
   fprintf(file, "%lf, ", time);
   for (auto state = states.begin(); state != states.end(); ++state) {
     switch (state->type) {
-      case fastcat::EGD_STATE:
+      case fastcat::EGD_DEVICE:
 
         fprintf(file, "%i, ", state->egd_state.actual_position);
         fprintf(file, "%i, ", state->egd_state.actual_velocity);
@@ -162,37 +136,37 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
 
         fprintf(file, "%u, ", state->egd_state.target_reached);
         break;
-      case fastcat::SIGNAL_GENERATOR_STATE:
+      case fastcat::SIGNAL_GENERATOR_DEVICE:
         fprintf(file, "%lf, ", state->signal_generator_state.output);
         break;
-      case fastcat::COMMANDER_STATE:
+      case fastcat::COMMANDER_DEVICE:
         fprintf(file, "%u, ", state->commander_state.enable);
         break;
-      case fastcat::FUNCTION_STATE:
+      case fastcat::FUNCTION_DEVICE:
         fprintf(file, "%lf, ", state->function_state.output);
         break;
-      case fastcat::CONDITIONAL_STATE:
+      case fastcat::CONDITIONAL_DEVICE:
         fprintf(file, "%u, ", state->conditional_state.output);
         break;
-      case fastcat::EL3602_STATE:
+      case fastcat::EL3602_DEVICE:
         fprintf(file, "%lf, ", state->el3602_state.voltage_ch1);
         fprintf(file, "%lf, ", state->el3602_state.voltage_ch2);
         fprintf(file, "%i, ", state->el3602_state.adc_value_ch1);
         fprintf(file, "%i, ", state->el3602_state.adc_value_ch2);
         break;
-      case fastcat::SCHMITT_TRIGGER_STATE:
+      case fastcat::SCHMITT_TRIGGER_DEVICE:
         fprintf(file, "%u, ", state->schmitt_trigger_state.output);
         break;
-      case fastcat::EL2124_STATE:
+      case fastcat::EL2124_DEVICE:
         fprintf(file, "%u, ", state->el2124_state.level_ch1);
         fprintf(file, "%u, ", state->el2124_state.level_ch2);
         fprintf(file, "%u, ", state->el2124_state.level_ch3);
         fprintf(file, "%u, ", state->el2124_state.level_ch4);
         break;
-      case fastcat::FILTER_STATE:
+      case fastcat::FILTER_DEVICE:
         fprintf(file, "%lf, ", state->filter_state.output);
         break;
-      case fastcat::FTS_STATE:
+      case fastcat::FTS_DEVICE:
         fprintf(file, "%lf, ", state->fts_state.raw_fx);
         fprintf(file, "%lf, ", state->fts_state.raw_fy);
         fprintf(file, "%lf, ", state->fts_state.raw_fz);
@@ -206,33 +180,7 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%lf, ", state->fts_state.tared_ty);
         fprintf(file, "%lf, ", state->fts_state.tared_tz);
         break;
-      case fastcat::JED0101_STATE:
-        fprintf(file, "%u, ", state->jed0101_state.status);
-        fprintf(file, "%u, ", state->jed0101_state.w_raw);
-        fprintf(file, "%u, ", state->jed0101_state.x_raw);
-        fprintf(file, "%u, ", state->jed0101_state.y_raw);
-        fprintf(file, "%u, ", state->jed0101_state.z_raw);
-        fprintf(file, "%lf, ", state->jed0101_state.w);
-        fprintf(file, "%lf, ", state->jed0101_state.x);
-        fprintf(file, "%lf, ", state->jed0101_state.y);
-        fprintf(file, "%lf, ", state->jed0101_state.z);
-        fprintf(file, "%u, ", state->jed0101_state.cmd);
-        break;
-      case fastcat::JED0200_STATE:
-        fprintf(file, "%u, ", state->jed0200_state.status);
-        fprintf(file, "%u, ", state->jed0200_state.ticks);
-        fprintf(file, "%f, ", state->jed0200_state.voltage_hv);
-        fprintf(file, "%f, ", state->jed0200_state.voltage_lv);
-        fprintf(file, "%f, ", state->jed0200_state.voltage_12v);
-        fprintf(file, "%f, ", state->jed0200_state.temp_ambient);
-        fprintf(file, "%f, ", state->jed0200_state.temp_actuator);
-        fprintf(file, "%f, ", state->jed0200_state.humidity);
-        fprintf(file, "%f, ", state->jed0200_state.pressure);
-        fprintf(file, "%u, ", state->jed0200_state.brake_current);
-        fprintf(file, "%u, ", state->jed0200_state.brake_cc_val);
-        fprintf(file, "%u, ", state->jed0200_state.cmd);
-        break;
-      case fastcat::EL3208_STATE:
+      case fastcat::EL3208_DEVICE:
         fprintf(file, "%lf, ", state->el3208_state.output_ch1);
         fprintf(file, "%lf, ", state->el3208_state.output_ch2);
         fprintf(file, "%lf, ", state->el3208_state.output_ch3);
@@ -242,11 +190,11 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%lf, ", state->el3208_state.output_ch7);
         fprintf(file, "%lf, ", state->el3208_state.output_ch8);
         break;
-      case fastcat::FAULTER_STATE:
+      case fastcat::FAULTER_DEVICE:
         fprintf(file, "%u, ", state->faulter_state.enable);
         fprintf(file, "%u, ", state->faulter_state.fault_active);
         break;
-      case fastcat::GOLD_ACTUATOR_STATE:
+      case fastcat::GOLD_ACTUATOR_DEVICE:
         fprintf(file, "%lf, ", state->gold_actuator_state.actual_position);
         fprintf(file, "%lf, ", state->gold_actuator_state.actual_velocity);
         fprintf(file, "%lf, ", state->gold_actuator_state.actual_current);
@@ -263,7 +211,7 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%u, ", state->gold_actuator_state.motor_on);
         fprintf(file, "%u, ", state->gold_actuator_state.servo_enabled);
         break;
-      case fastcat::PLATINUM_ACTUATOR_STATE:
+      case fastcat::PLATINUM_ACTUATOR_DEVICE:
         fprintf(file, "%lf, ", state->platinum_actuator_state.actual_position);
         fprintf(file, "%lf, ", state->platinum_actuator_state.actual_velocity);
         fprintf(file, "%lf, ", state->platinum_actuator_state.actual_current);
@@ -280,7 +228,7 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
         fprintf(file, "%u, ", state->platinum_actuator_state.motor_on);
         fprintf(file, "%u, ", state->platinum_actuator_state.servo_enabled);
         break;
-      case fastcat::LINEAR_INTERPOLATION_STATE:
+      case fastcat::LINEAR_INTERPOLATION_DEVICE:
         fprintf(file, "%lf, ", state->linear_interpolation_state.output);
         fprintf(file, "%u, ", state->linear_interpolation_state.is_saturated);
         break;
@@ -391,20 +339,6 @@ void* cli_process(void*)
       cmd.el2124_write_channel_cmd.channel = atoi(tokens[2].c_str());
       cmd.el2124_write_channel_cmd.level   = atoi(tokens[3].c_str());
       cmd.type                             = fastcat::EL2124_WRITE_CHANNEL_CMD;
-
-    } else if (tokens[0].compare("jed0101_set_cmd_value") == 0 &&
-               tokens.size() == 3) {
-      MSG("Issuing jed0101_set_cmd_value command");
-      cmd.name                          = tokens[1];
-      cmd.jed0101_set_cmd_value_cmd.cmd = atoi(tokens[2].c_str());
-      cmd.type                          = fastcat::JED0101_SET_CMD_VALUE_CMD;
-
-    } else if (tokens[0].compare("jed0200_set_cmd_value") == 0 &&
-               tokens.size() == 3) {
-      MSG("Issuing jed0200_set_cmd_value command");
-      cmd.name                          = tokens[1];
-      cmd.jed0200_set_cmd_value_cmd.cmd = atoi(tokens[2].c_str());
-      cmd.type                          = fastcat::JED0200_SET_CMD_VALUE_CMD;
 
     } else if (tokens[0].compare("actuator_set_output_position") == 0 &&
                tokens.size() == 3) {

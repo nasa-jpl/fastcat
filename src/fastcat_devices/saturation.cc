@@ -12,7 +12,7 @@
 fastcat::Saturation::Saturation()
 {
   state_       = std::make_shared<DeviceState>();
-  state_->type = SATURATION_STATE;
+  state_->type = SATURATION_DEVICE;
 }
 
 bool fastcat::Saturation::ConfigFromYaml(YAML::Node node)

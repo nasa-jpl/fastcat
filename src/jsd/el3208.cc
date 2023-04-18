@@ -16,7 +16,7 @@ fastcat::El3208::El3208()
   MSG_DEBUG("Constructed El3208");
 
   state_       = std::make_shared<DeviceState>();
-  state_->type = EL3208_STATE;
+  state_->type = EL3208_DEVICE;
 
   outputs_[0] = &state_->el3208_state.output_ch1;
   outputs_[1] = &state_->el3208_state.output_ch2;

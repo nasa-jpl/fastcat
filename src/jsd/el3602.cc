@@ -15,7 +15,7 @@ fastcat::El3602::El3602()
   MSG_DEBUG("Constructed El3602");
 
   state_       = std::make_shared<DeviceState>();
-  state_->type = EL3602_STATE;
+  state_->type = EL3602_DEVICE;
 }
 
 bool fastcat::El3602::ConfigFromYaml(YAML::Node node)

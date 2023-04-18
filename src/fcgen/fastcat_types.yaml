@@ -1,7 +1,7 @@
-# use UpperCamelCase for type-name and UPPER for value
+# use snake_case for type-name and UPPER for value
 # if string is not supplied, it will be taken as the value
 enumerations:
-  - name: ConditionalOperatorType
+  - name: conditional_operator_type
     entries:
     - string: "<"
       value:  LT
@@ -15,11 +15,11 @@ enumerations:
       value:  EQ 
     - string: "!="
       value:  NE 
-  - name: FilterType
+  - name: filter_type
     entries: 
     - value: DIGITAL_AB
     - value: MOVING_AVERAGE
-  - name: FunctionType
+  - name: function_type
     entries:
     - value: POLYNOMIAL
     - value: SUMMATION
@@ -27,7 +27,7 @@ enumerations:
     - value: POWER
     - value: EXPONENTIAL
     - value: SIGMOID
-  - name: SignalGeneratorType
+  - name: signal_generator_type
     entries:
     - value: SINE_WAVE
     - value: SAW_TOOTH

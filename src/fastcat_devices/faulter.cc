@@ -12,7 +12,7 @@
 fastcat::Faulter::Faulter()
 {
   state_       = std::make_shared<DeviceState>();
-  state_->type = FAULTER_STATE;
+  state_->type = FAULTER_DEVICE;
 }
 
 bool fastcat::Faulter::ConfigFromYaml(YAML::Node node)

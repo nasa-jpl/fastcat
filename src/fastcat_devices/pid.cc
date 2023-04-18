@@ -12,7 +12,7 @@
 fastcat::Pid::Pid()
 {
   state_       = std::make_shared<DeviceState>();
-  state_->type = PID_STATE;
+  state_->type = PID_DEVICE;
 }
 
 bool fastcat::Pid::ConfigFromYaml(YAML::Node node)

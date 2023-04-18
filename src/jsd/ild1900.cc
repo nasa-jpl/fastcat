@@ -11,7 +11,7 @@ fastcat::Ild1900::Ild1900()
   MSG_DEBUG("Constructed ILD1900");
 
   state_       = std::make_shared<DeviceState>();
-  state_->type = ILD1900_STATE;
+  state_->type = ILD1900_DEVICE;
 }
 
 bool fastcat::Ild1900::ConfigFromYaml(YAML::Node node)

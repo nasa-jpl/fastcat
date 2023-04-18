@@ -7,7 +7,7 @@
 
 // Include external then project includes
 
-fastcat::PlatinumActuator::PlatinumActuator() { state_->type = PLATINUM_ACTUATOR_STATE; }
+fastcat::PlatinumActuator::PlatinumActuator() { state_->type = PLATINUM_ACTUATOR_DEVICE; }
 
 void fastcat::PlatinumActuator::PopulateJsdSlaveConfig()
 {

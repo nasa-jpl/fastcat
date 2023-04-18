@@ -12,7 +12,7 @@
 fastcat::Fts::Fts()
 {
   state_       = std::make_shared<DeviceState>();
-  state_->type = FTS_STATE;
+  state_->type = FTS_DEVICE;
 }
 
 bool fastcat::Fts::ConfigFromYaml(YAML::Node node)
