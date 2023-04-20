@@ -75,7 +75,7 @@ class ThreeNodeThermalModel : public DeviceBase
       0.0};  ///< thermal resistance from node 2 to 3 (deg C / W)
   double winding_res_{0.0};  ///< motor winding electrical resistance (ohms)
   double winding_thermal_cor_{0.0};  ///< coefficient of resistance
-  double k1_{0.0}, k3_{0.0};         ///< weights for T4 estimate
+  double k1_{0.0}, k2_{0.0}, k3_{0.0};  ///< weights for T4 estimate
 
   // declare fault protection parameters
   std::vector<double> max_allowable_temps_{0.0, 0.0, 0.0, 0.0};

@@ -1147,9 +1147,10 @@ This example implements an absolute value function over the range of [-9, 9]
 | thermal_mass_node_2      | The thermal mass that represents the stator node (node 2) |
 | thermal_res_nodes_1_to_2      | The effective thermal resistance between nodes 1 and 2 |
 | thermal_res_nodes_2_to_3      | The effective thermal resistance between nodes 2 and 3 |
-| winding_res      | The electrical resistance of the motor windings at 20 deg C |
+| winding_res      | The electrical resistance of the motor windings at a reference temperature |
 | winding_thermal_cor      | The thermal coefficient of resistance (% / deg C) |
 | k1      | Weight for for node 1 used for the weighted-average temperature estimate of node |
+| k2      | Weight for for node 2 used for the weighted-average temperature estimate of node |
 | k3      | Weight for for node 3 used for the weighted-average temperature estimate of node |
 | persistence_limit      | The number of allowable cycles to occur at or above the a temperature threshold before faulting |
 | max_allowable_temps      | An array of allow able temperatures at each node (in order) |
@@ -1175,6 +1176,7 @@ of cycles specified by `persistence_limit`, then a Fastcat fault is emitted.
   winding_res: 5.0
   winding_thermal_cor: 6.0
   k1: 1.0
+  k2: 1.0
   k3: 2.0
   persistence_limit: 5
   max_allowable_temps: [65.0, 70.0, 75.0, 80.0]

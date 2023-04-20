@@ -307,6 +307,7 @@ buses:
       winding_res: 5.0
       winding_thermal_cor: 6.0
       k1: 1.0
+      k2: 1.0
       k3: 2.0
       persistence_limit: 5
       max_allowable_temps: [65.0, 70.0, 75.0, 80.0]

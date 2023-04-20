@@ -44,6 +44,10 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
+  if (!ParseVal(node, "k2", k2_)) {
+    return false;
+  }
+
   if (!ParseVal(node, "k3", k3_)) {
     return false;
   }
@@ -115,7 +119,9 @@ FaultType ThreeNodeThermalModel::Process()
       (q_in - q_node_1_to_2) * (loop_period_ / thermal_mass_node_1_);
   node_temps_[1] +=
       (q_node_1_to_2 - q_node_2_to_3) * (loop_period_ / thermal_mass_node_2_);
-  node_temps_[3] = (k1_ * node_temps_[0] + k3_ * node_temps_[2]) / (k1_ + k3_);
+  node_temps_[3] =
+      (k1_ * node_temps_[0] + k2_ * node_temps_[1] + k3_ * node_temps_[2]) /
+      (k1_ + k2_ + k3_);
   // update persistence counter for each node
   for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
     if (node_temps_[idx] > max_allowable_temps_[idx]) {
