@@ -1181,8 +1181,8 @@ of cycles specified by `persistence_limit`, then a Fastcat fault is emitted.
   persistence_limit: 5
   max_allowable_temps: [65.0, 70.0, 75.0, 80.0]
   signals:
-  - observed_device_name: el3602
-    request_signal_name:  voltage_ch1
+  - observed_device_name: node_3_temp
+    request_signal_name:  output
   - observed_device_name: egd_1
     request_signal_name:  actual_current
 ```
