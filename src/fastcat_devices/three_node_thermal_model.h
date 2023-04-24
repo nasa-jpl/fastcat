@@ -14,13 +14,6 @@
 
 namespace fastcat
 {
-static constexpr size_t FC_TNTM_NUM_SIGNALS =
-    2;  // the required number of signals for this device
-static constexpr size_t NODE_3_TEMP_IDX =
-    0;  // signal index for node 3 temperature
-static constexpr size_t MOTOR_CURRENT_IDX =
-    1;  // signal index for motor current
-
 /**
  * @brief Class implementing a Three-Node Thermal Model for estimating
  *         internal motor temperatures, through fastcat.
@@ -99,6 +92,14 @@ class ThreeNodeThermalModel : public DeviceBase
 
   // tracked variables
   double last_time_{0.0};
+
+  // constants
+  // the required number of signals for this device
+  static constexpr size_t FC_TNTM_NUM_SIGNALS = 2;
+  // signal index for node 3 temperature
+  static constexpr size_t NODE_3_TEMP_IDX = 0;
+  // signal index for motor current
+  static constexpr size_t MOTOR_CURRENT_IDX = 1;
 };
 }  // namespace fastcat
 
