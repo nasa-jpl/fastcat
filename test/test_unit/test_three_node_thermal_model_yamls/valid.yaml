@@ -10,6 +10,7 @@ k1: 1.0
 k2: 1.0
 k3: 1.0
 persistence_limit: 1
+ref_temp: 20
 max_allowable_temps: [100.0, 100.0, 100.0, 100.0]
 signals:
 - observed_device_name: FIXED_VALUE

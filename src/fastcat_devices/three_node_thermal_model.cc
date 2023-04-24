@@ -56,6 +56,10 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
+  if (!ParseVal(node, "ref_temp", ref_temp_)) {
+    return false;
+  }
+
   YAML::Node max_allowable_temp_node;
   if (!ParseList(node, "max_allowable_temps", max_allowable_temp_node)) {
     return false;
@@ -106,8 +110,7 @@ FaultType ThreeNodeThermalModel::Process()
   // TODO should there be a check/flag that's monitored for if the model has
   // been initialized/seeded update motor resistance
   motor_res_ =
-      winding_res_ *
-      (1 + winding_thermal_cor_ * (node_temps_[0] - REFERENCE_TEMPERATURE));
+      winding_res_ * (1 + winding_thermal_cor_ * (node_temps_[0] - ref_temp_));
   // calculate heat transfer rates
   double q_in = motor_current_ * motor_current_ * motor_res_;  // I^2 * R
   double q_node_1_to_2 =

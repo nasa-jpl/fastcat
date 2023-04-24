@@ -310,6 +310,7 @@ buses:
       k2: 1.0
       k3: 2.0
       persistence_limit: 5
+      ref_temp: 20
       max_allowable_temps: [65.0, 70.0, 75.0, 80.0]
       signals:
       - observed_device_name: node_3_temp

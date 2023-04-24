@@ -20,8 +20,6 @@ static constexpr size_t NODE_3_TEMP_IDX =
     0;  // signal index for node 3 temperature
 static constexpr size_t MOTOR_CURRENT_IDX =
     1;  // signal index for motor current
-static constexpr double REFERENCE_TEMPERATURE =
-    20.0;  // reference temperature for calculations
 
 /**
  * @brief Class implementing a Three-Node Thermal Model for estimating
@@ -82,6 +80,9 @@ class ThreeNodeThermalModel : public DeviceBase
   uint32_t            persistence_limit_{
       0};  ///< represents how many time cycles a temperature limit is able to
                       ///< be exceeded before throwing a fault
+  double ref_temp_{0.0};  ///< the reference temperature for the winding
+                          ///< resistance parameter, along with being used for
+                          ///< calculating the dynamically varying resistance
 
   // declare variables for storing signal data and estimates
   double motor_current_{
