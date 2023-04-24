@@ -96,6 +96,9 @@ class ThreeNodeThermalModel : public DeviceBase
   std::vector<size_t> node_overtemp_persistences_{
       0, 0, 0, 0};  ///< this is used as a counter for how many cycles node 1
                     ///< has been over the temperature limit
+
+  // tracked variables
+  double last_time_{0.0};
 };
 }  // namespace fastcat
 
