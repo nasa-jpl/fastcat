@@ -60,6 +60,11 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
   if (!ParseVal(node, "ref_temp", ref_temp_)) {
     return false;
   }
+  // initialize all temps to ref_temp
+  // Note: this can be manually seeded later
+  for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
+    node_temps_[idx] = ref_temp_;
+  }
 
   YAML::Node max_allowable_temp_node;
   if (!ParseList(node, "max_allowable_temps", max_allowable_temp_node)) {
