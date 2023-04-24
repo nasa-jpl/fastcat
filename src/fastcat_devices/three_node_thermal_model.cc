@@ -155,6 +155,8 @@ bool ThreeNodeThermalModel::Write(DeviceCmd& cmd)
       node_temps_[idx] =
           cmd.seed_thermal_model_temperature_cmd.seed_temperature;
     }
+  } else {
+    return false;  // if command is not present, return false
   }
   return true;
 }
