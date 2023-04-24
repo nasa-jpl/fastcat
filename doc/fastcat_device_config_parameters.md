@@ -1165,6 +1165,19 @@ damage it's operation. The maximum allowable temperature at each node is prescri
 If the temperature at any one node exceeds the specified max temperature for more the number
 of cycles specified by `persistence_limit`, then a Fastcat fault is emitted.
 
+The following equations are utilized within the thermal model:
+1. Initialize System:
+   * Node 1 and 2 temperatures initialized with Node 3 temperature
+
+1. Every iteration
+   * $R_{winding}=R_{ref}*(1 + C_{temp} * (T_1 - Temp_{ref}))$
+   * $Q_{in}=I^2*R_{winding}$
+   * $T_1+=(Q_{in} - Q_{1T2}) * (dt / CM_1)$
+   * $T_2+=(Q_{1T2} - Q_{2T3}) * (dt / CM_2)$
+   * $T_4=(k_1 * T_1 + k_2 * T_2 + k_3 * T_3) / (k_1 + k_2 + k_3)$
+
+Where $C_{temp}$ represents the thermal coefficient of resistance, and $CM_{n}$ represents the thermal mass for node $n$
+
 ### Example
 
 ``` yaml
