@@ -497,6 +497,24 @@ states:
     - name: brake_cc_val
       type: uint16_t
 
+  - name: three_node_thermal_model
+    fields:
+    - name: fault_active
+      type: bool
+      comment: "if true, the temperature conditions predicted for faulting have been exceeded"
+    - name: node_1_temp
+      type: double
+      comment: "temperature estimate of node 1" 
+    - name: node_2_temp
+      type: double
+      comment: "temperature estimate of node 2" 
+    - name: node_3_temp
+      type: double
+      comment: "temperature estimate of node 3" 
+    - name: node_4_temp
+      type: double
+      comment: "temperature estimate of node 4" 
+
 commands:
   - name: commander_enable
     fields:
@@ -832,3 +850,10 @@ commands:
       type: jsd_sdo_data_type_t
     - name: app_id
       type: uint16_t
+
+  - name: seed_thermal_model_temperature
+    comment: "command to reseed the temperatures, uniformly, of the nodes in a three node thermal model"
+    fields:
+    - name: seed_temperature
+      type: double
+      

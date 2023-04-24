@@ -1211,3 +1211,67 @@ This example implements an absolute value function over the range of [-9, 9]
   - observed_device_name: sig_gen_1
     request_signal_name:  output
 ```
+
+
+## ThreeNodeThermalModel
+
+| Parameter   | Description |
+| ----------- | ----------- |
+| thermal_mass_node_1      | The thermal mass that represents the winding node -- node 1 (J * kg / deg C) |
+| thermal_mass_node_2      | The thermal mass that represents the stator node  -- node 2 (J * kg / deg C) |
+| thermal_res_nodes_1_to_2      | The effective thermal resistance between nodes 1 and 2 (deg C/W) |
+| thermal_res_nodes_2_to_3      | The effective thermal resistance between nodes 2 and 3 (deg C/W) |
+| winding_res      | The electrical resistance of the motor windings at the specified reference temperature  (ohms) |
+| winding_thermal_cor      | The thermal coefficient of resistance (% / deg C) |
+| k1      | Weight for for node 1 used for the weighted-average temperature estimate of node (unitless) |
+| k2      | Weight for for node 2 used for the weighted-average temperature estimate of node (unitless) |
+| k3      | Weight for for node 3 used for the weighted-average temperature estimate of node (unitless) |
+| persistence_limit      | The number of allowable cycles to occur at or above the a temperature threshold before faulting (counts) |
+| ref_temp      | The reference temperature of the calibrated resistance parameter above, and to calculate the motor resistance (deg C) |
+| max_allowable_temps      | An array of allow able temperatures at each node, in order (deg C) |
+
+The ThreeNodeThermalModel provides a simplified predictive thermal model used to estimate 
+temperature change over time in specific locations in a motor. This is primarily useful for
+estimating when a motor's internal temperature is at risk of exceeding a threshold that could
+damage it's operation. The maximum allowable temperature at each node is prescribable in the 
+`max_allowable_temps` parameter supplied to this device.
+
+If the temperature at any one node exceeds the specified max temperature for more the number
+of cycles specified by `persistence_limit`, then a Fastcat fault is emitted.
+
+The following equations are utilized within the thermal model:
+1. Initialize System:
+   * Node 1 and 2 temperatures initialized with Node 3 temperature
+
+1. Every iteration
+   * $R_{winding}=R_{ref}*(1 + C_{temp} * (T_1 - Temp_{ref}))$
+   * $Q_{in}=I^2*R_{winding}$
+   * $T_1+=(Q_{in} - Q_{1T2}) * (dt / CM_1)$
+   * $T_2+=(Q_{1T2} - Q_{2T3}) * (dt / CM_2)$
+   * $T_4=(k_1 * T_1 + k_2 * T_2 + k_3 * T_3) / (k_1 + k_2 + k_3)$
+
+Where $C_{temp}$ represents the thermal coefficient of resistance, and $CM_{n}$ represents the thermal mass for node $n$
+
+### Example
+
+``` yaml
+- device_class: ThreeNodeThermalModel
+  name:         three_node_thermal_model_1 
+  thermal_mass_node_1: 1.0
+  thermal_mass_node_2: 2.0
+  thermal_res_nodes_1_to_2: 3.0
+  thermal_res_nodes_2_to_3: 4.0
+  winding_res: 5.0
+  winding_thermal_cor: 6.0
+  k1: 1.0
+  k2: 1.0
+  k3: 2.0
+  persistence_limit: 5
+  ref_temp: 20
+  max_allowable_temps: [65.0, 70.0, 75.0, 80.0]
+  signals:
+  - observed_device_name: node_3_temp
+    request_signal_name:  output
+  - observed_device_name: egd_1
+    request_signal_name:  actual_current
+```

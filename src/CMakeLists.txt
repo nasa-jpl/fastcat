@@ -114,6 +114,7 @@ add_library(fastcat STATIC
     fastcat_devices/virtual_fts.cc
     fastcat_devices/faulter.cc
     fastcat_devices/linear_interpolation.cc
+    fastcat_devices/three_node_thermal_model.cc
     )
 
 target_include_directories(
