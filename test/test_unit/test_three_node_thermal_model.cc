@@ -120,22 +120,22 @@ TEST_F(ThreeNodeThermalModelTest, CurrentInput)
   EXPECT_NEAR(*node_1_temp_output, 21.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_2_temp_output, 20.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_3_temp_output, 20.0, DOUBLE_COMP_THRESHOLD);
-  EXPECT_NEAR(*node_4_temp_output, 20.5, DOUBLE_COMP_THRESHOLD);
+  EXPECT_NEAR(*node_4_temp_output, 20.333333333333, DOUBLE_COMP_THRESHOLD);
   EXPECT_EQ(device_.Process(), fastcat::NO_FAULT);
   EXPECT_NEAR(*node_1_temp_output, 21.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_2_temp_output, 21.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_3_temp_output, 20.0, DOUBLE_COMP_THRESHOLD);
-  EXPECT_NEAR(*node_4_temp_output, 20.5, DOUBLE_COMP_THRESHOLD);
+  EXPECT_NEAR(*node_4_temp_output, 20.666666666666, DOUBLE_COMP_THRESHOLD);
   EXPECT_EQ(device_.Process(), fastcat::NO_FAULT);
   EXPECT_NEAR(*node_1_temp_output, 22.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_2_temp_output, 20.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_3_temp_output, 20.0, DOUBLE_COMP_THRESHOLD);
-  EXPECT_NEAR(*node_4_temp_output, 21.0, DOUBLE_COMP_THRESHOLD);
+  EXPECT_NEAR(*node_4_temp_output, 20.666666666666, DOUBLE_COMP_THRESHOLD);
   EXPECT_EQ(device_.Process(), fastcat::NO_FAULT);
   EXPECT_NEAR(*node_1_temp_output, 21.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_2_temp_output, 22.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_3_temp_output, 20.0, DOUBLE_COMP_THRESHOLD);
-  EXPECT_NEAR(*node_4_temp_output, 20.5, DOUBLE_COMP_THRESHOLD);
+  EXPECT_NEAR(*node_4_temp_output, 21.0, DOUBLE_COMP_THRESHOLD);
 }
 
 TEST_F(ThreeNodeThermalModelTest, TempFault)
