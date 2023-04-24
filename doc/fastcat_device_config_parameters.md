@@ -1143,18 +1143,18 @@ This example implements an absolute value function over the range of [-9, 9]
 
 | Parameter   | Description |
 | ----------- | ----------- |
-| thermal_mass_node_1      | The thermal mass that represents the winding node (node 1) |
-| thermal_mass_node_2      | The thermal mass that represents the stator node (node 2) |
-| thermal_res_nodes_1_to_2      | The effective thermal resistance between nodes 1 and 2 |
-| thermal_res_nodes_2_to_3      | The effective thermal resistance between nodes 2 and 3 |
-| winding_res      | The electrical resistance of the motor windings at the specified reference temperature |
+| thermal_mass_node_1      | The thermal mass that represents the winding node -- node 1 (J * kg / deg C) |
+| thermal_mass_node_2      | The thermal mass that represents the stator node  -- node 2 (J * kg / deg C) |
+| thermal_res_nodes_1_to_2      | The effective thermal resistance between nodes 1 and 2 (deg C/W) |
+| thermal_res_nodes_2_to_3      | The effective thermal resistance between nodes 2 and 3 (deg C/W) |
+| winding_res      | The electrical resistance of the motor windings at the specified reference temperature  (ohms) |
 | winding_thermal_cor      | The thermal coefficient of resistance (% / deg C) |
-| k1      | Weight for for node 1 used for the weighted-average temperature estimate of node |
-| k2      | Weight for for node 2 used for the weighted-average temperature estimate of node |
-| k3      | Weight for for node 3 used for the weighted-average temperature estimate of node |
-| persistence_limit      | The number of allowable cycles to occur at or above the a temperature threshold before faulting |
-| ref_temp      | The reference temperature of the calibrated resistance parameter above, and to calculate the motor resistance |
-| max_allowable_temps      | An array of allow able temperatures at each node (in order) |
+| k1      | Weight for for node 1 used for the weighted-average temperature estimate of node (unitless) |
+| k2      | Weight for for node 2 used for the weighted-average temperature estimate of node (unitless) |
+| k3      | Weight for for node 3 used for the weighted-average temperature estimate of node (unitless) |
+| persistence_limit      | The number of allowable cycles to occur at or above the a temperature threshold before faulting (counts) |
+| ref_temp      | The reference temperature of the calibrated resistance parameter above, and to calculate the motor resistance (deg C) |
+| max_allowable_temps      | An array of allow able temperatures at each node, in order (deg C) |
 
 The ThreeNodeThermalModel provides a simplified predictive thermal model used to estimate 
 temperature change over time in specific locations in a motor. This is primarily useful for
