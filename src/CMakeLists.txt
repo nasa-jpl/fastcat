@@ -29,14 +29,24 @@ function(run_fcgen fc_input_file fc_output_file)
     )
 endfunction()
 
-run_fcgen("types.h.cog"            "${CMAKE_BINARY_DIR}/include/fastcat/types.h")
-run_fcgen("device_includes.h.cog"  "${CMAKE_BINARY_DIR}/include/fastcat/device_includes.h")
-run_fcgen("signal_handling.cc.cog" "${CMAKE_BINARY_DIR}/autogen/signal_handling.cc")
-run_fcgen("commander.cc.cog"       "${CMAKE_BINARY_DIR}/autogen/commander.cc")
+run_fcgen(types.h.cog            ${CMAKE_BINARY_DIR}/include/fastcat/types.h)
+run_fcgen(device_includes.h.cog  ${CMAKE_BINARY_DIR}/include/fastcat/device_includes.h)
+run_fcgen(signal_handling.cc.cog ${CMAKE_BINARY_DIR}/autogen/signal_handling.cc)
+run_fcgen(commander.cc.cog       ${CMAKE_BINARY_DIR}/autogen/commander.cc)
+
+run_fcgen(
+  enum_conversions.h.cog 
+  ${CMAKE_BINARY_DIR}/include/fastcat/enum_conversions.h)
+
+run_fcgen(
+  device_config_parsing_libyamlcpp.h.cog 
+  ${CMAKE_BINARY_DIR}/include/fastcat/device_config_parsing_libyamlcpp.h)
 
 add_custom_target(fcgen DEPENDS
     ${CMAKE_BINARY_DIR}/include/fastcat/types.h
     ${CMAKE_BINARY_DIR}/include/fastcat/device_includes.h
+    ${CMAKE_BINARY_DIR}/include/fastcat/enum_conversions.h
+    ${CMAKE_BINARY_DIR}/include/fastcat/device_config_parsing_libyamlcpp.h
     )
 
 add_library(fastcat STATIC

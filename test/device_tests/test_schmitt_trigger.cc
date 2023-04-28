@@ -11,8 +11,8 @@ class SchmittTriggerTest : public ::testing::Test
  protected:
   void SetUp() override
   {
-    std::string unit_test_dir(FASTCAT_UNIT_TEST_DIR);
-    unit_test_dir += "test_schmitt_trigger_yamls/";
+    std::string unit_test_dir(FASTCAT_TEST_DIR);
+    unit_test_dir += "device_tests/test_schmitt_trigger_yamls/";
     config_node = YAML::LoadFile(unit_test_dir + "st1_config.yaml");
     st2_.ConfigFromYaml(YAML::LoadFile(unit_test_dir + "st2_config.yaml"));
     st3_.ConfigFromYaml(YAML::LoadFile(unit_test_dir + "st3_config.yaml"));

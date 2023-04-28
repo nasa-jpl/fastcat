@@ -10,9 +10,10 @@ class YamlParserTest : public ::testing::Test
  protected:
   void SetUp() override
   {
-    std::string unit_test_dir(FASTCAT_UNIT_TEST_DIR);
+    std::string unit_test_dir(FASTCAT_TEST_DIR);
+    unit_test_dir += "device_tests/test_yaml_parser_yamls/";
     parsable_node = YAML::LoadFile(
-        unit_test_dir + "test_yaml_parser_yamls/yaml_parser_config.yaml");
+        unit_test_dir + "yaml_parser_config.yaml");
   }
   YAML::Node  parsable_node;
   YAML::Node  empty_node;

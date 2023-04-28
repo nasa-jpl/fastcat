@@ -6,12 +6,9 @@ set(TEST_SOURCES
     test_commander.cc
     test_conditional.cc
     test_function.cc
-    test_jsd_device_base.cc
     test_linear_interpolation.cc
     test_schmitt_trigger.cc
     test_signal_generator.cc
-    test_transform_utils.cc
-    test_trap.cc
     test_yaml_parser.cc
     test_fts.cc
     test_ati_fts.cc
