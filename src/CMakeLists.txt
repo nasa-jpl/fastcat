@@ -1,79 +1,42 @@
 ####### Fastcat COG Autocoding #######
 
-add_custom_command(
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/autogen)
+
+function(run_fcgen fc_input_file fc_output_file)
+  add_custom_command(
     OUTPUT
-      ${CMAKE_BINARY_DIR}/include/fastcat/types.h
+      ${fc_output_file}
     COMMAND
-      cog -d -D cog_yaml_file=fcgen/fastcat_types.yaml
-      -o ${CMAKE_BINARY_DIR}/include/fastcat/types.h
-      fcgen/types.h.cog
+      cog -d 
+      -D cog_yaml_file=fcgen/templates/${fc_input_file}
+      -D command_yaml=fcgen/fastcat_commands.yaml
+      -D device_yaml=fcgen/fastcat_devices.yaml
+      -D enum_yaml=fcgen/fastcat_enums.yaml
+      -D manager_yaml=fcgen/fastcat_manager_config.yaml
+      -o ${fc_output_file}
+      fcgen/templates/${fc_input_file}
     DEPENDS
-      fcgen/fastcat_types.yaml
-      fcgen/types.h.cog
+      fcgen/fastcat_commands.yaml
+      fcgen/fastcat_devices.yaml
+      fcgen/fastcat_enums.yaml
+      fcgen/fastcat_manager_config.yaml
+      fcgen/templates/${fc_input_file}
     WORKING_DIRECTORY
       ${CMAKE_CURRENT_LIST_DIR}
     COMMENT
-      "running fcgen - types.h"
+      "fcgen: ${fc_input_file} -> ${fc_output_file}"
     VERBATIM
     )
+endfunction()
 
-add_custom_command(
-    OUTPUT
-      ${CMAKE_BINARY_DIR}/include/fastcat/device_includes.h
-    COMMAND
-      cog -d -D cog_yaml_file=fcgen/fastcat_types.yaml
-      -o ${CMAKE_BINARY_DIR}/include/fastcat/device_includes.h
-      fcgen/device_includes.h.cog
-    DEPENDS
-      fcgen/fastcat_types.yaml
-      fcgen/device_includes.h.cog
-    WORKING_DIRECTORY
-      ${CMAKE_CURRENT_LIST_DIR}
-    COMMENT
-      "running fcgen - device_includes.h"
-    VERBATIM
-    )
+run_fcgen("types.h.cog"            "${CMAKE_BINARY_DIR}/include/fastcat/types.h")
+run_fcgen("device_includes.h.cog"  "${CMAKE_BINARY_DIR}/include/fastcat/device_includes.h")
+run_fcgen("signal_handling.cc.cog" "${CMAKE_BINARY_DIR}/autogen/signal_handling.cc")
+run_fcgen("commander.cc.cog"       "${CMAKE_BINARY_DIR}/autogen/commander.cc")
 
-add_custom_command(
-    OUTPUT
-      ${CMAKE_BINARY_DIR}/autogen/signal_handling.cc
-    COMMAND
-      cog -d -D cog_yaml_file=fcgen/fastcat_types.yaml
-      -o ${CMAKE_BINARY_DIR}/autogen/signal_handling.cc
-      fcgen/signal_handling.cc.cog
-    DEPENDS
-      ${CMAKE_BINARY_DIR}/include/fastcat/types.h
-      fcgen/signal_handling.cc.cog
-    WORKING_DIRECTORY
-      ${CMAKE_CURRENT_LIST_DIR}
-    COMMENT
-      "running fcgen - signal_handling.cc"
-    VERBATIM
-    )
-
-add_custom_command(
-    OUTPUT
-      ${CMAKE_BINARY_DIR}/autogen/commander.cc
-    COMMAND
-      cog -d -D cog_yaml_file=fcgen/fastcat_types.yaml
-      -o ${CMAKE_BINARY_DIR}/autogen/commander.cc
-      fcgen/commander.cc.cog
-    DEPENDS
-      ${CMAKE_BINARY_DIR}/include/fastcat/types.h
-      fcgen/commander.cc.cog
-    WORKING_DIRECTORY
-      ${CMAKE_CURRENT_LIST_DIR}
-    COMMENT
-      "running fcgen - commander.cc"
-    VERBATIM
-    )
-
-add_custom_target(fcgen
-    DEPENDS
+add_custom_target(fcgen DEPENDS
     ${CMAKE_BINARY_DIR}/include/fastcat/types.h
     ${CMAKE_BINARY_DIR}/include/fastcat/device_includes.h
-    ${CMAKE_BINARY_DIR}/autogen/signal_handling.cc
-    ${CMAKE_BINARY_DIR}/autogen/commander.cc
     )
 
 add_library(fastcat STATIC
