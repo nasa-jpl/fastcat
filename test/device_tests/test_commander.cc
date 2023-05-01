@@ -70,7 +70,7 @@ TEST_F(CommanderTest, WriteInvalidCommand)
   // Write() returns false if the command sent is not valid for Commander
   // devices
   fastcat::DeviceCmd cmd;
-  cmd.type = fastcat::BAD_DEVICE_CMD;
+  cmd.type = fastcat::BAD_DEVICE_CMD_TYPE;
   EXPECT_FALSE(c2_.Write(cmd));
 }
 

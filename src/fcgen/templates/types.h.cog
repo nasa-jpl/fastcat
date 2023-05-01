@@ -48,6 +48,7 @@ for device in device_data['devices']:
   cog.outl('%s_DEVICE,' % device['name'].upper())
 ]]]
 [[[end]]]
+  BAD_DEVICE_TYPE
 };
 
 
@@ -60,7 +61,7 @@ for cmd in cmd_data['commands']:
   cog.outl('%s_CMD,' %cmd['name'].upper())
 ]]]
 [[[end]]]
-  BAD_DEVICE_CMD
+  BAD_DEVICE_CMD_TYPE
 };
 
 
@@ -142,6 +143,7 @@ for device in device_data['devices']:
 
 typedef struct{
   std::string name;
+  DeviceType type;
   DeviceConfigVariant config_variant;
 } DeviceConfig;
 

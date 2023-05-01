@@ -5,6 +5,7 @@ set(TEST_SOURCES
     test_trap.cc
     test_enum_conversions.cc
     test_jsd_device_base.cc
+    test_device_config_parsing_libyamlcpp.cc
   )
 
 foreach(TEST_SOURCE ${TEST_SOURCES})

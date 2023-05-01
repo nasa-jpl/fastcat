@@ -177,5 +177,5 @@ for cmd in cmd_data['commands']:
 ]]]
 [[[end]]]
 
-  return fastcat::BAD_DEVICE_CMD;
+  return fastcat::BAD_DEVICE_CMD_TYPE;
 }
