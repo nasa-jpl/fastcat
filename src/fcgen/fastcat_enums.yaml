@@ -36,3 +36,30 @@ enumerations:
     - value: SAW_TOOTH
     - value: GAUSSIAN_RANDOM
     - value: UNIFORM_RANDOM
+
+
+  - name: beckhoff_filter
+    jsd_enum_alias: true
+    entries:
+    - value: BECKHOFF_FILTER_50HZ
+    - value: BECKHOFF_FILTER_60HZ
+    - value: BECKHOFF_FILTER_100HZ
+    - value: BECKHOFF_FILTER_500HZ
+    - value: BECKHOFF_FILTER_1000HZ
+    - value: BECKHOFF_FILTER_2000HZ
+    - value: BECKHOFF_FILTER_3750HZ
+    - value: BECKHOFF_FILTER_7500HZ
+    - value: BECKHOFF_FILTER_15000HZ
+    - value: BECKHOFF_FILTER_30000HZ
+    - value: BECKHOFF_FILTER_5HZ
+    - value: BECKHOFF_FILTER_10HZ
+
+  - name: el3602_range
+    jsd_enum_alias: true
+    entries:
+    - value: EL3602_RANGE_10V
+    - value: EL3602_RANGE_5V
+    - value: EL3602_RANGE_2_5V
+    - value: EL3602_RANGE_1_25V
+    - value: EL3602_RANGE_75MV
+    - value: EL3602_RANGE_200MV

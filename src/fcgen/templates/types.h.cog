@@ -71,9 +71,16 @@ for cmd in cmd_data['commands']:
 //////////////////////////////////
 [[[cog
 for this_enum in enum_data['enumerations']:
+  is_jsd_enum_alias = False
+  if 'jsd_enum_alias' in this_enum:
+    is_jsd_enum_alias = bool(this_enum['jsd_enum_alias'])
+
   cog.outl('enum %s {' % (snake2camel(this_enum['name'])))
   for entry in this_enum['entries']:
-    cog.outl('%s,' % entry['value'].upper())
+    if is_jsd_enum_alias:
+      cog.outl('%s = JSD_%s,' % (entry['value'].upper(), entry['value'].upper()))
+    else:
+      cog.outl('%s,' % entry['value'].upper())
   cog.outl('BAD_%s' % this_enum['name'].upper())
   cog.outl('};')
 ]]]

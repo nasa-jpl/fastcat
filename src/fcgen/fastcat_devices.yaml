@@ -612,6 +612,25 @@ devices:
       type: double
     - name: adc_value_ch2
       type: int32_t
+    config:
+    - name: range
+      type: El3602Range
+    - name: filter
+      type: BeckhoffFilter
+      default: BECKHOFF_FILTER_30000HZ
+    - name: limit1_enable
+      type: std::array<bool, JSD_EL3602_NUM_CHANNELS>
+      default: {false, false}
+    - name: limit1_voltage
+      type: std::array<double, JSD_EL3602_NUM_CHANNELS>
+      default: {0, 0}
+    - name: limit2_enable
+      type: std::array<bool, JSD_EL3602_NUM_CHANNELS>
+      default: {false, false}
+    - name: limit2_voltage
+      type: std::array<double, JSD_EL3602_NUM_CHANNELS>
+      default: {0, 0}
+      
 
   - name: el2124
     type: jsd_device
