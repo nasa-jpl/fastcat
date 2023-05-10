@@ -654,6 +654,19 @@ devices:
 
   - name: el3208
     type: jsd_device
+    config:
+    - name: element
+      type: std::array<El3208Element, JSD_EL3208_NUM_CHANNELS>
+    - name: filter
+      type: std::array<BeckhoffFilter, JSD_EL3208_NUM_CHANNELS>
+      default: {BECKHOFF_FILTER_30000HZ}
+    - name: connection
+      type: std::array<El3208Connection, JSD_EL3208_NUM_CHANNELS>
+    - name: wire_resistance
+      type: std:array<double, JSD_EL3208_NUM_CHANNELS>
+    - name: presentation
+      type: std:array<El3208Presentation, JSD_EL3208_NUM_CHANNELS>
+      default: {EL3208_PRESENTATION_SIGNED} 
     state:
     - name: output_ch1
       type: double
@@ -722,6 +735,19 @@ devices:
 
   - name: el3202
     type: jsd_device
+    config:
+      - name: element
+        type: std::array<El3202Element, JSD_EL3202_NUM_CHANNELS>
+      - name: filter
+        type: std::array<BeckhoffFilter, JSD_EL3202_NUM_CHANNELS>
+        default: {BECKHOFF_FILTER_30000HZ}
+      - name: connection
+        type: std::array<El3208Connection, JSD_EL3202_NUM_CHANNELS>
+      - name: wire_resistance
+        type: std:array<double, JSD_EL3202_NUM_CHANNELS>
+      - name: presentation
+        type: std:array<El3202Presentation, JSD_EL3202_NUM_CHANNELS>
+        default: {EL3202_PRESENTATION_SIGNED}
     state:
       - name: output_eu_ch1
         type: double
@@ -734,6 +760,15 @@ devices:
 
   - name: el3318
     type: jsd_device
+      config:
+      - name: element
+        type: std::array<El3318Element, JSD_EL3318_NUM_CHANNELS>
+      - name: filter
+        type: std::array<BeckhoffFilter, JSD_EL3318_NUM_CHANNELS>
+        default: {BECKHOFF_FILTER_30000HZ}
+      - name: presentation
+        type: std:array<El3318Presentation, JSD_EL3318_NUM_CHANNELS>
+        default: {EL3318_PRESENTATION_SIGNED}
     state:
       - name: output_eu_ch1
         type: double
@@ -770,6 +805,21 @@ devices:
 
   - name: ild1900
     type: jsd_device
+    config:
+    - name: measuring_rate
+      type: double
+    - name: averaging_number
+      type: uint32_t
+    - name: averaging_type
+      type: Ild1900Averaging
+    - name: model 
+      type: Ild1900Model
+    - name: exposure_mode
+      type: Ild1900ExposureMode
+      default: ILD1900_EXPOSURE_MODE_STANDARD
+    - name: peak_selection
+      type: Ild1900PeakSelection
+      default: ILD1900_PEAK_SELECTION_HIGHEST
     state:
     - name: distance_m
       type: double

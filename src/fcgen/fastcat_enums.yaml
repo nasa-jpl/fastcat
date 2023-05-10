@@ -63,3 +63,122 @@ enumerations:
     - value: EL3602_RANGE_1_25V
     - value: EL3602_RANGE_75MV
     - value: EL3602_RANGE_200MV
+
+  - name: el3208_element
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3208_ELEMENT_PT100
+    - value: EL3208_ELEMENT_NI100
+    - value: EL3208_ELEMENT_PT1000
+    - value: EL3208_ELEMENT_PT500
+    - value: EL3208_ELEMENT_PT200
+    - value: EL3208_ELEMENT_NI1000
+    - value: EL3208_ELEMENT_NI1000_TK1500
+    - value: EL3208_ELEMENT_NI120
+    - value: EL3208_ELEMENT_OHMS4096
+    - value: EL3208_ELEMENT_OHMS1024
+    - value: EL3208_ELEMENT_KT100_ET_AL
+
+  - name: el3208_connection
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3208_CONNECTION_2WIRE
+    - value: EL3208_CONNECTION_3WIRE
+    - value: EL3208_CONNECTION_4WIRE
+    - value: EL3208_CONNECTION_NOT_CONNECTED
+
+  - name: el3208_presentation
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3208_PRESENTATION_SIGNED
+    - value: EL3208_PRESENTATION_HIGH_RES
+
+
+  - name: el3202_element
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3202_ELEMENT_PT100
+    - value: EL3202_ELEMENT_NI100
+    - value: EL3202_ELEMENT_PT1000
+    - value: EL3202_ELEMENT_PT500
+    - value: EL3202_ELEMENT_PT200
+    - value: EL3202_ELEMENT_NI1000
+    - value: EL3202_ELEMENT_NI1000_TK1500
+    - value: EL3202_ELEMENT_NI120
+    - value: EL3202_ELEMENT_OHMS4096
+    - value: EL3202_ELEMENT_OHMS1024
+    - value: EL3202_ELEMENT_KT100_ET_AL
+
+  - name: el3202_connection
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3202_CONNECTION_2WIRE
+    - value: EL3202_CONNECTION_3WIRE
+    - value: EL3202_CONNECTION_4WIRE
+    - value: EL3202_CONNECTION_NOT_CONNECTED
+
+  - name: el3202_presentation
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3202_PRESENTATION_SIGNED
+    - value: EL3202_PRESENTATION_HIGH_RES
+
+
+  - name: el3318_element
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3318_ELEMENT_TYPE_K
+    - value: EL3318_ELEMENT_TYPE_J
+    - value: EL3318_ELEMENT_TYPE_L
+    - value: EL3318_ELEMENT_TYPE_E
+    - value: EL3318_ELEMENT_TYPE_T
+    - value: EL3318_ELEMENT_TYPE_N
+    - value: EL3318_ELEMENT_TYPE_U
+    - value: EL3318_ELEMENT_TYPE_B
+    - value: EL3318_ELEMENT_TYPE_R
+    - value: EL3318_ELEMENT_TYPE_S
+    - value: EL3318_ELEMENT_TYPE_C
+
+  - name: el3318_presentation
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3318_PRESENTATION_SIGNED
+    - value: EL3318_PRESENTATION_HIGH_RES
+
+  - name: ild1900_model
+    jsd_enum_alias: true 
+    entries:
+    - value: ILD1900_MODEL_2
+    - value: ILD1900_MODEL_10
+    - value: ILD1900_MODEL_25
+    - value: ILD1900_MODEL_50
+    - value: ILD1900_MODEL_100
+    - value: ILD1900_MODEL_200
+    - value: ILD1900_MODEL_500
+    - value: ILD1900_MODEL_2LL
+    - value: ILD1900_MODEL_6LL
+    - value: ILD1900_MODEL_10LL
+    - value: ILD1900_MODEL_25LL
+    - value: ILD1900_MODEL_50LL
+
+  - name: ild1900_exposure
+    jsd_enum_alias: true 
+    entries: 
+    - value: ILD1900_EXPOSURE_MODE_STANDARD
+    - value: ILD1900_EXPOSURE_MODE_INTELLIGENT
+    - value: ILD1900_EXPOSURE_MODE_BACKGROUND
+
+  - name: ild1900_peak_selection
+    jsd_enum_alias: true 
+    entries:
+    - value: ILD1900_PEAK_SELECTION_HIGHEST
+    - value: ILD1900_PEAK_SELECTION_WIDEST
+    - value: ILD1900_PEAK_SELECTION_LAST
+    - value: ILD1900_PEAK_SELECTION_FIRST
+
+  - name: ild1900_averaging
+    jsd_enum_alias: true 
+    entries:
+    - value: ILD1900_AVERAGING_NONE
+    - value: ILD1900_AVERAGING_MOVING
+    - value: ILD1900_AVERAGING_RECURSIVE
