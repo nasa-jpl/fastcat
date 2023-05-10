@@ -73,7 +73,7 @@ TEST_F(SchmittTriggerTest, ReadResponse)
 
   // Read() returns true when signal updates successfully
   fastcat::DeviceState sgs;
-  sgs.type                          = fastcat::SIGNAL_GENERATOR_STATE;
+  sgs.type                          = fastcat::SIGNAL_GENERATOR_DEVICE;
   sgs.signal_generator_state.output = 10.0;
   fastcat::ConfigSignalByteIndexing(&sgs, st2_.signals_[0]);
 

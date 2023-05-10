@@ -1,0 +1,326 @@
+# use snake_case for all variable and device names
+commands:
+  - name: commander_enable
+    fields:
+    - name: duration
+      type: double
+      comment: duration in seconds, duration <= 0 indefinite
+
+  - name: commander_disable
+    fields:
+    - name: dummy
+      type: bool
+
+  - name: egd_csp
+    fields: 
+    - name: target_position
+      type: int32_t
+    - name: position_offset
+      type: int32_t
+    - name: velocity_offset
+      type: int32_t
+    - name: torque_offset_amps
+      type: double
+
+  - name: egd_csv
+    fields: 
+    - name: target_velocity
+      type: int32_t
+    - name: velocity_offset
+      type: int32_t
+    - name: torque_offset_amps
+      type: double
+
+  - name: egd_cst
+    fields: 
+    - name: target_torque_amps
+      type: int32_t
+    - name: torque_offset_amps
+      type: double
+
+  - name: egd_set_gain_scheduling_index
+    fields:
+    - name: gain_scheduling_index
+      type: uint16_t
+
+  - name: egd_prof_pos
+    fields: 
+    - name: target_position
+      type: int32_t
+    - name: profile_velocity
+      type: uint32_t
+    - name: end_velocity
+      type: uint32_t
+    - name: profile_accel
+      type: uint32_t
+    - name: profile_decel
+      type: uint32_t
+    - name: relative
+      type: uint8_t
+
+  - name: egd_prof_vel
+    fields:
+    - name: target_velocity
+      type: int32_t
+    - name: profile_accel
+      type: uint32_t
+    - name: profile_decel
+      type: uint32_t
+
+  - name: egd_prof_torque
+    fields:
+    - name: target_torque_amps
+      type: double
+
+  - name: egd_reset
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: egd_halt
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: egd_sdo_set_drive_pos
+    fields:
+    - name: drive_position
+      type: int32_t
+    - name: app_id
+      type: uint16_t
+
+  - name: egd_sdo_set_unit_mode
+    fields:
+    - name: unit_mode
+      type: int32_t
+    - name: app_id
+      type: uint16_t
+
+  - name: egd_sdo_disable_gain_scheduling
+    fields:
+    - name: app_id
+      type: uint16_t
+
+  - name: egd_sdo_enable_speed_gain_scheduling
+    fields:
+    - name: app_id
+      type: uint16_t
+
+  - name: egd_sdo_enable_position_gain_scheduling
+    fields:
+    - name: app_id
+      type: uint16_t
+
+  - name: egd_sdo_enable_manual_gain_scheduling
+    fields:
+    - name: app_id
+      type: uint16_t
+
+  - name: fts_tare
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: fts_enable_guard_fault
+    fields:
+    - name: enable
+      type: bool
+
+  - name: el2124_write_channel
+    fields:
+    - name: channel
+      type: uint8_t
+    - name: level
+      type: uint8_t
+
+  - name: el2124_write_all_channels
+    fields:
+    - name: channel_ch1
+      type: uint8_t
+    - name: channel_ch2
+      type: uint8_t
+    - name: channel_ch3
+      type: uint8_t
+    - name: channel_ch4
+      type: uint8_t
+
+  - name: el4102_write_channel
+    fields:
+    - name: channel
+      type: uint8_t
+    - name: voltage_output
+      type: double
+
+  - name: el4102_write_all_channels
+    fields:
+    - name: voltage_output_ch1
+      type: double
+    - name: voltage_output_ch2
+      type: double
+
+  - name: actuator_csp
+    fields: 
+    - name: target_position
+      type: double
+    - name: position_offset
+      type: double
+    - name: velocity_offset
+      type: double
+    - name: torque_offset_amps
+      type: double
+
+  - name: actuator_csv
+    fields: 
+    - name: target_velocity
+      type: double
+    - name: velocity_offset
+      type: double
+    - name: torque_offset_amps
+      type: double
+
+  - name: actuator_cst
+    fields: 
+    - name: target_torque_amps
+      type: double
+    - name: torque_offset_amps
+      type: double
+
+  - name: actuator_set_gain_scheduling_index
+    fields:
+    - name: gain_scheduling_index
+      type: uint16_t
+
+  - name: actuator_prof_pos
+    fields: 
+    - name: target_position
+      type: double
+    - name: profile_velocity
+      type: double
+    - name: end_velocity
+      type: double
+    - name: profile_accel
+      type: double
+    - name: relative
+      type: uint8_t
+
+  - name: actuator_prof_vel
+    fields:
+    - name: target_velocity
+      type: double
+    - name: profile_accel
+      type: double
+    - name: max_duration
+      type: double
+
+  - name: actuator_prof_torque
+    fields:
+    - name: target_torque_amps
+      type: double
+    - name: max_duration
+      type: double
+
+  - name: actuator_reset
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: actuator_halt
+    fields:
+    - name: dummy
+      type: bool
+      comment: unused
+
+  - name: actuator_set_output_position
+    fields:
+    - name: position
+      type: double
+
+  - name: actuator_calibrate
+    fields:
+    - name: velocity
+      type: double
+    - name: accel
+      type: double
+    - name: max_current
+      type: double
+
+  - name: actuator_set_max_current
+    fields:
+    - name: current 
+      type: double
+      comment: Corresponds to the PL[1] or Peak current setting
+
+  - name: actuator_sdo_set_unit_mode
+    fields:
+    - name: mode
+      type: int32_t
+      comment: UM[1] = 5 by default for pos, vel, and current command modes
+    - name: app_id
+      type: uint16_t
+
+  - name: actuator_sdo_disable_gain_scheduling
+    fields:
+    - name: app_id
+      type: uint16_t
+
+  - name: actuator_sdo_enable_speed_gain_scheduling
+    fields:
+    - name: app_id
+      type: uint16_t
+
+  - name: actuator_sdo_enable_position_gain_scheduling
+    fields:
+    - name: app_id
+      type: uint16_t
+
+  - name: actuator_sdo_enable_manual_gain_scheduling
+    fields:
+    - name: app_id
+      type: uint16_t
+
+  - name: faulter_enable
+    fields:
+    - name: enable
+      type: bool
+      comment: if true, faulter will trigger a fault when the specified signal is received.
+
+  - name: pid_activate
+    fields: 
+    - name: setpoint
+      type: double
+    - name: deadband
+      type: double
+    - name: persistence_duration
+      type: double 
+    - name: max_duration
+      type: double
+
+  - name: async_sdo_write
+    comment: "async_sdo commands are not available for use by the fastcat commander device"
+    fields: 
+    - name: sdo_index
+      type: uint16_t
+    - name: sdo_subindex
+      type: uint8_t
+    - name: data
+      type: jsd_sdo_data_t
+    - name: data_type
+      type: jsd_sdo_data_type_t
+    - name: app_id
+      type: uint16_t
+
+  - name: async_sdo_read
+    comment: "async_sdo commands are not available for use by the fastcat commander device"
+    fields: 
+    - name: sdo_index
+      type: uint16_t
+    - name: sdo_subindex
+      type: uint8_t
+    - name: data_type
+      type: jsd_sdo_data_type_t
+    - name: app_id
+      type: uint16_t

@@ -9,10 +9,10 @@
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd_print.h"
 
-fastcat::ConditionalType fastcat::ConditionalTypeFromString(
+fastcat::ConditionalOperatorType fastcat::ConditionalTypeFromString(
     std::string cond_type)
 {
-  ConditionalType type;
+  ConditionalOperatorType type;
 
   if (cond_type.compare("<") == 0) {
     type = LT;
@@ -28,7 +28,7 @@ fastcat::ConditionalType fastcat::ConditionalTypeFromString(
     type = NE;
 
   } else {
-    type = BAD_CONDITIONAL_TYPE;
+    type = BAD_CONDITIONAL_OPERATOR_TYPE;
     ERROR("%s is not a known ConditionalType", cond_type.c_str());
   }
 
@@ -38,7 +38,7 @@ fastcat::ConditionalType fastcat::ConditionalTypeFromString(
 fastcat::Conditional::Conditional()
 {
   state_       = std::make_shared<DeviceState>();
-  state_->type = CONDITIONAL_STATE;
+  state_->type = CONDITIONAL_DEVICE;
 }
 
 bool fastcat::Conditional::ConfigFromYaml(YAML::Node node)
@@ -53,7 +53,7 @@ bool fastcat::Conditional::ConfigFromYaml(YAML::Node node)
   }
 
   conditional_type_ = ConditionalTypeFromString(conditional_type_string_);
-  if (conditional_type_ == BAD_CONDITIONAL_TYPE) {
+  if (conditional_type_ == BAD_CONDITIONAL_OPERATOR_TYPE) {
     return false;
   }
 

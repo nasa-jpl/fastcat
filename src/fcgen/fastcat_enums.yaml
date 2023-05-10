@@ -1,0 +1,38 @@
+# use snake_case for type-name and UPPER for value
+# if string is not supplied, it will be taken as the value
+enumerations:
+  - name: conditional_operator_type
+    entries:
+    - string: "<"
+      value:  LT
+    - string: "<="
+      value:  LE
+    - string: ">"
+      value:  GT 
+    - string: ">="
+      value:  GE 
+    - string: "=="
+      value:  EQ 
+    - string: "!="
+      value:  NE 
+
+  - name: filter_type
+    entries: 
+    - value: DIGITAL_AB
+    - value: MOVING_AVERAGE
+
+  - name: function_type
+    entries:
+    - value: POLYNOMIAL
+    - value: SUMMATION
+    - value: MULTIPLICATION
+    - value: POWER
+    - value: EXPONENTIAL
+    - value: SIGMOID
+
+  - name: signal_generator_type
+    entries:
+    - value: SINE_WAVE
+    - value: SAW_TOOTH
+    - value: GAUSSIAN_RANDOM
+    - value: UNIFORM_RANDOM

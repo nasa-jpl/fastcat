@@ -15,7 +15,7 @@ fastcat::Egd::Egd()
   MSG_DEBUG("Constructed Egd");
 
   state_       = std::make_shared<DeviceState>();
-  state_->type = EGD_STATE;
+  state_->type = EGD_DEVICE;
 }
 
 bool fastcat::Egd::ConfigFromYaml(YAML::Node node)

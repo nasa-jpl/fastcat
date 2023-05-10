@@ -1,56 +1,137 @@
+# use snake_case for type-name and UPPER for value
+# if string is not supplied, it will be taken as the value
+enumerations:
+  - name: conditional_operator_type
+    entries:
+    - string: "<"
+      value:  LT
+    - string: "<="
+      value:  LE
+    - string: ">"
+      value:  GT 
+    - string: ">="
+      value:  GE 
+    - string: "=="
+      value:  EQ 
+    - string: "!="
+      value:  NE 
+  - name: filter_type
+    entries: 
+    - value: DIGITAL_AB
+    - value: MOVING_AVERAGE
+  - name: function_type
+    entries:
+    - value: POLYNOMIAL
+    - value: SUMMATION
+    - value: MULTIPLICATION
+    - value: POWER
+    - value: EXPONENTIAL
+    - value: SIGMOID
+  - name: signal_generator_type
+    entries:
+    - value: SINE_WAVE
+    - value: SAW_TOOTH
+    - value: GAUSSIAN_RANDOM
+    - value: UNIFORM_RANDOM
+
+# use snake_case for all variables
+manager_config:
+  - name: target_loop_rate_hz
+    type: double
+    comment: "Target loop rate the application will run the process loop"
+  - name: zero_latency_required 
+    type: bool
+    default: true
+    comment: "If zero-latency is required in order to properly initialize"
+  - name: actuator_position_directory
+    type: std::string
+    default: /tmp/
+    comment: "Location of the fastcat saved position file for incremental feedback sensors"
+  - name: actuator_fault_on_missing_pos_file
+    type: bool
+    default: true
+    comment: "If true, fails to initialize if this file is not present. 
+             Otherwise, fastcat creates this file."
+
 # use snake_case for all variable and device names
-states:
+# if a config variable has a default value, it is assumed to be optional
+# all parameters must have a default value 
+devices:
   - name: commander
-    fields:
+    type: fastcat_device
+    state:
     - name: enable
       type: bool
-      comment: if true, commander will emit fastcat commands
-
-  - name: signal_generator
-    fields:
-    - name: output
-      type: double
-
-  - name: function
-    fields:
-    - name: output
-      type: double
+      comment: "If true, commander will emit fastcat commands"
+    config:
+    - name: start_enabled  
+      type: bool
+      comment: "If true, starts issuing commands immediately after initialization"
+    - name: skip_n_loops
+      type: uint16_t 
+      comment: "The number of loops between issuing commands when enabled"
+    - name: device_command_name
+      type: std::string
+      comment: "The name of the device commander sends commands"
+    - name: device_cmd_type 
+      type: DeviceCmdType
+      comment: "The command type to send to device_command_name"
 
   - name: conditional
-    fields:
+    type: fastcat_device
+    state:
     - name: output
       type: bool
-
-  - name: schmitt_trigger
-    fields:
-    - name: output
-      type: bool
-  
-  - name: saturation
-    fields:
-    - name: output
+      config: "bool output = (double)signal_value <COMPARE_OPERATOR> (double)compare_rhs_value"
+    config:
+    - name: conditional_type
+      type: ConditionalOperatorType
+      comment: "Comparison operator valid inputs: {<, <=, >, >=, ==, !=}"
+    - name: compare_rhs_value
       type: double
+      comment: "The right-hand side value of the comparison test"
+
+  - name: faulter
+    type: fastcat_device
+    state:
+    - name: enable
+      type: bool
+      comment: "If true, the faulter is currently monitoring the fastcat signal for faults"
+    - name: fault_active
+      type: bool
+      comment: "If true, the conditions for raising a fault are met"
+    config:
+    - name: start_enabled
+      type: bool
+      comment: "If true, starts monitoring the input signal immediately after initialization"
+
 
   - name: filter
-    fields:
+    type: fastcat_device
+    state:
     - name: output
       type: double
-
-  - name: pid
-    fields:
-    - name: active
-      type: bool
-    - name: output
-      type: double
-    - name: kp_term
-      type: double
-    - name: ki_term
-      type: double
-    - name: kd_term
-      type: double
+      comment: "Filtered output value"
+    config:
+    - name: filter_type
+      type: FilterType
+      comment: "The type of filter"
+    - name: A
+      type: std::vector<double>
+      default: {0}
+      comment: "Digital-AB: The A coefficients"
+    - name: B
+      type: std::vector<double>
+      default: {0}
+      comment: "Digital-AB: The B coefficients"
+    - name: buffer_size
+      type: uint16_t
+      default: 1
+      comment: "Moving-average: The number of samples which to average over"
 
   - name: fts
-    fields:
+    type: fastcat_device
+    state:
     - name: raw_fx
       type: double
     - name: raw_fy
@@ -75,9 +156,305 @@ states:
       type: double
     - name: tared_tz
       type: double
+    config: 
+    - name: calibration_matrix
+      type: std::vector<double> 
+      comment: "Must be NxN elements long arranged row-wise, where N is the number of input signals (N=6 typically)"
+    parameters:
+    - name: max_force_x
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_force_y
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_force_z
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_torque_x
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+    - name: max_torque_y
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+    - name: max_torque_z
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+
+  - name: function
+    type: fastcat_device
+    state:
+    - name: output
+      type: double
+    config: 
+    - name: function_type
+      type: FunctionType
+    - name: poly_order
+      type: uint8_t
+      default: 0
+      comment: "Polynomial: Order of polynominal"
+    - name: poly_coefficients
+      type: std::vector<double>
+      default: {0}
+      comment: "Polynomial: Order of polynominal"
+    - name: power_exponent
+      type: double
+      default: 0
+      comment: "Power: the constant power term i.e input^power_exponent"
+    - name: exponential_base
+      type: double
+      default: e
+      comment: "Exponential: the base term i.e.  exponential_base^input"
+
+  - name: linear_interpolation
+    type: fastcat_device
+    state:
+    - name: output
+      type: double
+    - name: is_saturated
+      type: bool
+    config:
+    - name: domain
+      type: std::vector<double>
+      comment: "Variable-length domain of linear interpolation table. Must match length of range"
+    - name: range
+      type: std::vector<double>
+      comment: "Variable-length range of linear interpolation table. Must match length of domain"
+    - name: enable_output_bounds_fault
+      type: bool
+      default: true
+      comment: "If true, emits a fault if the input signal lies outside the (min,max) of the domain"
+
+  - name: pid
+    type: fastcat_device
+    state:
+    - name: active
+      type: bool
+    - name: output
+      type: double
+    - name: kp_term
+      type: double
+    - name: ki_term
+      type: double
+    - name: kd_term
+      type: double
+    config:
+    - name: kp
+      type: double
+      comment: "Proportional Gain"
+    - name: ki
+      type: double
+      comment: "Integral Gain"
+    - name: kd
+      type: double
+      comment: "Derivative Gain"
+    - name: windup_limit
+      type: double
+      comment: "The Max contribution of the integral term i.e. (ki*error)"
+
+  - name: saturation
+    type: fastcat_device
+    state:
+    - name: output
+      type: double
+    config:
+    - name: lower_limit
+      type: double
+      comment: "Lower clipping value"
+    - name: upper_limit
+      type: double
+      comment: "Upper clipping value"
+
+  - name: schmitt_trigger
+    type: fastcat_device
+    state:
+    - name: output
+      type: bool
+    config:
+    - name: low_threshold
+      type: double
+      comment: "Lower threshold for turning output on"
+    - name: high_threshold
+      type: double
+      comment: "Upper threshold for turning output off"
+
+  - name: signal_generator
+    type: fastcat_device
+    state:
+    - name: output
+      type: double
+    config:
+    - name: signal_generator_type
+      type: SignalGeneratorType
+      comment: "Controls which type of generator to use to create periodic output signal"
+    - name: sine_wave_angular_frequency
+      type: double
+      default: 0
+    - name: sine_wave_phase
+      type: double
+      default: 0
+    - name: sine_wave_offset
+      type: double
+      default: 0
+    - name: saw_tooth_max
+      type: double
+      default: 0
+    - name: saw_tooth_min
+      type: double
+      default: 0
+    - name: saw_tooth_slope
+      type: double
+      default: 0
+    - name: gaussian_random_mean
+      type: double
+      default: 0
+    - name: gaussian_random_sigma
+      type: double
+      default: 0
+    - name: gaussian_random_seed
+      type: uint32_t
+      default: 1
+    - name: uniform_random_max
+      type: double
+      default: 0
+    - name: uniform_random_min
+      type: double
+      default: 0
+    - name: uniform_random_seed
+      type: uint32_t
+      default: 1
+
+  - name: virtual_fts
+    type: fastcat_device
+    state:
+    - name: raw_fx
+      type: double
+    - name: raw_fy
+      type: double
+    - name: raw_fz
+      type: double
+    - name: raw_tx
+      type: double
+    - name: raw_ty
+      type: double
+    - name: raw_tz
+      type: double
+    - name: tared_fx
+      type: double
+    - name: tared_fy
+      type: double
+    - name: tared_fz
+      type: double
+    - name: tared_tx
+      type: double
+    - name: tared_ty
+      type: double
+    - name: tared_tz
+      type: double
+    config: 
+    - name: calibration_matrix
+      type: std::vector<double> 
+      comment: "Must be 6xN elements long arranged row-wise, where N is the number of input signals (N=6 typically)"
+    - name: position
+      type: std::array<double,3>
+      comment: "Translation of the original sensor to this virtual sensor"
+    - name: quaternion
+      type: std::array<double,4>
+      default: [NAN, NAN, NAN, NAN]
+      comment: "The preferred method for specifying orientation from real to virtual fts in [u,x,y,z] order"
+    - name: euler
+      type: std::array<double,3>
+      default: [NAN, NAN, NAN]
+      comment: "The secondary method for specifying orientation from real to virtual fts in [roll, pitch, yaw] 
+                order but computed in the standard absolute Z-Y-X order"
+    parameters:
+    - name: max_force_x
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_force_y
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_force_z
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_torque_x
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+    - name: max_torque_y
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+    - name: max_torque_z
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+
+
+  - name: ati_fts
+    type: jsd_device
+    state:
+    - name: raw_fx
+      type: double
+    - name: raw_fy
+      type: double
+    - name: raw_fz
+      type: double
+    - name: raw_tx
+      type: double
+    - name: raw_ty
+      type: double
+    - name: raw_tz
+      type: double
+    - name: tared_fx
+      type: double
+    - name: tared_fy
+      type: double
+    - name: tared_fz
+      type: double
+    - name: tared_tx
+      type: double
+    - name: tared_ty
+      type: double
+    - name: tared_tz
+      type: double
+    config: 
+    - name: max_force_x
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_force_y
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_force_z
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value force above which a fault will be raised"
+    - name: max_torque_x
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+    - name: max_torque_y
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
+    - name: max_torque_z
+      type: double
+      default: 1.0e-6
+      comment: "Absolute-value torque above which a fault will be raised"
 
   - name: gold_actuator
-    fields:
+    type: jsd_device
+    state:
     - name: actual_position
       type: double
     - name: actual_velocity
@@ -99,7 +476,7 @@ states:
       comment: "From jsd_elmo_state_machine_state_t"
     - name: elmo_mode_of_operation
       type: uint32_t
-      comment: "From jsd_egd_mode_of_operation_t"
+      comment: "From jsd_elmo_mode_of_operation_t"
     - name: sto_engaged
       type: uint8_t
     - name: hall_state
@@ -112,7 +489,7 @@ states:
       type: uint8_t
     - name: jsd_fault_code
       type: uint32_t
-      comment: "From jsd_egd_fault_code_t"
+      comment: "From jsd_elmo_fault_code_t"
     - name: fastcat_fault_code
       type: uint32_t
     - name: emcy_error_code
@@ -127,11 +504,13 @@ states:
       type: int32_t
     - name: actuator_state_machine_state
       type: uint32_t
+      comment: "From jsd_elmo_State_machine_state_t"
     - name: power
       type: double
 
   - name: platinum_actuator
-    fields:
+    type: jsd_device
+    state:
     - name: actual_position
       type: double
     - name: actual_velocity
@@ -195,25 +574,10 @@ states:
     - name: power
       type: double
 
-  - name: faulter
-    fields:
-    - name: enable
-      type: bool
-      comment: if true, the faulter is monitoring the fastcat signal for faults 
-    - name: fault_active
-      type: bool
-      comment: "if true, the conditions for faulting are met - 
-        on rising edge, the faulter will trigger all devices to fault."
-
-  - name: linear_interpolation
-    fields:
-    - name: output
-      type: double
-    - name: is_saturated
-      type: bool
 
   - name: egd
-    fields:
+    type: jsd_device
+    state:
     - name: actual_position
       type: int32_t
     - name: actual_velocity
@@ -293,7 +657,8 @@ states:
       type: uint32_t
 
   - name: el3602
-    fields:
+    type: jsd_device
+    state:
     - name: voltage_ch1
       type: double
     - name: adc_value_ch1
@@ -304,7 +669,8 @@ states:
       type: int32_t
 
   - name: el2124
-    fields:
+    type: jsd_device
+    state:
     - name: level_ch1
       type: uint8_t
     - name: level_ch2
@@ -315,14 +681,16 @@ states:
       type: uint8_t
 
   - name: el4102
-    fields:
+    type: jsd_device
+    state:
     - name: voltage_output_ch1
       type: double
     - name: voltage_output_ch2
       type: double
 
   - name: el3208
-    fields:
+    type: jsd_device
+    state:
     - name: output_ch1
       type: double
     - name: adc_value_ch1
@@ -357,7 +725,8 @@ states:
       type: int16_t
 
   - name: el3162
-    fields:
+    type: jsd_device
+    state:
       - name: voltage_ch1
         type: double
       - name: adc_value_ch1
@@ -368,7 +737,8 @@ states:
         type: int16_t
 
   - name: el3104
-    fields:
+    type: jsd_device
+    state:
       - name: voltage_ch1
         type: double
       - name: adc_value_ch1
@@ -387,7 +757,8 @@ states:
         type: int16_t
 
   - name: el3202
-    fields:
+    type: jsd_device
+    state:
       - name: output_eu_ch1
         type: double
       - name: adc_value_ch1
@@ -398,7 +769,8 @@ states:
         type: int16_t
 
   - name: el3318
-    fields:
+    type: jsd_device
+    state:
       - name: output_eu_ch1
         type: double
       - name: adc_value_ch1
@@ -433,7 +805,8 @@ states:
         type: int16_t
 
   - name: ild1900
-    fields:
+    type: jsd_device
+    state:
     - name: distance_m
       type: double
     - name: intensity
@@ -447,56 +820,7 @@ states:
     - name: error
       type: uint8_t
 
-  - name: jed0101
-    fields:
-    - name: status 
-      type: uint16_t
-    - name: cmd
-      type: uint16_t
-    - name: w_raw
-      type: uint32_t
-    - name: x_raw
-      type: uint32_t
-    - name: y_raw
-      type: uint32_t
-    - name: z_raw
-      type: uint32_t
-    - name: w
-      type: double
-    - name: x
-      type: double
-    - name: y
-      type: double
-    - name: z
-      type: double
-
-  - name: jed0200
-    fields:
-    - name: status 
-      type: uint16_t
-    - name: cmd
-      type: uint16_t
-    - name: ticks
-      type: uint32_t
-    - name: voltage_hv
-      type: float
-    - name: voltage_lv
-      type: float
-    - name: voltage_12v
-      type: float
-    - name: temp_ambient
-      type: float
-    - name: temp_actuator
-      type: float
-    - name: humidity
-      type: float
-    - name: pressure
-      type: float
-    - name: brake_current
-      type: uint16_t
-    - name: brake_cc_val
-      type: uint16_t
-
+# use snake_case for all variable and device names
 commands:
   - name: commander_enable
     fields:
@@ -785,16 +1109,6 @@ commands:
     - name: enable
       type: bool
       comment: if true, faulter will trigger a fault when the specified signal is received.
-
-  - name: jed0101_set_cmd_value
-    fields:
-    - name: cmd
-      type: uint16_t
-
-  - name: jed0200_set_cmd_value
-    fields:
-    - name: cmd
-      type: uint16_t
 
   - name: pid_activate
     fields: 

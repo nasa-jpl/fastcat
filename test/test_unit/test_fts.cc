@@ -56,7 +56,7 @@ TEST_F(FtsTest, WideMatrixValid)
   for (int i=0; i<(int)device_.signals_.size(); i++) 
   { 
     auto &sgs = device_states[i]; 
-    sgs.type = fastcat::SIGNAL_GENERATOR_STATE;
+    sgs.type = fastcat::SIGNAL_GENERATOR_DEVICE;
     sgs.signal_generator_state.output = 0.0;
     fastcat::ConfigSignalByteIndexing(&sgs, device_.signals_[i]);
   }

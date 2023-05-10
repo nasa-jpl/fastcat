@@ -12,14 +12,6 @@
 
 namespace fastcat
 {
-enum SignalGeneratorType {
-  SINE_WAVE,
-  SAW_TOOTH,
-  GAUSSIAN_RANDOM,
-  UNIFORM_RANDOM,
-  BAD_SIGNAL_GENERATOR_TYPE
-};
-
 SignalGeneratorType SignalGeneratorTypeFromString(const std::string&);
 
 typedef struct {
@@ -60,7 +52,7 @@ class SignalGenerator : public DeviceBase
 
  protected:
   std::string                signal_generator_type_string_;
-  enum SignalGeneratorType   signal_generator_type_;
+  SignalGeneratorType        signal_generator_type_;
   double                     start_time_ = 0;
   std::default_random_engine generator_;
 

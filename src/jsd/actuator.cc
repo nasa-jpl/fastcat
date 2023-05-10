@@ -673,9 +673,9 @@ std::string fastcat::Actuator::GetFastcatFaultCodeAsString(
 {
   std::string fault_str;
 
-  if (state.type == GOLD_ACTUATOR_STATE || state.type == PLATINUM_ACTUATOR_STATE) {
+  if (state.type == GOLD_ACTUATOR_DEVICE || state.type == PLATINUM_ACTUATOR_DEVICE) {
     ActuatorFastcatFault fault;
-    if (state.type == GOLD_ACTUATOR_STATE) {
+    if (state.type == GOLD_ACTUATOR_DEVICE) {
       fault = static_cast<ActuatorFastcatFault>(
           state.gold_actuator_state.fastcat_fault_code);
     } else {
@@ -731,11 +731,11 @@ std::string fastcat::Actuator::GetJSDFaultCodeAsString(const DeviceState& state)
 {
   std::string fault_str;
 
-  if (state.type == GOLD_ACTUATOR_STATE) {
+  if (state.type == GOLD_ACTUATOR_DEVICE) {
     auto fault = static_cast<jsd_egd_fault_code_t>(
         state.gold_actuator_state.jsd_fault_code);
     fault_str = std::string(jsd_egd_fault_code_to_string(fault));
-  } else if (state.type == PLATINUM_ACTUATOR_STATE) {
+  } else if (state.type == PLATINUM_ACTUATOR_DEVICE) {
     auto fault = static_cast<jsd_epd_fault_code_t>(
         state.platinum_actuator_state.jsd_fault_code);
     fault_str = std::string(jsd_epd_fault_code_to_string(fault));
@@ -750,11 +750,11 @@ bool fastcat::Actuator::IsJsdFaultCodePresent(const DeviceState& state)
 {
   bool fault_present = false;
 
-  if (state.type == GOLD_ACTUATOR_STATE) {
+  if (state.type == GOLD_ACTUATOR_DEVICE) {
     if (state.gold_actuator_state.jsd_fault_code != JSD_EGD_FAULT_OKAY) {
       fault_present = true;
     }
-  } else if (state.type == PLATINUM_ACTUATOR_STATE) {
+  } else if (state.type == PLATINUM_ACTUATOR_DEVICE) {
     if (state.platinum_actuator_state.jsd_fault_code != JSD_EPD_FAULT_OKAY) {
       fault_present = true;
     }
@@ -771,9 +771,9 @@ bool fastcat::Actuator::IsJsdFaultCodePresent(const DeviceState& state)
 double fastcat::Actuator::GetActualPosition(const DeviceState& state)
 {
   double actual_position;
-  if (state.type == GOLD_ACTUATOR_STATE) {
+  if (state.type == GOLD_ACTUATOR_DEVICE) {
     actual_position = state.gold_actuator_state.actual_position;
-  } else if (state.type == PLATINUM_ACTUATOR_STATE) {
+  } else if (state.type == PLATINUM_ACTUATOR_DEVICE) {
     actual_position = state.platinum_actuator_state.actual_position;
   } else {
     ERROR(

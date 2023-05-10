@@ -35,8 +35,6 @@ class DigitalABFilter
   std::vector<double> B_;
 };
 
-enum FilterType { MOVING_AVERAGE, DIGITAL_AB, BAD_FILTER_TYPE };
-
 FilterType FilterTypeFromString(std::string str);
 
 class Filter : public DeviceBase

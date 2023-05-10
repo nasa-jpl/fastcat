@@ -30,7 +30,7 @@ fastcat::SignalGenerator::SignalGenerator()
   MSG_DEBUG("Constructed SignalGenerator");
 
   state_       = std::make_shared<DeviceState>();
-  state_->type = SIGNAL_GENERATOR_STATE;
+  state_->type = SIGNAL_GENERATOR_DEVICE;
 }
 
 bool fastcat::SignalGenerator::ConfigFromYaml(YAML::Node node)

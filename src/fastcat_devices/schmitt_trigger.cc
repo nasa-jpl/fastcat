@@ -12,7 +12,7 @@
 fastcat::SchmittTrigger::SchmittTrigger()
 {
   state_       = std::make_shared<DeviceState>();
-  state_->type = SCHMITT_TRIGGER_STATE;
+  state_->type = SCHMITT_TRIGGER_DEVICE;
 }
 
 bool fastcat::SchmittTrigger::ConfigFromYaml(YAML::Node node)

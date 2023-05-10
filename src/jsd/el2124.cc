@@ -15,7 +15,7 @@ fastcat::El2124::El2124()
   MSG_DEBUG("Constructed El2124");
 
   state_       = std::make_shared<DeviceState>();
-  state_->type = EL2124_STATE;
+  state_->type = EL2124_DEVICE;
 }
 
 bool fastcat::El2124::ConfigFromYaml(YAML::Node node)

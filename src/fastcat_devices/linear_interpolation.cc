@@ -14,7 +14,7 @@
 fastcat::LinearInterpolation::LinearInterpolation()
 {
   state_       = std::make_shared<DeviceState>();
-  state_->type = LINEAR_INTERPOLATION_STATE;
+  state_->type = LINEAR_INTERPOLATION_DEVICE;
 }
 
 bool fastcat::LinearInterpolation::ConfigFromYaml(YAML::Node node)

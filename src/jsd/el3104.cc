@@ -15,7 +15,7 @@ fastcat::El3104::El3104()
   MSG_DEBUG("Constructed El3104");
 
   state_       = std::make_shared<DeviceState>();
-  state_->type = EL3104_STATE;
+  state_->type = EL3104_DEVICE;
 }
 
 bool fastcat::El3104::ConfigFromYaml(YAML::Node node)

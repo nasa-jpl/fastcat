@@ -174,7 +174,7 @@ class Manager
 
   /** @brief names of actuator devices
    */
- void GetDeviceNamesByType(std::vector<std::string>&, fastcat::DeviceStateType);
+ void GetDeviceNamesByType(std::vector<std::string>&, fastcat::DeviceType);
 
  private:
   bool ConfigJSDBusFromYaml(YAML::Node node);

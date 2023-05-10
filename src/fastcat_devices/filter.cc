@@ -98,7 +98,7 @@ fastcat::FilterType fastcat::FilterTypeFromString(std::string str)
 fastcat::Filter::Filter()
 {
   state_       = std::make_shared<DeviceState>();
-  state_->type = FILTER_STATE;
+  state_->type = FILTER_DEVICE;
 }
 
 bool fastcat::Filter::ConfigFromYaml(YAML::Node node)

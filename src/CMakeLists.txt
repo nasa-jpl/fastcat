@@ -1,75 +1,57 @@
 ####### Fastcat COG Autocoding #######
-add_custom_command(
+
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/autogen)
+
+function(run_fcgen fc_input_file fc_output_file)
+  add_custom_command(
     OUTPUT
-    ${CMAKE_BINARY_DIR}/include/fastcat/types.h
+      ${fc_output_file}
     COMMAND
-    cog -d -D cog_yaml_file=fcgen/fastcat_types.yaml
-    -o ${CMAKE_BINARY_DIR}/include/fastcat/types.h
-    ${CMAKE_CURRENT_LIST_DIR}/fcgen/types.h.cog
+      cog -d 
+      -D cog_yaml_file=fcgen/templates/${fc_input_file}
+      -D command_yaml=fcgen/fastcat_commands.yaml
+      -D device_yaml=fcgen/fastcat_devices.yaml
+      -D enum_yaml=fcgen/fastcat_enums.yaml
+      -D manager_yaml=fcgen/fastcat_manager_config.yaml
+      -o ${fc_output_file}
+      fcgen/templates/${fc_input_file}
     DEPENDS
-    ${CMAKE_CURRENT_LIST_DIR}/fcgen/fastcat_types.yaml
-    ${CMAKE_CURRENT_LIST_DIR}/fcgen/types.h.cog
+      fcgen/fastcat_commands.yaml
+      fcgen/fastcat_devices.yaml
+      fcgen/fastcat_enums.yaml
+      fcgen/fastcat_manager_config.yaml
+      fcgen/templates/${fc_input_file}
     WORKING_DIRECTORY
-    ${CMAKE_CURRENT_LIST_DIR}
+      ${CMAKE_CURRENT_LIST_DIR}
     COMMENT
-    "running fcgen - types"
+      "fcgen: ${fc_input_file} -> ${fc_output_file}"
     VERBATIM
     )
+endfunction()
 
-add_custom_command(
-    OUTPUT
-    ${CMAKE_BINARY_DIR}/fastcat/autogen/signal_handling.cc
-    COMMAND
-    cog -d -D cog_yaml_file=fcgen/fastcat_types.yaml
-    -o ${CMAKE_BINARY_DIR}/fastcat/autogen/signal_handling.cc
-    ${CMAKE_CURRENT_LIST_DIR}/fcgen/signal_handling.cc.cog
-    DEPENDS
+run_fcgen("types.h.cog"            "${CMAKE_BINARY_DIR}/include/fastcat/types.h")
+run_fcgen("device_includes.h.cog"  "${CMAKE_BINARY_DIR}/include/fastcat/device_includes.h")
+run_fcgen("signal_handling.cc.cog" "${CMAKE_BINARY_DIR}/autogen/signal_handling.cc")
+run_fcgen("commander.cc.cog"       "${CMAKE_BINARY_DIR}/autogen/commander.cc")
+
+add_custom_target(fcgen DEPENDS
     ${CMAKE_BINARY_DIR}/include/fastcat/types.h
-    ${CMAKE_CURRENT_LIST_DIR}/fcgen/signal_handling.cc.cog
-    WORKING_DIRECTORY
-    ${CMAKE_CURRENT_LIST_DIR}
-    COMMENT
-    "running fcgen - signals"
-    VERBATIM
+    ${CMAKE_BINARY_DIR}/include/fastcat/device_includes.h
     )
 
-add_custom_command(
-    OUTPUT
-    ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
-    COMMAND
-    cog -d -D cog_yaml_file=fcgen/fastcat_types.yaml
-    -o ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
-    ${CMAKE_CURRENT_LIST_DIR}/fcgen/commander.cc.cog
-    DEPENDS
-    ${CMAKE_BINARY_DIR}/include/fastcat/types.h
-    ${CMAKE_CURRENT_LIST_DIR}/fcgen/commander.cc.cog
-    WORKING_DIRECTORY
-    ${CMAKE_CURRENT_LIST_DIR}
-    COMMENT
-    "running fcgen - commander"
-    VERBATIM
-    )
-
-add_custom_target(fcgen
-    DEPENDS
-    ${CMAKE_BINARY_DIR}/include/fastcat/types.h
-    ${CMAKE_BINARY_DIR}/fastcat/autogen/signal_handling.cc
-    ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
-    )
-
-# Build a library regardless of BUILD_TESTS flag
 add_library(fastcat STATIC
+    ${CMAKE_BINARY_DIR}/autogen/signal_handling.cc
+    ${CMAKE_BINARY_DIR}/autogen/commander.cc
     trap.c
     device_base.cc
     manager.cc
     yaml_parser.cc
-    ${CMAKE_BINARY_DIR}/fastcat/autogen/signal_handling.cc
     transform_utils.cc
-
     jsd/jsd_device_base.cc
+
+    # JSD Devices 
     jsd/actuator.cc
     jsd/actuator_fsm_helpers.cc
-
     jsd/ati_fts.cc
     jsd/egd.cc
     jsd/el3208.cc
@@ -82,10 +64,9 @@ add_library(fastcat STATIC
     jsd/el3318.cc
     jsd/gold_actuator.cc
     jsd/ild1900.cc
-    jsd/jed0101.cc
-    jsd/jed0200.cc
     jsd/platinum_actuator.cc
 
+    # Offline Devices
     jsd/ati_fts_offline.cc
     jsd/egd_offline.cc
     jsd/el2124_offline.cc
@@ -98,11 +79,9 @@ add_library(fastcat STATIC
     jsd/el3318_offline.cc
     jsd/ild1900_offline.cc
     jsd/gold_actuator_offline.cc
-    jsd/jed0101_offline.cc
-    jsd/jed0200_offline.cc
     jsd/platinum_actuator_offline.cc
 
-    ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
+    # Fastcat Devices
     fastcat_devices/signal_generator.cc
     fastcat_devices/function.cc
     fastcat_devices/conditional.cc
