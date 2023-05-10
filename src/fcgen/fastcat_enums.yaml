@@ -16,6 +16,13 @@ enumerations:
     - string: "!="
       value:  NE 
 
+  - name: actuator_type
+    entries:
+    - string: "revolute"
+      value: REVOLUTE
+    - string: "prismatic"
+      value: PRISMATIC
+
   - name: filter_type
     entries: 
     - value: DIGITAL_AB
@@ -182,3 +189,22 @@ enumerations:
     - value: ILD1900_AVERAGING_NONE
     - value: ILD1900_AVERAGING_MOVING
     - value: ILD1900_AVERAGING_RECURSIVE
+
+  - name: egd_drive_cmd_mode
+    jsd_enum_alias: true 
+    entries:
+    - value: EGD_DRIVE_CMD_MODE_PROFILED
+    - value: EGD_DRIVE_CMD_MODE_CS
+
+  - name: elmo_gain_scheduling_mode
+    jsd_enum_alias: true 
+    entries:
+    - value: ELMO_GAIN_SCHEDULING_MODE_PRELOADED
+    - value: ELMO_GAIN_SCHEDULING_MODE_DISABLED
+    - value: ELMO_GAIN_SCHEDULING_MODE_SPEED
+    - value: ELMO_GAIN_SCHEDULING_MODE_POSITION
+    - value: ELMO_GAIN_SCHEDULING_MODE_SETTLING
+    - value: ELMO_GAIN_SCHEDULING_MODE_MANUAL_LOW
+    - value: ELMO_GAIN_SCHEDULING_MODE_MANUAL_HIGH
+
+
