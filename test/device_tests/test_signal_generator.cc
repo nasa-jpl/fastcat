@@ -10,8 +10,8 @@ class SignalGeneratorTest : public ::testing::Test
  protected:
   void SetUp() override
   {
-    std::string unit_test_dir(FASTCAT_UNIT_TEST_DIR);
-    unit_test_dir += "test_signal_generator_yamls/";
+    std::string unit_test_dir(FASTCAT_TEST_DIR);
+    unit_test_dir += "device_tests/test_signal_generator_yamls/";
     sin_config_node = YAML::LoadFile(unit_test_dir + "sg1_config.yaml");
     saw_config_node = YAML::LoadFile(unit_test_dir + "sg2_config.yaml");
     sg3_.ConfigFromYaml(YAML::LoadFile(unit_test_dir + "sg3_config.yaml"));

@@ -16,6 +16,13 @@ enumerations:
     - string: "!="
       value:  NE 
 
+  - name: actuator_type
+    entries:
+    - string: "revolute"
+      value: ACTUATOR_TYPE_REVOLUTE
+    - string: "prismatic"
+      value: ACTUATOR_TYPE_PRISMATIC
+
   - name: filter_type
     entries: 
     - value: DIGITAL_AB
@@ -36,3 +43,168 @@ enumerations:
     - value: SAW_TOOTH
     - value: GAUSSIAN_RANDOM
     - value: UNIFORM_RANDOM
+
+
+  - name: beckhoff_filter
+    jsd_enum_alias: true
+    entries:
+    - value: BECKHOFF_FILTER_50HZ
+    - value: BECKHOFF_FILTER_60HZ
+    - value: BECKHOFF_FILTER_100HZ
+    - value: BECKHOFF_FILTER_500HZ
+    - value: BECKHOFF_FILTER_1000HZ
+    - value: BECKHOFF_FILTER_2000HZ
+    - value: BECKHOFF_FILTER_3750HZ
+    - value: BECKHOFF_FILTER_7500HZ
+    - value: BECKHOFF_FILTER_15000HZ
+    - value: BECKHOFF_FILTER_30000HZ
+    - value: BECKHOFF_FILTER_5HZ
+    - value: BECKHOFF_FILTER_10HZ
+
+  - name: el3602_range
+    jsd_enum_alias: true
+    entries:
+    - value: EL3602_RANGE_10V
+    - value: EL3602_RANGE_5V
+    - value: EL3602_RANGE_2_5V
+    - value: EL3602_RANGE_1_25V
+    - value: EL3602_RANGE_75MV
+    - value: EL3602_RANGE_200MV
+
+  - name: el3208_element
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3208_ELEMENT_PT100
+    - value: EL3208_ELEMENT_NI100
+    - value: EL3208_ELEMENT_PT1000
+    - value: EL3208_ELEMENT_PT500
+    - value: EL3208_ELEMENT_PT200
+    - value: EL3208_ELEMENT_NI1000
+    - value: EL3208_ELEMENT_NI1000_TK1500
+    - value: EL3208_ELEMENT_NI120
+    - value: EL3208_ELEMENT_OHMS4096
+    - value: EL3208_ELEMENT_OHMS1024
+    - value: EL3208_ELEMENT_KT100_ET_AL
+
+  - name: el3208_connection
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3208_CONNECTION_2WIRE
+    - value: EL3208_CONNECTION_3WIRE
+    - value: EL3208_CONNECTION_4WIRE
+    - value: EL3208_CONNECTION_NOT_CONNECTED
+
+  - name: el3208_presentation
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3208_PRESENTATION_SIGNED
+    - value: EL3208_PRESENTATION_HIGH_RES
+
+
+  - name: el3202_element
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3202_ELEMENT_PT100
+    - value: EL3202_ELEMENT_NI100
+    - value: EL3202_ELEMENT_PT1000
+    - value: EL3202_ELEMENT_PT500
+    - value: EL3202_ELEMENT_PT200
+    - value: EL3202_ELEMENT_NI1000
+    - value: EL3202_ELEMENT_NI1000_TK1500
+    - value: EL3202_ELEMENT_NI120
+    - value: EL3202_ELEMENT_OHMS4096
+    - value: EL3202_ELEMENT_OHMS1024
+    - value: EL3202_ELEMENT_KT100_ET_AL
+
+  - name: el3202_connection
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3202_CONNECTION_2WIRE
+    - value: EL3202_CONNECTION_3WIRE
+    - value: EL3202_CONNECTION_4WIRE
+    - value: EL3202_CONNECTION_NOT_CONNECTED
+
+  - name: el3202_presentation
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3202_PRESENTATION_SIGNED
+    - value: EL3202_PRESENTATION_HIGH_RES
+
+
+  - name: el3318_element
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3318_ELEMENT_TYPE_K
+    - value: EL3318_ELEMENT_TYPE_J
+    - value: EL3318_ELEMENT_TYPE_L
+    - value: EL3318_ELEMENT_TYPE_E
+    - value: EL3318_ELEMENT_TYPE_T
+    - value: EL3318_ELEMENT_TYPE_N
+    - value: EL3318_ELEMENT_TYPE_U
+    - value: EL3318_ELEMENT_TYPE_B
+    - value: EL3318_ELEMENT_TYPE_R
+    - value: EL3318_ELEMENT_TYPE_S
+    - value: EL3318_ELEMENT_TYPE_C
+
+  - name: el3318_presentation
+    jsd_enum_alias: true 
+    entries:
+    - value: EL3318_PRESENTATION_SIGNED
+    - value: EL3318_PRESENTATION_HIGH_RES
+
+  - name: ild1900_model
+    jsd_enum_alias: true 
+    entries:
+    - value: ILD1900_MODEL_2
+    - value: ILD1900_MODEL_10
+    - value: ILD1900_MODEL_25
+    - value: ILD1900_MODEL_50
+    - value: ILD1900_MODEL_100
+    - value: ILD1900_MODEL_200
+    - value: ILD1900_MODEL_500
+    - value: ILD1900_MODEL_2LL
+    - value: ILD1900_MODEL_6LL
+    - value: ILD1900_MODEL_10LL
+    - value: ILD1900_MODEL_25LL
+    - value: ILD1900_MODEL_50LL
+
+  - name: ild1900_exposure_mode
+    jsd_enum_alias: true 
+    entries: 
+    - value: ILD1900_EXPOSURE_MODE_STANDARD
+    - value: ILD1900_EXPOSURE_MODE_INTELLIGENT
+    - value: ILD1900_EXPOSURE_MODE_BACKGROUND
+
+  - name: ild1900_peak_selection
+    jsd_enum_alias: true 
+    entries:
+    - value: ILD1900_PEAK_SELECTION_HIGHEST
+    - value: ILD1900_PEAK_SELECTION_WIDEST
+    - value: ILD1900_PEAK_SELECTION_LAST
+    - value: ILD1900_PEAK_SELECTION_FIRST
+
+  - name: ild1900_averaging
+    jsd_enum_alias: true 
+    entries:
+    - value: ILD1900_AVERAGING_NONE
+    - value: ILD1900_AVERAGING_MOVING
+    - value: ILD1900_AVERAGING_RECURSIVE
+
+  - name: egd_drive_cmd_mode
+    jsd_enum_alias: true 
+    entries:
+    - value: EGD_DRIVE_CMD_MODE_PROFILED
+    - value: EGD_DRIVE_CMD_MODE_CS
+
+  - name: elmo_gain_scheduling_mode
+    jsd_enum_alias: true 
+    entries:
+    - value: ELMO_GAIN_SCHEDULING_MODE_PRELOADED
+    - value: ELMO_GAIN_SCHEDULING_MODE_DISABLED
+    - value: ELMO_GAIN_SCHEDULING_MODE_SPEED
+    - value: ELMO_GAIN_SCHEDULING_MODE_POSITION
+    - value: ELMO_GAIN_SCHEDULING_MODE_SETTLING
+    - value: ELMO_GAIN_SCHEDULING_MODE_MANUAL_LOW
+    - value: ELMO_GAIN_SCHEDULING_MODE_MANUAL_HIGH
+
+

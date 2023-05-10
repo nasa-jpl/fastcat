@@ -1,0 +1,28 @@
+/*
+[[[cog
+for this_enum in enum_data['enumerations']:
+
+  camel = snake2camel(this_enum['name'])
+
+  cog.outl('template<>')
+  cog.outl('struct convert<fastcat::%s> {' % camel)
+  cog.outl('  static Node encode(const fastcat::%s& /*cfg*/) {' % camel)
+  cog.outl('    Node node;')
+
+  # TODO
+  cog.outl('    node.push_back("BAD_%s"); // TODO' % this_enum['name'].upper())
+
+  cog.outl('    return node;')
+  cog.outl('  }')
+  cog.outl('')
+  cog.outl('  static bool decode(const Node& node, fastcat::%s& cfg) {' % camel)
+
+  cog.outl('    std::string s = node[0].as<std::string>();')
+  cog.outl('    cfg = fastcat::%sFromString(s);' % camel)
+
+  cog.outl('    return cfg != fastcat::BAD_%s;' % this_enum['name'].upper())
+  cog.outl('  }')
+  cog.outl('};')
+
+]]]
+[[[end]]]

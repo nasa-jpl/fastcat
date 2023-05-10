@@ -11,8 +11,8 @@ class FunctionTest : public ::testing::Test
  protected:
   void SetUp() override
   {
-    std::string unit_test_dir(FASTCAT_UNIT_TEST_DIR);
-    unit_test_dir += "test_function_yamls/";
+    std::string unit_test_dir(FASTCAT_TEST_DIR);
+    unit_test_dir += "device_tests/test_function_yamls/";
     config_node = YAML::LoadFile(unit_test_dir + "f1_config.yaml");
     f2_.ConfigFromYaml(YAML::LoadFile(unit_test_dir + "f2_config.yaml"));
     f3_.ConfigFromYaml(YAML::LoadFile(unit_test_dir + "f3_config.yaml"));

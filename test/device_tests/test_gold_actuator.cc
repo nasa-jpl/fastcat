@@ -41,9 +41,8 @@ class ActuatorTest : public ::testing::Test
   {
     jsd_context_ = jsd_alloc();
 
-    // FASTCAT_UNIT_TEST_DIR contains path to .
-    base_dir_ = FASTCAT_UNIT_TEST_DIR;
-    base_dir_ += "test_gold_actuator_yamls/";
+    base_dir_ = FASTCAT_TEST_DIR;
+    base_dir_ += "device_tests/test_gold_actuator_yamls/";
 
     device_.SetSlaveId(0);
     device_.SetContext(jsd_context_);

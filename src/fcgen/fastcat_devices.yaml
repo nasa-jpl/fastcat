@@ -399,6 +399,74 @@ devices:
 
   - name: gold_actuator
     type: jsd_device
+    config:
+    - name: actuator_type
+      type: ActuatorType
+    - name: gear_ratio
+      type: double
+    - name: counts_per_rev
+      type: double
+    - name: max_speed_eu_per_sec
+      type: double
+    - name: max_accel_eu_per_sec2
+      type: double
+    - name: over_speed_multiplier
+      type: double
+      default: 2.0
+    - name: vel_tracking_error_eu_per_sec
+      type: double
+    - name: pos_tracking_error_eu
+      type: double
+    - name: peak_current_limit_amps
+      type: double
+    - name: peak_current_time_sec
+      type: double
+    - name: continuous_current_limit_amps
+      type: double
+    - name: torque_slope_amps_per_sec
+      type: double
+    - name: low_pos_cal_limit_eu
+      type: double
+    - name: low_pos_cmd_limit_eu
+      type: double
+    - name: high_pos_cal_limit_eu
+      type: double
+    - name: high_pos_cmd_limit_eu
+      type: double
+    - name: holding_duration_sec
+      type: double
+    - name: elmo_brake_engage_msec
+      type: int32_t
+    - name: elmo_brake_disengage_msec
+      type: int32_t
+    - name: elmo_crc
+      type: int32_t
+    - name: elmo_drive_max_current_limit
+      type: double
+    - name: smooth_factor
+      type: int32_t
+      default: 0
+    - name: ctrl_gain_scheduling_mode
+      type: ElmoGainSchedulingMode
+      default: ELMO_GAIN_SCHEDULING_MODE_PRELOADED
+    - name: absolute_encoder
+      type: bool
+      default: false
+    - name: prof_pos_hold
+      type: bool
+      default: false
+    - name: torque_constant
+      type: double
+      default: NAN
+    - name: winding_resistance
+      type: double
+      default: NAN
+    - name: brake_power
+      type: double
+      default: 0
+    - name: motor_encoder_gear_ratio
+      type: double
+      default: 1
     state:
     - name: actual_position
       type: double
@@ -455,6 +523,65 @@ devices:
 
   - name: platinum_actuator
     type: jsd_device
+    config:
+    - name: actuator_type
+      type: ActuatorType
+    - name: gear_ratio
+      type: double
+    - name: counts_per_rev
+      type: double
+    - name: max_speed_eu_per_sec
+      type: double
+    - name: max_accel_eu_per_sec2
+      type: double
+    - name: over_speed_multiplier
+      type: double
+      default: 2.0
+    - name: vel_tracking_error_eu_per_sec
+      type: double
+    - name: pos_tracking_error_eu
+      type: double
+    - name: peak_current_limit_amps
+      type: double
+    - name: peak_current_time_sec
+      type: double
+    - name: continuous_current_limit_amps
+      type: double
+    - name: torque_slope_amps_per_sec
+      type: double
+    - name: low_pos_cal_limit_eu
+      type: double
+    - name: low_pos_cmd_limit_eu
+      type: double
+    - name: high_pos_cal_limit_eu
+      type: double
+    - name: high_pos_cmd_limit_eu
+      type: double
+    - name: holding_duration_sec
+      type: double
+    - name: elmo_brake_engage_msec
+      type: int32_t
+    - name: elmo_brake_disengage_msec
+      type: int32_t
+    - name: elmo_crc
+      type: int32_t
+    - name: elmo_drive_max_current_limit
+      type: double
+    - name: smooth_factor
+      type: int32_t
+      default: 0
+    - name: torque_constant
+      type: double
+      default: NAN
+    - name: winding_resistance
+      type: double
+      default: NAN
+    - name: brake_power
+      type: double
+      default: 0
+    - name: motor_encoder_gear_ratio
+      type: double
+      default: 1
     state:
     - name: actual_position
       type: double
@@ -522,6 +649,65 @@ devices:
 
   - name: egd
     type: jsd_device
+    config: 
+    - name: drive_cmd_mode
+      type: EgdDriveCmdMode
+    - name: max_motor_speed
+      type: double
+    - name: torque_slope
+      type: double
+    - name: max_profile_accel
+      type: uint32_t
+    - name: max_profile_decel
+      type: uint32_t
+    - name: velocity_tracking_error
+      type: int32_t
+    - name: position_tracking_error
+      type: int32_t
+    - name: peak_current_limit
+      type: float
+    - name: peak_current_time
+      type: float
+    - name: continuous_current_limit
+      type: float
+    - name: motor_stuck_current_level_pct
+      type: float
+      default: 0
+      comment: The default value of zero disables the motor stuck feature
+    - name: motor_stuck_velocity_threshold
+      type: float
+      default: 0
+    - name: motor_stuck_timeout
+      type: float
+      default: 3.0
+    - name: over_speed_threshold
+      type: int32_t
+      default: 0
+      comment: The default value of zero disables over speed faults
+    - name: low_position_limit
+      type: int32_t
+      default: 0
+      comment: The default value of zero disables the low position limit
+    - name: high_position_limit
+      type: int32_t
+      default: 0
+      comment: The default value of zero disables the high position limit
+    - name: brake_engage_msec
+      type: int32_t
+      default: 0
+    - name: brake_disengage_msec
+      type: int32_t
+      default: 0
+    - name: crc
+      type: int32_t
+    - name: drive_max_current_limit
+      type: float
+    - name: smooth_factor
+      type: int32_t
+      default: 0
+    - name: ctrl_gain_scheduling_mode
+      type: ElmoGainSchedulingMode
+      default: ELMO_GAIN_SCHEDULING_MODE_PRELOADED
     state:
     - name: actual_position
       type: int32_t
@@ -612,6 +798,25 @@ devices:
       type: double
     - name: adc_value_ch2
       type: int32_t
+    config:
+    - name: range
+      type: El3602Range
+    - name: filter
+      type: BeckhoffFilter
+      default: BECKHOFF_FILTER_30000HZ
+    - name: limit1_enable
+      type: std::array<bool, JSD_EL3602_NUM_CHANNELS>
+      default: {false, false}
+    - name: limit1_voltage
+      type: std::array<double, JSD_EL3602_NUM_CHANNELS>
+      default: {0, 0}
+    - name: limit2_enable
+      type: std::array<bool, JSD_EL3602_NUM_CHANNELS>
+      default: {false, false}
+    - name: limit2_voltage
+      type: std::array<double, JSD_EL3602_NUM_CHANNELS>
+      default: {0, 0}
+      
 
   - name: el2124
     type: jsd_device
@@ -635,6 +840,19 @@ devices:
 
   - name: el3208
     type: jsd_device
+    config:
+    - name: element
+      type: std::array<El3208Element, JSD_EL3208_NUM_CHANNELS>
+    - name: filter
+      type: std::array<BeckhoffFilter, JSD_EL3208_NUM_CHANNELS>
+      default: {BECKHOFF_FILTER_30000HZ}
+    - name: connection
+      type: std::array<El3208Connection, JSD_EL3208_NUM_CHANNELS>
+    - name: wire_resistance
+      type: std::array<double, JSD_EL3208_NUM_CHANNELS>
+    - name: presentation
+      type: std::array<El3208Presentation, JSD_EL3208_NUM_CHANNELS>
+      default: {EL3208_PRESENTATION_SIGNED} 
     state:
     - name: output_ch1
       type: double
@@ -703,6 +921,19 @@ devices:
 
   - name: el3202
     type: jsd_device
+    config:
+      - name: element
+        type: std::array<El3202Element, JSD_EL3202_NUM_CHANNELS>
+      - name: filter
+        type: std::array<BeckhoffFilter, JSD_EL3202_NUM_CHANNELS>
+        default: {BECKHOFF_FILTER_30000HZ}
+      - name: connection
+        type: std::array<El3208Connection, JSD_EL3202_NUM_CHANNELS>
+      - name: wire_resistance
+        type: std::array<double, JSD_EL3202_NUM_CHANNELS>
+      - name: presentation
+        type: std::array<El3202Presentation, JSD_EL3202_NUM_CHANNELS>
+        default: {EL3202_PRESENTATION_SIGNED}
     state:
       - name: output_eu_ch1
         type: double
@@ -715,42 +946,66 @@ devices:
 
   - name: el3318
     type: jsd_device
+    config:
+    - name: element
+      type: std::array<El3318Element, JSD_EL3318_NUM_CHANNELS>
+    - name: filter
+      type: std::array<BeckhoffFilter, JSD_EL3318_NUM_CHANNELS>
+      default: {BECKHOFF_FILTER_30000HZ}
+    - name: presentation
+      type: std::array<El3318Presentation, JSD_EL3318_NUM_CHANNELS>
+      default: {EL3318_PRESENTATION_SIGNED}
     state:
-      - name: output_eu_ch1
-        type: double
-      - name: adc_value_ch1
-        type: int16_t
-      - name: output_eu_ch2
-        type: double
-      - name: adc_value_ch2
-        type: int16_t
-      - name: output_eu_ch3
-        type: double
-      - name: adc_value_ch3
-        type: int16_t
-      - name: output_eu_ch4
-        type: double
-      - name: adc_value_ch4
-        type: int16_t
-      - name: output_eu_ch5
-        type: double
-      - name: adc_value_ch5
-        type: int16_t
-      - name: output_eu_ch6
-        type: double
-      - name: adc_value_ch6
-        type: int16_t
-      - name: output_eu_ch7
-        type: double
-      - name: adc_value_ch7
-        type: int16_t
-      - name: output_eu_ch8
-        type: double
-      - name: adc_value_ch8
-        type: int16_t
+    - name: output_eu_ch1
+      type: double
+    - name: adc_value_ch1
+      type: int16_t
+    - name: output_eu_ch2
+      type: double
+    - name: adc_value_ch2
+      type: int16_t
+    - name: output_eu_ch3
+      type: double
+    - name: adc_value_ch3
+      type: int16_t
+    - name: output_eu_ch4
+      type: double
+    - name: adc_value_ch4
+      type: int16_t
+    - name: output_eu_ch5
+      type: double
+    - name: adc_value_ch5
+      type: int16_t
+    - name: output_eu_ch6
+      type: double
+    - name: adc_value_ch6
+      type: int16_t
+    - name: output_eu_ch7
+      type: double
+    - name: adc_value_ch7
+      type: int16_t
+    - name: output_eu_ch8
+      type: double
+    - name: adc_value_ch8
+      type: int16_t
 
   - name: ild1900
     type: jsd_device
+    config:
+    - name: measuring_rate
+      type: double
+    - name: averaging_number
+      type: uint32_t
+    - name: averaging_type
+      type: Ild1900Averaging
+    - name: model 
+      type: Ild1900Model
+    - name: exposure_mode
+      type: Ild1900ExposureMode
+      default: ILD1900_EXPOSURE_MODE_STANDARD
+    - name: peak_selection
+      type: Ild1900PeakSelection
+      default: ILD1900_PEAK_SELECTION_HIGHEST
     state:
     - name: distance_m
       type: double

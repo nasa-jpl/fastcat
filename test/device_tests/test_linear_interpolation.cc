@@ -14,8 +14,8 @@ class LinearInterpolationTest : public ::testing::Test
  protected:
   void SetUp() override
   {
-    base_dir_ = FASTCAT_UNIT_TEST_DIR;
-    base_dir_ += "test_linear_interpolation_yamls/";
+    base_dir_ = FASTCAT_TEST_DIR;
+    base_dir_ += "device_tests/test_linear_interpolation_yamls/";
   }
 
   std::string                  base_dir_;

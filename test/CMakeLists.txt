@@ -12,18 +12,22 @@ include_directories(
 set(fastcat_test_libs
     fastcat
     m
-    -lreadline
     )
 
 add_executable(test_config test_config.cc)
 target_link_libraries(test_config ${fastcat_test_libs})
 
-add_executable(test_cli test_cli.cc)
-target_link_libraries(test_cli ${fastcat_test_libs})
+if(READLINE_FOUND)
+    add_executable(test_cli test_cli.cc)
+    target_link_libraries(test_cli ${fastcat_test_libs})
+else()
+    message("readline not found, not building test_cli executable")
+endif()
 
 find_package(GTest)
 if(GTEST_FOUND)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test_unit)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/device_tests)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/unit_tests)
 
     find_program(VALGRIND_EXECUTABLE NAMES valgrind)
     if(VALGRIND_EXECUTABLE)
