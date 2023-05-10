@@ -29,11 +29,6 @@ typedef enum {
 } ActuatorStateMachineState;
 
 typedef enum {
-  ACTUATOR_TYPE_REVOLUTE,
-  ACTUATOR_TYPE_PRISMATIC,
-} ActuatorType;
-
-typedef enum {
   ACTUATOR_FASTCAT_FAULT_OKAY = 0,
   // Faults that can occur in handling of new commands
   ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED,

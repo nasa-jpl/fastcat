@@ -19,9 +19,9 @@ enumerations:
   - name: actuator_type
     entries:
     - string: "revolute"
-      value: REVOLUTE
+      value: ACTUATOR_TYPE_REVOLUTE
     - string: "prismatic"
-      value: PRISMATIC
+      value: ACTUATOR_TYPE_PRISMATIC
 
   - name: filter_type
     entries: 
@@ -168,7 +168,7 @@ enumerations:
     - value: ILD1900_MODEL_25LL
     - value: ILD1900_MODEL_50LL
 
-  - name: ild1900_exposure
+  - name: ild1900_exposure_mode
     jsd_enum_alias: true 
     entries: 
     - value: ILD1900_EXPOSURE_MODE_STANDARD

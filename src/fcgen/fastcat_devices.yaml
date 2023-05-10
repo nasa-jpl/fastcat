@@ -446,7 +446,7 @@ devices:
     - name: smooth_factor
       type: int32_t
       default: 0
-    - name: ctrl_gain_scheduling_mode:
+    - name: ctrl_gain_scheduling_mode
       type: ElmoGainSchedulingMode
       default: ELMO_GAIN_SCHEDULING_MODE_PRELOADED
     - name: absolute_encoder
@@ -849,9 +849,9 @@ devices:
     - name: connection
       type: std::array<El3208Connection, JSD_EL3208_NUM_CHANNELS>
     - name: wire_resistance
-      type: std:array<double, JSD_EL3208_NUM_CHANNELS>
+      type: std::array<double, JSD_EL3208_NUM_CHANNELS>
     - name: presentation
-      type: std:array<El3208Presentation, JSD_EL3208_NUM_CHANNELS>
+      type: std::array<El3208Presentation, JSD_EL3208_NUM_CHANNELS>
       default: {EL3208_PRESENTATION_SIGNED} 
     state:
     - name: output_ch1
@@ -930,9 +930,9 @@ devices:
       - name: connection
         type: std::array<El3208Connection, JSD_EL3202_NUM_CHANNELS>
       - name: wire_resistance
-        type: std:array<double, JSD_EL3202_NUM_CHANNELS>
+        type: std::array<double, JSD_EL3202_NUM_CHANNELS>
       - name: presentation
-        type: std:array<El3202Presentation, JSD_EL3202_NUM_CHANNELS>
+        type: std::array<El3202Presentation, JSD_EL3202_NUM_CHANNELS>
         default: {EL3202_PRESENTATION_SIGNED}
     state:
       - name: output_eu_ch1
@@ -946,48 +946,48 @@ devices:
 
   - name: el3318
     type: jsd_device
-      config:
-      - name: element
-        type: std::array<El3318Element, JSD_EL3318_NUM_CHANNELS>
-      - name: filter
-        type: std::array<BeckhoffFilter, JSD_EL3318_NUM_CHANNELS>
-        default: {BECKHOFF_FILTER_30000HZ}
-      - name: presentation
-        type: std:array<El3318Presentation, JSD_EL3318_NUM_CHANNELS>
-        default: {EL3318_PRESENTATION_SIGNED}
+    config:
+    - name: element
+      type: std::array<El3318Element, JSD_EL3318_NUM_CHANNELS>
+    - name: filter
+      type: std::array<BeckhoffFilter, JSD_EL3318_NUM_CHANNELS>
+      default: {BECKHOFF_FILTER_30000HZ}
+    - name: presentation
+      type: std::array<El3318Presentation, JSD_EL3318_NUM_CHANNELS>
+      default: {EL3318_PRESENTATION_SIGNED}
     state:
-      - name: output_eu_ch1
-        type: double
-      - name: adc_value_ch1
-        type: int16_t
-      - name: output_eu_ch2
-        type: double
-      - name: adc_value_ch2
-        type: int16_t
-      - name: output_eu_ch3
-        type: double
-      - name: adc_value_ch3
-        type: int16_t
-      - name: output_eu_ch4
-        type: double
-      - name: adc_value_ch4
-        type: int16_t
-      - name: output_eu_ch5
-        type: double
-      - name: adc_value_ch5
-        type: int16_t
-      - name: output_eu_ch6
-        type: double
-      - name: adc_value_ch6
-        type: int16_t
-      - name: output_eu_ch7
-        type: double
-      - name: adc_value_ch7
-        type: int16_t
-      - name: output_eu_ch8
-        type: double
-      - name: adc_value_ch8
-        type: int16_t
+    - name: output_eu_ch1
+      type: double
+    - name: adc_value_ch1
+      type: int16_t
+    - name: output_eu_ch2
+      type: double
+    - name: adc_value_ch2
+      type: int16_t
+    - name: output_eu_ch3
+      type: double
+    - name: adc_value_ch3
+      type: int16_t
+    - name: output_eu_ch4
+      type: double
+    - name: adc_value_ch4
+      type: int16_t
+    - name: output_eu_ch5
+      type: double
+    - name: adc_value_ch5
+      type: int16_t
+    - name: output_eu_ch6
+      type: double
+    - name: adc_value_ch6
+      type: int16_t
+    - name: output_eu_ch7
+      type: double
+    - name: adc_value_ch7
+      type: int16_t
+    - name: output_eu_ch8
+      type: double
+    - name: adc_value_ch8
+      type: int16_t
 
   - name: ild1900
     type: jsd_device
