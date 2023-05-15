@@ -2,7 +2,7 @@ find_package(Threads REQUIRED)
 
 
 set(TEST_SOURCES
-    test_egd_actuator.cc
+    test_gold_actuator.cc
     test_commander.cc
     test_conditional.cc
     test_function.cc
@@ -16,6 +16,7 @@ set(TEST_SOURCES
     test_fts.cc
     test_ati_fts.cc
     test_virtual_fts.cc
+    test_three_node_thermal_model.cc
     )
 
 foreach(TEST_SOURCE ${TEST_SOURCES})

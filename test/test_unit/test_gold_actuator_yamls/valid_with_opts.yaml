@@ -1,4 +1,4 @@
-device_class:                    EgdActuator
+device_class:                    GoldActuator
 name:                            act_1
 actuator_type:                   revolute # revolute: eu = radians
 gear_ratio:                      100 
@@ -23,9 +23,8 @@ elmo_crc:                         12345
 elmo_drive_max_current_limit:     10 # amps
 smooth_factor:                   0 # default value is 0
 
-# Optional Power Params
+# Optional Params follow:
+ctrl_gain_scheduling_mode: DISABLED 
+absolute_encoder:          True
+prof_pos_hold:             True
 
-torque_constant:                 0.5
-winding_resistance:              20.0
-brake_power:                     0.1
-motor_encoder_gear_ratio:        2000

@@ -31,6 +31,33 @@ The `fastcat::manager` class is the primary context that applications will use t
 
 The public API is contained in the `src/manager.h` class definition
 
+### fastcat::manager::Process
+
+The steps taken by each processing cycle of the manager are described below.
+
+
+
+1. Calls `jsd_t`'s `jsd_read` which fetches the EtherCAT frame received in the bus.
+2. Calls `Read` on each JSD device.
+    1. Calls `jsd_<device>_read` on the device.
+        1. Copies corresponding input data from SOEM's IO map into the device's state. Data is formatted as necessary (e.g. unit conversion).
+    2. Calls `jsd_<device>_get_state` on the device.
+        2. Returns the device's state.
+    3. Copies retrieved state into internal state.
+3. Calls `WriteCommands`.
+    1. For each queued command, calls Write on the corresponding device (if the manager is not faulted). NOTE: In some cases the `Write` function is not intended to be called ever (e.g. EL3162).
+        1. Calls the appropriate write function (e.g. `jsd_el4102_write_single_channel`, `jsd_egd_set_motion_command_csp`) in the underlying JSD device based on the command type.
+            1. JSD-level write functions copy the data in the command struct into the device's state.
+4. Calls `Process` on each JSD device. NOTE: Some devices' `Process` function is a no-op (e.g. EL3162).
+    1. Updates internal state machine if present. These updates may involve calling write functions in the underlying JSD device. 
+    2. Calls `jsd_<egd>_process` in the device.
+        1. Updates internal state machine if present. These updates may involve updating the device's state where commands are stored.
+        2. Copies commands from the device's state into SOEM's IO map.
+5. Calls `jsd_t`'s `jsd_write` which places the EtherCAT frame into the bus.
+
+NOTE: Operations on Fastcat devices (as opposed to JSD devices) are not referred above for simplicity.
+
+
 ## fastcat::device_base
 
 Each device class must inherit from the `fastcat::device_base` class. This ensures that the manager can interact with each and every device in the same manner. The most important methods are shown in the following table (the API documentation should be consulted for the most up-to-date definitions)

@@ -29,8 +29,6 @@
 #include "fastcat/jsd/ati_fts.h"
 #include "fastcat/jsd/ati_fts_offline.h"
 #include "fastcat/jsd/egd.h"
-#include "fastcat/jsd/egd_actuator.h"
-#include "fastcat/jsd/egd_actuator_offline.h"
 #include "fastcat/jsd/egd_offline.h"
 #include "fastcat/jsd/el2124.h"
 #include "fastcat/jsd/el2124_offline.h"
@@ -50,16 +48,18 @@
 #include "fastcat/jsd/el4102_offline.h"
 #include "fastcat/jsd/el6001.h"
 #include "fastcat/jsd/el6001_offline.h"
-#include "fastcat/jsd/epd_actuator.h"
-#include "fastcat/jsd/epd_actuator_offline.h"
 #include "fastcat/jsd/fbc.h"
 #include "fastcat/jsd/fbc_offline.h"
+#include "fastcat/jsd/gold_actuator.h"
+#include "fastcat/jsd/gold_actuator_offline.h"
 #include "fastcat/jsd/ild1900.h"
 #include "fastcat/jsd/ild1900_offline.h"
 #include "fastcat/jsd/jed0101.h"
 #include "fastcat/jsd/jed0101_offline.h"
 #include "fastcat/jsd/jed0200.h"
 #include "fastcat/jsd/jed0200_offline.h"
+#include "fastcat/jsd/platinum_actuator.h"
+#include "fastcat/jsd/platinum_actuator_offline.h"
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd_print.h"
@@ -218,7 +218,7 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
   return true;
 }
 
-bool fastcat::Manager::Process()
+bool fastcat::Manager::Process(double external_time)
 {
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     jsd_read(it->second, 1e6 / target_loop_rate_hz_);
@@ -226,7 +226,16 @@ bool fastcat::Manager::Process()
 
   // Pass the PDO read time for consistent timestamping before the device Read()
   //   method is invoked
-  double read_time = jsd_time_get_time_sec();
+  double read_time;
+  if (external_time > 0) {
+    if (online_devices_exist_) {
+      ERROR("Applications cannot use online devices and supply external time, refusing to run");
+      return false;
+    }
+    read_time = external_time;
+  } else {
+    read_time = jsd_time_get_time_sec();
+  }
 
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
     (*it)->SetTime(read_time);
@@ -291,7 +300,8 @@ bool fastcat::Manager::Process()
       } else {
         entry.device_name = "invalid name";
       }
-      MSG("JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)",
+      MSG_DEBUG(
+          "JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)",
           it->first.c_str(), entry.device_name.c_str(), entry.response.app_id);
       sdo_response_queue_->push(entry);
     }
@@ -350,8 +360,8 @@ bool fastcat::Manager::GetActuatorParams(
 {
   if (device_map_.count(name)) {
     auto& device = device_map_[name];
-    if (device->GetState()->type == EGD_ACTUATOR_STATE or
-        device->GetState()->type == EPD_ACTUATOR_STATE) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE or
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
       auto actuator = std::dynamic_pointer_cast<Actuator>(device);
       params        = actuator->GetParams();
       return true;
@@ -445,12 +455,12 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900>();
 
-    } else if (0 == device_class.compare("Egd_Actuator")) {
-      device = std::make_shared<EgdActuator>();
-
-    } else if (0 == device_class.compare("Epd_Actuator")) {
-      device = std::make_shared<EpdActuator>();
+    } else if (0 == device_class.compare("GoldActuator")) {
+      device = std::make_shared<GoldActuator>();
     
+    } else if (0 == device_class.compare("PlatinumActuator")) {
+      device = std::make_shared<PlatinumActuator>();
+
     } else if (0 == device_class.compare("Fbc")) {
       device = std::make_shared<Fbc>();
 
@@ -462,6 +472,12 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("AtiFts")) {
       device = std::make_shared<AtiFts>();
+
+    } else if (0 == device_class.compare("Actuator")) {
+      WARNING("Starting in v0.12.0, Platinum device support has been added to Fastcat!");
+      WARNING("Therefore the 'Actuator' class has been renamed to the 'GoldActuator' to make room for the new 'PlatinumActuator' device");
+      ERROR("Update your topology for all 'Actuator' entries");
+      return false;
 
     } else {
       ERROR("Unknown device_class: %s", device_class.c_str());
@@ -484,6 +500,8 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     if (!CheckDeviceNameIsUnique(device->GetName())) {
       return false;
     }
+
+    online_devices_exist_ = true;
 
     DevicePair pair(device->GetName(), device);
     device_map_.insert(pair);
@@ -645,11 +663,11 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900Offline>();
 
-    } else if (0 == device_class.compare("Egd_Actuator")) {
-      device = std::make_shared<EgdActuatorOffline>();
+    } else if (0 == device_class.compare("GoldActuator")) {
+      device = std::make_shared<GoldActuatorOffline>();
 
-    } else if (0 == device_class.compare("Epd_Actuator")) {
-      device = std::make_shared<EpdActuatorOffline>();
+    } else if (0 == device_class.compare("PlatinumActuator")) {
+      device = std::make_shared<PlatinumActuatorOffline>();
 
     } else if (0 == device_class.compare("Fbc")) {
       device = std::make_shared<FbcOffline>();
@@ -662,6 +680,12 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("AtiFts")) {
       device = std::make_shared<AtiFtsOffline>();
+
+    } else if (0 == device_class.compare("Actuator")) {
+      WARNING("Starting in v0.12.0, Platinum device support has been added to Fastcat!");
+      WARNING("Therefore the 'Actuator' class has been renamed to the 'GoldActuator' to make room for the new 'PlatinumActuator' device");
+      ERROR("Update your topology for all 'Actuator' entries");
+      return false;
 
     } else {
       ERROR("Unknown device_class: %s", device_class.c_str());
@@ -910,8 +934,8 @@ bool fastcat::Manager::LoadActuatorPosFile()
   bool actuators_in_topo = false;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end(); ++device) 
   {
-    if ((*device)->GetState()->type == EGD_ACTUATOR_STATE ||
-        (*device)->GetState()->type == EPD_ACTUATOR_STATE) {
+    if ((*device)->GetState()->type == GOLD_ACTUATOR_STATE ||
+        (*device)->GetState()->type == PLATINUM_ACTUATOR_STATE) {
       actuators_in_topo = true;
       break;
     }
@@ -1008,8 +1032,8 @@ bool fastcat::Manager::ValidateActuatorPosFile()
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != EGD_ACTUATOR_STATE &&
-        dev_state->type != EPD_ACTUATOR_STATE) {
+    if (dev_state->type != GOLD_ACTUATOR_STATE &&
+        dev_state->type != PLATINUM_ACTUATOR_STATE) {
       continue;
     }
 
@@ -1053,8 +1077,8 @@ bool fastcat::Manager::SetActuatorPositions()
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != EGD_ACTUATOR_STATE &&
-        dev_state->type != EPD_ACTUATOR_STATE) {
+    if (dev_state->type != GOLD_ACTUATOR_STATE &&
+        dev_state->type != PLATINUM_ACTUATOR_STATE) {
       continue;
     }
 
@@ -1090,8 +1114,8 @@ void fastcat::Manager::GetActuatorPositions()
     dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != EGD_ACTUATOR_STATE &&
-        dev_state->type != EPD_ACTUATOR_STATE) {
+    if (dev_state->type != GOLD_ACTUATOR_STATE &&
+        dev_state->type != PLATINUM_ACTUATOR_STATE) {
       continue;
     }
 

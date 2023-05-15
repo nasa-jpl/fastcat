@@ -45,3 +45,29 @@ TEST_F(FtsTest, RejectTareWhenFaulted)
   cmd.type = fastcat::FTS_TARE_CMD;
   EXPECT_FALSE(device_.Write(cmd));
 }
+
+TEST_F(FtsTest, WideMatrixValid)
+{
+  EXPECT_TRUE(
+      device_.ConfigFromYaml(YAML::LoadFile(base_dir_ + "fts_wide_cal_matrix.yaml")));
+
+  // Zero out all signals
+  std::vector<fastcat::DeviceState> device_states(device_.signals_.size());
+  for (int i=0; i<(int)device_.signals_.size(); i++) 
+  { 
+    auto &sgs = device_states[i]; 
+    sgs.type = fastcat::SIGNAL_GENERATOR_STATE;
+    sgs.signal_generator_state.output = 0.0;
+    fastcat::ConfigSignalByteIndexing(&sgs, device_.signals_[i]);
+  }
+  device_.Read();
+  EXPECT_EQ(
+    0.0, device_.GetState()->fts_state.raw_tz);
+
+  // Make non-zero final signal
+  auto &last_state = device_states.back();
+  last_state.signal_generator_state.output = 35.0;
+  device_.Read();
+  EXPECT_EQ(
+    35.0, device_.GetState()->fts_state.raw_tz);
+}

@@ -1,5 +1,5 @@
 // Include related header (for cc files)
-#include "fastcat/jsd/egd_actuator.h"
+#include "fastcat/jsd/gold_actuator.h"
 
 // Include C then C++ libraries
 #include <cmath>
@@ -8,9 +8,9 @@
 // Include external then project includes
 #include "jsd/jsd.h"
 
-fastcat::EgdActuator::EgdActuator() { state_->type = EGD_ACTUATOR_STATE; }
+fastcat::GoldActuator::GoldActuator() { state_->type = GOLD_ACTUATOR_STATE; }
 
-void fastcat::EgdActuator::PopulateJsdSlaveConfig()
+void fastcat::GoldActuator::PopulateJsdSlaveConfig()
 {
   jsd_slave_config_.product_code = JSD_EGD_PRODUCT_CODE;
 
@@ -44,96 +44,96 @@ void fastcat::EgdActuator::PopulateJsdSlaveConfig()
   jsd_slave_config_.egd.ctrl_gain_scheduling_mode = ctrl_gs_mode_;
 }
 
-void fastcat::EgdActuator::ElmoRead()
+void fastcat::GoldActuator::ElmoRead()
 {
   jsd_egd_read((jsd_t*)context_, slave_id_);
   memcpy(&jsd_egd_state_, jsd_egd_get_state((jsd_t*)context_, slave_id_),
          sizeof(jsd_egd_state_t));
 }
 
-void fastcat::EgdActuator::PopulateState()
+void fastcat::GoldActuator::PopulateState()
 {
-  state_->egd_actuator_state.elmo_actual_position =
+  state_->gold_actuator_state.elmo_actual_position =
       jsd_egd_state_.actual_position;
-  state_->egd_actuator_state.elmo_cmd_position = jsd_egd_state_.cmd_position;
+  state_->gold_actuator_state.elmo_cmd_position = jsd_egd_state_.cmd_position;
 
-  state_->egd_actuator_state.actual_position =
+  state_->gold_actuator_state.actual_position =
       PosCntsToEu(jsd_egd_state_.actual_position);
-  state_->egd_actuator_state.actual_velocity =
+  state_->gold_actuator_state.actual_velocity =
       CntsToEu(jsd_egd_state_.actual_velocity);
-  state_->egd_actuator_state.actual_current = jsd_egd_state_.actual_current;
+  state_->gold_actuator_state.actual_current = jsd_egd_state_.actual_current;
 
-  state_->egd_actuator_state.cmd_position =
+  state_->gold_actuator_state.cmd_position =
       PosCntsToEu(jsd_egd_state_.cmd_position + jsd_egd_state_.cmd_ff_position);
-  state_->egd_actuator_state.cmd_velocity =
+  state_->gold_actuator_state.cmd_velocity =
       CntsToEu(jsd_egd_state_.cmd_velocity + jsd_egd_state_.cmd_ff_velocity);
-  state_->egd_actuator_state.cmd_current =
+  state_->gold_actuator_state.cmd_current =
       (jsd_egd_state_.cmd_current + jsd_egd_state_.cmd_ff_current);
 
-  state_->egd_actuator_state.cmd_max_current = jsd_egd_state_.cmd_max_current;
+  state_->gold_actuator_state.cmd_max_current = jsd_egd_state_.cmd_max_current;
 
-  state_->egd_actuator_state.elmo_state_machine_state =
+  state_->gold_actuator_state.elmo_state_machine_state =
       static_cast<uint32_t>(jsd_egd_state_.actual_state_machine_state);
-  state_->egd_actuator_state.elmo_mode_of_operation =
+  state_->gold_actuator_state.elmo_mode_of_operation =
       static_cast<uint32_t>(jsd_egd_state_.actual_mode_of_operation);
 
-  state_->egd_actuator_state.sto_engaged    = jsd_egd_state_.sto_engaged;
-  state_->egd_actuator_state.hall_state     = jsd_egd_state_.hall_state;
-  state_->egd_actuator_state.target_reached = jsd_egd_state_.target_reached;
-  state_->egd_actuator_state.motor_on       = jsd_egd_state_.motor_on;
-  state_->egd_actuator_state.servo_enabled  = jsd_egd_state_.servo_enabled;
+  state_->gold_actuator_state.sto_engaged    = jsd_egd_state_.sto_engaged;
+  state_->gold_actuator_state.hall_state     = jsd_egd_state_.hall_state;
+  state_->gold_actuator_state.target_reached = jsd_egd_state_.target_reached;
+  state_->gold_actuator_state.motor_on       = jsd_egd_state_.motor_on;
+  state_->gold_actuator_state.servo_enabled  = jsd_egd_state_.servo_enabled;
 
-  state_->egd_actuator_state.bus_voltage = jsd_egd_state_.bus_voltage;
-  state_->egd_actuator_state.drive_temperature =
+  state_->gold_actuator_state.bus_voltage = jsd_egd_state_.bus_voltage;
+  state_->gold_actuator_state.drive_temperature =
       jsd_egd_state_.drive_temperature;
 
-  state_->egd_actuator_state.actuator_state_machine_state =
+  state_->gold_actuator_state.actuator_state_machine_state =
       static_cast<uint32_t>(actuator_sms_);
 
-  state_->egd_actuator_state.fastcat_fault_code =
+  state_->gold_actuator_state.fastcat_fault_code =
       static_cast<uint32_t>(fastcat_fault_);
-  state_->egd_actuator_state.jsd_fault_code =
+  state_->gold_actuator_state.jsd_fault_code =
       static_cast<uint32_t>(jsd_egd_state_.fault_code);
-  state_->egd_actuator_state.emcy_error_code = jsd_egd_state_.emcy_error_code;
-  state_->egd_actuator_state.faulted = (actuator_sms_ == ACTUATOR_SMS_FAULTED);
+  state_->gold_actuator_state.emcy_error_code = jsd_egd_state_.emcy_error_code;
+  state_->gold_actuator_state.faulted = (actuator_sms_ == ACTUATOR_SMS_FAULTED);
 
   if (compute_power_) {
-    state_->egd_actuator_state.power =
-        ComputePower(state_->egd_actuator_state.actual_velocity,
-                     state_->egd_actuator_state.actual_current,
-                     state_->egd_actuator_state.motor_on);
+    state_->gold_actuator_state.power =
+        ComputePower(state_->gold_actuator_state.actual_velocity,
+                     state_->gold_actuator_state.actual_current,
+                     state_->gold_actuator_state.motor_on);
   }
 }
 
-void fastcat::EgdActuator::ElmoClearErrors()
+void fastcat::GoldActuator::ElmoClearErrors()
 {
   jsd_egd_clear_errors((jsd_t*)context_, slave_id_);
 }
 
-void fastcat::EgdActuator::ElmoSetPeakCurrent(double current)
+void fastcat::GoldActuator::ElmoSetPeakCurrent(double current)
 {
   jsd_egd_set_peak_current((jsd_t*)context_, slave_id_, current);
 }
 
-void fastcat::EgdActuator::ElmoSetUnitMode(int32_t mode, uint16_t app_id)
+void fastcat::GoldActuator::ElmoSetUnitMode(int32_t mode, uint16_t app_id)
 {
   MSG("Commanding new UM[1] = %d app_id = %u", mode, app_id);
   jsd_egd_async_sdo_set_unit_mode((jsd_t*)context_, slave_id_, mode, app_id);
 }
 
-void fastcat::EgdActuator::ElmoSetGainSchedulingMode(
+void fastcat::GoldActuator::ElmoSetGainSchedulingMode(
     jsd_elmo_gain_scheduling_mode_t mode, uint16_t app_id)
 {
   jsd_egd_async_sdo_set_ctrl_gain_scheduling_mode((jsd_t*)context_, slave_id_,
                                                   mode, app_id);
 }
 
-void fastcat::EgdActuator::ElmoSetGainSchedulingIndex(uint16_t index)
+void fastcat::GoldActuator::ElmoSetGainSchedulingIndex(uint16_t index)
 {
   jsd_egd_set_gain_scheduling_index((jsd_t*)context_, slave_id_, true, index);
 }
 
-void fastcat::EgdActuator::ElmoFault()
+void fastcat::GoldActuator::ElmoFault()
 {
   MSG("Faulting EGD through JSD: %s", name_.c_str());
   jsd_egd_fault((jsd_t*)context_, slave_id_);
@@ -146,53 +146,53 @@ void fastcat::EgdActuator::ElmoFault()
   jsd_egd_state_.cmd_current  = 0;
 }
 
-void fastcat::EgdActuator::ElmoReset()
+void fastcat::GoldActuator::ElmoReset()
 {
   MSG("Resetting EGD through JSD: %s", name_.c_str());
   jsd_egd_reset((jsd_t*)context_, slave_id_);
 }
 
-void fastcat::EgdActuator::ElmoCSP(
+void fastcat::GoldActuator::ElmoCSP(
     const jsd_elmo_motion_command_csp_t& jsd_csp_cmd)
 {
   jsd_egd_set_motion_command_csp((jsd_t*)context_, slave_id_, jsd_csp_cmd);
 }
 
-void fastcat::EgdActuator::ElmoCSV(
+void fastcat::GoldActuator::ElmoCSV(
     const jsd_elmo_motion_command_csv_t& jsd_csv_cmd)
 {
   jsd_egd_set_motion_command_csv((jsd_t*)context_, slave_id_, jsd_csv_cmd);
 }
 
-void fastcat::EgdActuator::ElmoCST(
+void fastcat::GoldActuator::ElmoCST(
     const jsd_elmo_motion_command_cst_t& jsd_cst_cmd)
 {
   jsd_egd_set_motion_command_cst((jsd_t*)context_, slave_id_, jsd_cst_cmd);
 }
 
-void fastcat::EgdActuator::ElmoHalt()
+void fastcat::GoldActuator::ElmoHalt()
 {
   jsd_egd_halt((jsd_t*)context_, slave_id_);
 }
 
-void fastcat::EgdActuator::ElmoProcess()
+void fastcat::GoldActuator::ElmoProcess()
 {
   jsd_egd_process((jsd_t*)context_, slave_id_);
 }
 
-bool fastcat::EgdActuator::HandleNewProfPosCmdImpl(const DeviceCmd& cmd)
+bool fastcat::GoldActuator::HandleNewProfPosCmdImpl(const DeviceCmd& cmd)
 {
   // Only transition to disengaging if it is needed (i.e. brakes are still
   // engaged)
-  if (!state_->egd_actuator_state.servo_enabled) {
+  if (!state_->gold_actuator_state.servo_enabled) {
     TransitionToState(ACTUATOR_SMS_PROF_POS_DISENGAGING);
     last_cmd_ = cmd;
     return true;
   }
 
   trap_generate(
-      &trap_, state_->time, state_->egd_actuator_state.actual_position,
-      ComputeTargetPosProfPosCmd(cmd), state_->egd_actuator_state.cmd_velocity,
+      &trap_, state_->time, state_->gold_actuator_state.actual_position,
+      ComputeTargetPosProfPosCmd(cmd), state_->gold_actuator_state.cmd_velocity,
       cmd.actuator_prof_pos_cmd.end_velocity,
       cmd.actuator_prof_pos_cmd.profile_velocity,  // consider abs()
       cmd.actuator_prof_pos_cmd.profile_accel);
@@ -202,19 +202,19 @@ bool fastcat::EgdActuator::HandleNewProfPosCmdImpl(const DeviceCmd& cmd)
   return true;
 }
 
-bool fastcat::EgdActuator::HandleNewProfVelCmdImpl(const DeviceCmd& cmd)
+bool fastcat::GoldActuator::HandleNewProfVelCmdImpl(const DeviceCmd& cmd)
 {
   // Only transition to disengaging if it is needed (i.e. brakes are still
   // engaged)
-  if (!state_->egd_actuator_state.servo_enabled) {
+  if (!state_->gold_actuator_state.servo_enabled) {
     TransitionToState(ACTUATOR_SMS_PROF_VEL_DISENGAGING);
     last_cmd_ = cmd;
     return true;
   }
 
   trap_generate_vel(&trap_, state_->time,
-                    state_->egd_actuator_state.actual_position,
-                    state_->egd_actuator_state.cmd_velocity,
+                    state_->gold_actuator_state.actual_position,
+                    state_->gold_actuator_state.cmd_velocity,
                     cmd.actuator_prof_vel_cmd.target_velocity,
                     cmd.actuator_prof_vel_cmd.profile_accel,
                     cmd.actuator_prof_vel_cmd.max_duration);
@@ -224,11 +224,11 @@ bool fastcat::EgdActuator::HandleNewProfVelCmdImpl(const DeviceCmd& cmd)
   return true;
 }
 
-bool fastcat::EgdActuator::HandleNewProfTorqueCmdImpl(const DeviceCmd& cmd)
+bool fastcat::GoldActuator::HandleNewProfTorqueCmdImpl(const DeviceCmd& cmd)
 {
   // Only transition to disengaging if it is needed (i.e. brakes are still
   // engaged)
-  if (!state_->egd_actuator_state.servo_enabled) {
+  if (!state_->gold_actuator_state.servo_enabled) {
     TransitionToState(ACTUATOR_SMS_PROF_TORQUE_DISENGAGING);
     last_cmd_ = cmd;
     return true;
@@ -244,12 +244,12 @@ bool fastcat::EgdActuator::HandleNewProfTorqueCmdImpl(const DeviceCmd& cmd)
   return true;
 }
 
-fastcat::FaultType fastcat::EgdActuator::ProcessProfPos()
+fastcat::FaultType fastcat::GoldActuator::ProcessProfPos()
 {
   return ProcessProfPosTrapImpl();
 }
 
-fastcat::FaultType fastcat::EgdActuator::ProcessProfVel()
+fastcat::FaultType fastcat::GoldActuator::ProcessProfVel()
 {
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
@@ -275,7 +275,7 @@ fastcat::FaultType fastcat::EgdActuator::ProcessProfVel()
   return NO_FAULT;
 }
 
-fastcat::FaultType fastcat::EgdActuator::ProcessProfTorque()
+fastcat::FaultType fastcat::GoldActuator::ProcessProfTorque()
 {
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
@@ -298,20 +298,20 @@ fastcat::FaultType fastcat::EgdActuator::ProcessProfTorque()
   return NO_FAULT;
 }
 
-fastcat::FaultType fastcat::EgdActuator::ProcessProfPosDisengaging()
+fastcat::FaultType fastcat::GoldActuator::ProcessProfPosDisengaging()
 {
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
 
-  if (state_->egd_actuator_state.servo_enabled) {
+  if (state_->gold_actuator_state.servo_enabled) {
     // If brakes are disengaged, setup the traps and transition to the execution
     // state
     trap_generate(
-        &trap_, state_->time, state_->egd_actuator_state.actual_position,
+        &trap_, state_->time, state_->gold_actuator_state.actual_position,
         ComputeTargetPosProfPosCmd(last_cmd_),
-        state_->egd_actuator_state.cmd_velocity,
+        state_->gold_actuator_state.cmd_velocity,
         last_cmd_.actuator_prof_pos_cmd.end_velocity,
         last_cmd_.actuator_prof_pos_cmd.profile_velocity,  // consider abs()
         last_cmd_.actuator_prof_pos_cmd.profile_accel);
@@ -325,7 +325,7 @@ fastcat::FaultType fastcat::EgdActuator::ProcessProfPosDisengaging()
     jsd_elmo_motion_command_csp_t jsd_cmd;
 
     jsd_cmd.target_position =
-        PosEuToCnts(state_->egd_actuator_state.actual_position);
+        PosEuToCnts(state_->gold_actuator_state.actual_position);
     jsd_cmd.position_offset    = 0;
     jsd_cmd.velocity_offset    = 0;
     jsd_cmd.torque_offset_amps = 0;
@@ -345,19 +345,19 @@ fastcat::FaultType fastcat::EgdActuator::ProcessProfPosDisengaging()
   return NO_FAULT;
 }
 
-fastcat::FaultType fastcat::EgdActuator::ProcessProfVelDisengaging()
+fastcat::FaultType fastcat::GoldActuator::ProcessProfVelDisengaging()
 {
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
 
-  if (state_->egd_actuator_state.servo_enabled) {
+  if (state_->gold_actuator_state.servo_enabled) {
     // If brakes are disengaged, setup the traps and transition to the execution
     // state
     trap_generate_vel(&trap_, state_->time,
-                      state_->egd_actuator_state.actual_position,
-                      state_->egd_actuator_state.cmd_velocity,
+                      state_->gold_actuator_state.actual_position,
+                      state_->gold_actuator_state.cmd_velocity,
                       last_cmd_.actuator_prof_vel_cmd.target_velocity,
                       last_cmd_.actuator_prof_vel_cmd.profile_accel,
                       last_cmd_.actuator_prof_vel_cmd.max_duration);
@@ -388,14 +388,14 @@ fastcat::FaultType fastcat::EgdActuator::ProcessProfVelDisengaging()
   return NO_FAULT;
 }
 
-fastcat::FaultType fastcat::EgdActuator::ProcessProfTorqueDisengaging()
+fastcat::FaultType fastcat::GoldActuator::ProcessProfTorqueDisengaging()
 {
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
 
-  if (state_->egd_actuator_state.servo_enabled) {
+  if (state_->gold_actuator_state.servo_enabled) {
     // If brakes are disengaged, setup the traps and transition to the execution
     // state
     trap_generate_vel(&trap_, state_->time, 0, 0,
@@ -428,23 +428,23 @@ fastcat::FaultType fastcat::EgdActuator::ProcessProfTorqueDisengaging()
   return NO_FAULT;
 }
 
-double fastcat::EgdActuator::GetActualVelocity()
+double fastcat::GoldActuator::GetActualVelocity()
 {
-  return state_->egd_actuator_state.actual_velocity;
+  return state_->gold_actuator_state.actual_velocity;
 }
 
-double fastcat::EgdActuator::GetElmoActualPosition()
+double fastcat::GoldActuator::GetElmoActualPosition()
 {
-  return state_->egd_actuator_state.elmo_actual_position;
+  return state_->gold_actuator_state.elmo_actual_position;
 }
 
-jsd_elmo_state_machine_state_t fastcat::EgdActuator::GetElmoStateMachineState()
+jsd_elmo_state_machine_state_t fastcat::GoldActuator::GetElmoStateMachineState()
 {
   return static_cast<jsd_elmo_state_machine_state_t>(
-      state_->egd_actuator_state.elmo_state_machine_state);
+      state_->gold_actuator_state.elmo_state_machine_state);
 }
 
-bool fastcat::EgdActuator::IsStoEngaged()
+bool fastcat::GoldActuator::IsStoEngaged()
 {
-  return state_->egd_actuator_state.sto_engaged;
+  return state_->gold_actuator_state.sto_engaged;
 }

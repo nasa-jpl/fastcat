@@ -1,5 +1,5 @@
 // Include related header (for cc files)
-#include "fastcat/jsd/epd_actuator_offline.h"
+#include "fastcat/jsd/platinum_actuator_offline.h"
 
 // Include c then c++ libraries
 #include <string.h>
@@ -10,27 +10,27 @@
 #include "jsd/jsd.h"
 #include "jsd/jsd_time.h"
 
-fastcat::EpdActuatorOffline::EpdActuatorOffline()
+fastcat::PlatinumActuatorOffline::PlatinumActuatorOffline()
 {
-  MSG_DEBUG("Constructed EpdActuatorOffline");
+  MSG_DEBUG("Constructed PlatinumActuatorOffline");
 
   memset(&jsd_epd_state_, 0, sizeof(jsd_epd_state_t));
   motor_on_start_time_ = jsd_time_get_time_sec();
 }
 
-bool fastcat::EpdActuatorOffline::HandleNewProfPosCmdImpl(const DeviceCmd& cmd)
+bool fastcat::PlatinumActuatorOffline::HandleNewProfPosCmdImpl(const DeviceCmd& cmd)
 {
   // Only transition to disengaging if it is needed (i.e. brakes are still
   // engaged)
-  if (!state_->epd_actuator_state.servo_enabled) {
+  if (!state_->platinum_actuator_state.servo_enabled) {
     TransitionToState(ACTUATOR_SMS_PROF_POS_DISENGAGING);
     last_cmd_ = cmd;
     return true;
   }
 
   trap_generate(
-      &trap_, state_->time, state_->epd_actuator_state.actual_position,
-      ComputeTargetPosProfPosCmd(cmd), state_->epd_actuator_state.cmd_velocity,
+      &trap_, state_->time, state_->platinum_actuator_state.actual_position,
+      ComputeTargetPosProfPosCmd(cmd), state_->platinum_actuator_state.cmd_velocity,
       cmd.actuator_prof_pos_cmd.end_velocity,
       cmd.actuator_prof_pos_cmd.profile_velocity,  // consider abs()
       cmd.actuator_prof_pos_cmd.profile_accel);
@@ -40,19 +40,19 @@ bool fastcat::EpdActuatorOffline::HandleNewProfPosCmdImpl(const DeviceCmd& cmd)
   return true;
 }
 
-bool fastcat::EpdActuatorOffline::HandleNewProfVelCmdImpl(const DeviceCmd& cmd)
+bool fastcat::PlatinumActuatorOffline::HandleNewProfVelCmdImpl(const DeviceCmd& cmd)
 {
   // Only transition to disengaging if it is needed (i.e. brakes are still
   // engaged)
-  if (!state_->epd_actuator_state.servo_enabled) {
+  if (!state_->platinum_actuator_state.servo_enabled) {
     TransitionToState(ACTUATOR_SMS_PROF_VEL_DISENGAGING);
     last_cmd_ = cmd;
     return true;
   }
 
   trap_generate_vel(&trap_, state_->time,
-                    state_->epd_actuator_state.actual_position,
-                    state_->epd_actuator_state.cmd_velocity,
+                    state_->platinum_actuator_state.actual_position,
+                    state_->platinum_actuator_state.cmd_velocity,
                     cmd.actuator_prof_vel_cmd.target_velocity,
                     cmd.actuator_prof_vel_cmd.profile_accel,
                     cmd.actuator_prof_vel_cmd.max_duration);
@@ -62,12 +62,12 @@ bool fastcat::EpdActuatorOffline::HandleNewProfVelCmdImpl(const DeviceCmd& cmd)
   return true;
 }
 
-bool fastcat::EpdActuatorOffline::HandleNewProfTorqueCmdImpl(
+bool fastcat::PlatinumActuatorOffline::HandleNewProfTorqueCmdImpl(
     const DeviceCmd& cmd)
 {
   // Only transition to disengaging if it is needed (i.e. brakes are still
   // engaged)
-  if (!state_->epd_actuator_state.servo_enabled) {
+  if (!state_->platinum_actuator_state.servo_enabled) {
     TransitionToState(ACTUATOR_SMS_PROF_TORQUE_DISENGAGING);
     last_cmd_ = cmd;
     return true;
@@ -83,12 +83,12 @@ bool fastcat::EpdActuatorOffline::HandleNewProfTorqueCmdImpl(
   return true;
 }
 
-fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfPos()
+fastcat::FaultType fastcat::PlatinumActuatorOffline::ProcessProfPos()
 {
   return ProcessProfPosTrapImpl();
 }
 
-fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfVel()
+fastcat::FaultType fastcat::PlatinumActuatorOffline::ProcessProfVel()
 {
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
@@ -114,7 +114,7 @@ fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfVel()
   return NO_FAULT;
 }
 
-fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfTorque()
+fastcat::FaultType fastcat::PlatinumActuatorOffline::ProcessProfTorque()
 {
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
@@ -137,20 +137,20 @@ fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfTorque()
   return NO_FAULT;
 }
 
-fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfPosDisengaging()
+fastcat::FaultType fastcat::PlatinumActuatorOffline::ProcessProfPosDisengaging()
 {
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
 
-  if (state_->epd_actuator_state.servo_enabled) {
+  if (state_->platinum_actuator_state.servo_enabled) {
     // If brakes are disengaged, setup the traps and transition to the execution
     // state
     trap_generate(
-        &trap_, state_->time, state_->epd_actuator_state.actual_position,
+        &trap_, state_->time, state_->platinum_actuator_state.actual_position,
         ComputeTargetPosProfPosCmd(last_cmd_),
-        state_->epd_actuator_state.cmd_velocity,
+        state_->platinum_actuator_state.cmd_velocity,
         last_cmd_.actuator_prof_pos_cmd.end_velocity,
         last_cmd_.actuator_prof_pos_cmd.profile_velocity,  // consider abs()
         last_cmd_.actuator_prof_pos_cmd.profile_accel);
@@ -164,7 +164,7 @@ fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfPosDisengaging()
     jsd_elmo_motion_command_csp_t jsd_cmd;
 
     jsd_cmd.target_position =
-        PosEuToCnts(state_->epd_actuator_state.actual_position);
+        PosEuToCnts(state_->platinum_actuator_state.actual_position);
     jsd_cmd.position_offset    = 0;
     jsd_cmd.velocity_offset    = 0;
     jsd_cmd.torque_offset_amps = 0;
@@ -184,19 +184,19 @@ fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfPosDisengaging()
   return NO_FAULT;
 }
 
-fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfVelDisengaging()
+fastcat::FaultType fastcat::PlatinumActuatorOffline::ProcessProfVelDisengaging()
 {
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
 
-  if (state_->epd_actuator_state.servo_enabled) {
+  if (state_->platinum_actuator_state.servo_enabled) {
     // If brakes are disengaged, setup the traps and transition to the execution
     // state
     trap_generate_vel(&trap_, state_->time,
-                      state_->epd_actuator_state.actual_position,
-                      state_->epd_actuator_state.cmd_velocity,
+                      state_->platinum_actuator_state.actual_position,
+                      state_->platinum_actuator_state.cmd_velocity,
                       last_cmd_.actuator_prof_vel_cmd.target_velocity,
                       last_cmd_.actuator_prof_vel_cmd.profile_accel,
                       last_cmd_.actuator_prof_vel_cmd.max_duration);
@@ -227,14 +227,14 @@ fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfVelDisengaging()
   return NO_FAULT;
 }
 
-fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfTorqueDisengaging()
+fastcat::FaultType fastcat::PlatinumActuatorOffline::ProcessProfTorqueDisengaging()
 {
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
 
-  if (state_->epd_actuator_state.servo_enabled) {
+  if (state_->platinum_actuator_state.servo_enabled) {
     // If brakes are disengaged, setup the traps and transition to the execution
     // state
     trap_generate_vel(&trap_, state_->time, 0, 0,
@@ -267,17 +267,17 @@ fastcat::FaultType fastcat::EpdActuatorOffline::ProcessProfTorqueDisengaging()
   return NO_FAULT;
 }
 
-void fastcat::EpdActuatorOffline::ElmoSetConfig()
+void fastcat::PlatinumActuatorOffline::ElmoSetConfig()
 {
   // no-op
 }
 
-void fastcat::EpdActuatorOffline::ElmoRead()
+void fastcat::PlatinumActuatorOffline::ElmoRead()
 {
   // no-op
 }
 
-void fastcat::EpdActuatorOffline::ElmoProcess()
+void fastcat::PlatinumActuatorOffline::ElmoProcess()
 {
   switch (actuator_sms_) {
     case ACTUATOR_SMS_FAULTED:
@@ -314,50 +314,50 @@ void fastcat::EpdActuatorOffline::ElmoProcess()
   }
 }
 
-void fastcat::EpdActuatorOffline::ElmoFault()
+void fastcat::PlatinumActuatorOffline::ElmoFault()
 {
   // no-op
 }
 
-void fastcat::EpdActuatorOffline::ElmoReset()
+void fastcat::PlatinumActuatorOffline::ElmoReset()
 {
   // no-op
 }
 
-void fastcat::EpdActuatorOffline::ElmoHalt()
+void fastcat::PlatinumActuatorOffline::ElmoHalt()
 {
   // no-op
 }
 
-void fastcat::EpdActuatorOffline::ElmoClearErrors()
+void fastcat::PlatinumActuatorOffline::ElmoClearErrors()
 {
   // no-op
 }
 
-void fastcat::EpdActuatorOffline::ElmoSetPeakCurrent(double /* current */)
+void fastcat::PlatinumActuatorOffline::ElmoSetPeakCurrent(double /* current */)
 {
   // no-op
 }
 
-void fastcat::EpdActuatorOffline::ElmoSetUnitMode(int32_t mode, uint16_t app_id)
+void fastcat::PlatinumActuatorOffline::ElmoSetUnitMode(int32_t mode, uint16_t app_id)
 {
   MSG("Commanding new UM[1] = %d app_id = %u", mode, app_id);
   // no-op
 }
 
-void fastcat::EpdActuatorOffline::ElmoSetGainSchedulingMode(
+void fastcat::PlatinumActuatorOffline::ElmoSetGainSchedulingMode(
     jsd_elmo_gain_scheduling_mode_t /* mode */, uint16_t /* app_id */)
 {
   // no-op
 }
 
-void fastcat::EpdActuatorOffline::ElmoSetGainSchedulingIndex(
+void fastcat::PlatinumActuatorOffline::ElmoSetGainSchedulingIndex(
     uint16_t /* index */)
 {
   // no-op
 }
 
-void fastcat::EpdActuatorOffline::ElmoCSP(
+void fastcat::PlatinumActuatorOffline::ElmoCSP(
     const jsd_elmo_motion_command_csp_t& jsd_csp_cmd)
 {
   jsd_epd_state_.cmd_position = jsd_csp_cmd.target_position;
@@ -382,7 +382,7 @@ void fastcat::EpdActuatorOffline::ElmoCSP(
   jsd_epd_state_.actual_velocity = vel;  // "sure, why not"
 }
 
-void fastcat::EpdActuatorOffline::ElmoCSV(
+void fastcat::PlatinumActuatorOffline::ElmoCSV(
     const jsd_elmo_motion_command_csv_t& jsd_csv_cmd)
 {
   jsd_epd_state_.cmd_position = 0;
@@ -402,7 +402,7 @@ void fastcat::EpdActuatorOffline::ElmoCSV(
       jsd_epd_state_.actual_velocity * loop_period_;  // integrated
 }
 
-void fastcat::EpdActuatorOffline::ElmoCST(
+void fastcat::PlatinumActuatorOffline::ElmoCST(
     const jsd_elmo_motion_command_cst_t& jsd_cst_cmd)
 {
   jsd_epd_state_.cmd_position = 0;

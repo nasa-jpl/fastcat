@@ -67,11 +67,10 @@ add_library(fastcat STATIC
     transform_utils.cc
 
     jsd/jsd_device_base.cc
-
     jsd/actuator.cc
     jsd/actuator_fsm_helpers.cc
-    jsd/egd_actuator.cc
-    jsd/epd_actuator.cc
+
+    jsd/ati_fts.cc
     jsd/egd.cc
     jsd/el3208.cc
     jsd/el3602.cc
@@ -83,12 +82,13 @@ add_library(fastcat STATIC
     jsd/el3318.cc
     jsd/el6001.cc
     jsd/fbc.cc
+    jsd/gold_actuator.cc
     jsd/ild1900.cc
     jsd/jed0101.cc
     jsd/jed0200.cc
-    jsd/ati_fts.cc
+    jsd/platinum_actuator.cc
 
-    jsd/egd_actuator_offline.cc
+    jsd/ati_fts_offline.cc
     jsd/egd_offline.cc
     jsd/el2124_offline.cc
     jsd/el4102_offline.cc
@@ -99,12 +99,12 @@ add_library(fastcat STATIC
     jsd/el3202_offline.cc
     jsd/el3318_offline.cc
     jsd/el6001_offline.cc
-    jsd/epd_actuator_offline.cc
     jsd/fbc_offline.cc
     jsd/ild1900_offline.cc
+    jsd/gold_actuator_offline.cc
     jsd/jed0101_offline.cc
     jsd/jed0200_offline.cc
-    jsd/ati_fts_offline.cc
+    jsd/platinum_actuator_offline.cc
 
     ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
     fastcat_devices/signal_generator.cc
@@ -118,6 +118,7 @@ add_library(fastcat STATIC
     fastcat_devices/virtual_fts.cc
     fastcat_devices/faulter.cc
     fastcat_devices/linear_interpolation.cc
+    fastcat_devices/three_node_thermal_model.cc
     )
 
 target_include_directories(
