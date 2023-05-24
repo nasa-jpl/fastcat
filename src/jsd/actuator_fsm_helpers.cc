@@ -428,7 +428,7 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
   MSG("Setting Peak Current to calibration level: %lf", cal_cmd_.max_current);
   ElmoSetPeakCurrent(cal_cmd_.max_current);
 
-  trap_generate(&trap_, state_->time,
+  fastcat_trap_generate(&trap_, state_->time,
                 GetActualPosition(*state_),  // consider cmd position
                 target_position,
                 GetActualVelocity(),  // consider cmd velocity
@@ -517,7 +517,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfPosTrapImpl()
   jsd_elmo_motion_command_csp_t jsd_cmd;
 
   double pos_eu, vel;
-  int    complete = trap_update(&trap_, state_->time, &pos_eu, &vel);
+  int    complete = fastcat_trap_update(&trap_, state_->time, &pos_eu, &vel);
 
   jsd_cmd.target_position    = PosEuToCnts(pos_eu);
   jsd_cmd.position_offset    = 0;
@@ -578,7 +578,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
   jsd_elmo_motion_command_csp_t jsd_cmd;
 
   double pos_eu, vel;
-  int    complete = trap_update(&trap_, state_->time, &pos_eu, &vel);
+  int    complete = fastcat_trap_update(&trap_, state_->time, &pos_eu, &vel);
 
   jsd_cmd.target_position    = PosEuToCnts(pos_eu);
   jsd_cmd.position_offset    = 0;
@@ -637,7 +637,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
   }
   SetOutputPosition(cal_position);
 
-  trap_generate(&trap_, state_->time, cal_position, backoff_position, 0,
+  fastcat_trap_generate(&trap_, state_->time, cal_position, backoff_position, 0,
                 0,  // pt2pt motion always uses terminating traps
                 fabs(cal_cmd_.velocity), cal_cmd_.accel);
 
