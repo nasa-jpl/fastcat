@@ -158,6 +158,9 @@ TEST_F(ActuatorTest, RejectMotionCommandsWhenFaulted)
     cmd.type = fastcat::ACTUATOR_SET_OUTPUT_POSITION_CMD;
     EXPECT_TRUE(device_.Write(cmd));
 
+    cmd.type = fastcat::ACTUATOR_SET_DIGITAL_OUTPUT_CMD;
+    EXPECT_TRUE(device_.Write(cmd));
+
     cmd.type = fastcat::ACTUATOR_SET_MAX_CURRENT_CMD;
     EXPECT_TRUE(device_.Write(cmd));
 

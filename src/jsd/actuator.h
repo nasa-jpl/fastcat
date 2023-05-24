@@ -191,18 +191,19 @@ class Actuator : public JsdDeviceBase
   virtual void ElmoSetConfig();
   virtual void ElmoRead() = 0;
   virtual void ElmoClearErrors(){};
-  virtual void ElmoFault()                                               = 0;
-  virtual void ElmoReset()                                               = 0;
-  virtual void ElmoSetPeakCurrent(double current)                        = 0;
-  virtual void ElmoSetUnitMode(int32_t mode, uint16_t app_id)            = 0;
+  virtual void ElmoFault()                                                              = 0;
+  virtual void ElmoReset()                                                              = 0;
+  virtual void ElmoSetPeakCurrent(double current)                                       = 0;
+  virtual void ElmoSetDigitalOutput(uint8_t digital_output_index, uint8_t output_level) = 0;
+  virtual void ElmoSetUnitMode(int32_t mode, uint16_t app_id)                           = 0;
   virtual void ElmoSetGainSchedulingMode(jsd_elmo_gain_scheduling_mode_t mode,
-                                         uint16_t app_id)                = 0;
-  virtual void ElmoSetGainSchedulingIndex(uint16_t index)                = 0;
-  virtual void ElmoCSP(const jsd_elmo_motion_command_csp_t& jsd_csp_cmd) = 0;
-  virtual void ElmoCSV(const jsd_elmo_motion_command_csv_t& jsd_csv_cmd) = 0;
-  virtual void ElmoCST(const jsd_elmo_motion_command_cst_t& jsd_cst_cmd) = 0;
-  virtual void ElmoHalt()                                                = 0;
-  virtual void ElmoProcess()                                             = 0;
+                                         uint16_t app_id)                               = 0;
+  virtual void ElmoSetGainSchedulingIndex(uint16_t index)                               = 0;
+  virtual void ElmoCSP(const jsd_elmo_motion_command_csp_t& jsd_csp_cmd)                = 0;
+  virtual void ElmoCSV(const jsd_elmo_motion_command_csv_t& jsd_csv_cmd)                = 0;
+  virtual void ElmoCST(const jsd_elmo_motion_command_cst_t& jsd_cst_cmd)                = 0;
+  virtual void ElmoHalt()                                                               = 0;
+  virtual void ElmoProcess()                                                            = 0;
 
   virtual double                         GetActualVelocity()        = 0;
   virtual double                         GetElmoActualPosition()    = 0;
