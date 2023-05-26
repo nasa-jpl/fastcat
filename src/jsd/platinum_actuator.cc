@@ -292,11 +292,7 @@ void fastcat::PlatinumActuator::ElmoSetPeakCurrent(double current)
 
 void fastcat::PlatinumActuator::ElmoSetDigitalOutput(uint8_t digital_output_index, uint8_t output_level)
 {
-  // TODO: create epd jsd function for setting digital output
-  ERROR("Digital Output not yet implemented for PlatinumActuator ");
-  // Get around unused variable warning
-  (void)digital_output_index;
-  (void)output_level;
+  jsd_epd_set_digital_output((jsd_t*)context_, slave_id_, digital_output_index, output_level);
 }
 
 void fastcat::PlatinumActuator::ElmoSetUnitMode(int32_t mode, uint16_t app_id)
