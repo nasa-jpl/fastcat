@@ -238,6 +238,9 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
     return (sdoResult == SDO_RET_VAL_SUCCESS);
   }
 
+  std::cout << "Command value is " << cmd.type << std::endl;
+  std::cout << "actuator set digital output type num is " << ACTUATOR_SET_DIGITAL_OUTPUT_CMD << std::endl;
+
   // Honor these Non-motion Commands even when faulted
   switch (cmd.type) {
     case ACTUATOR_RESET_CMD:
