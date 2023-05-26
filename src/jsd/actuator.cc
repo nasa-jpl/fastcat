@@ -262,6 +262,7 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       break;
 
     case ACTUATOR_SET_MAX_CURRENT_CMD:
+      MSG("Setting max current for the actuator!");
       // This application may choose to set this during motions
       // in order to boost current during acceleration/decel
       // phases so don't check the state machine
