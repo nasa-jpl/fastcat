@@ -104,7 +104,7 @@ static bool profile_is_a_negative_ramp(double vel_start, double vel_max,
  * @param  acc        max acceleration/deceleration for the profile
  * @return            0 on success, -1 on failure
  */
-int trap_generate(trap_t* self, double t_init_sec, double pos_init,
+int fastcat_trap_generate(fastcat_trap_t* self, double t_init_sec, double pos_init,
                   double pos_fini, double vel_init, double vel_fini,
                   double vel_max, double acc)
 {
@@ -384,12 +384,12 @@ int trap_generate(trap_t* self, double t_init_sec, double pos_init,
   self->vel_pre  = vi;
   self->vel_acc  = vm;
 
-  self->mode = TRAP_MODE_POS;
+  self->mode = FASTCAT_TRAP_MODE_POS;
 
   return 0;
 }
 
-int trap_update(trap_t* self, double t, double* pos, double* vel)
+int fastcat_trap_update(fastcat_trap_t* self, double t, double* pos, double* vel)
 {
   double dt;
 
@@ -406,7 +406,7 @@ int trap_update(trap_t* self, double t, double* pos, double* vel)
     *vel = self->vel_fini;
 
     // if the profile has expired, report this back
-    self->mode = TRAP_MODE_IDLE;
+    self->mode = FASTCAT_TRAP_MODE_IDLE;
     return 1;
   } else if (t < self->t_pre) {
     //
@@ -433,7 +433,7 @@ int trap_update(trap_t* self, double t, double* pos, double* vel)
   return 0;
 }
 
-int trap_generate_vel(trap_t* self, double t_init_sec, double pos_init,
+int fastcat_trap_generate_vel(fastcat_trap_t* self, double t_init_sec, double pos_init,
                       double vel_init, double vel_fini, double acc,
                       double max_time)
 {
@@ -478,12 +478,12 @@ int trap_generate_vel(trap_t* self, double t_init_sec, double pos_init,
   self->pos_fini =
       self->pos_dec + self->vel_acc * dt + 0.5 * self->dec * dt * dt;
 
-  self->mode = TRAP_MODE_RATE;
+  self->mode = FASTCAT_TRAP_MODE_RATE;
 
   return 0;
 }
 
-int trap_update_vel(trap_t* self, double t, double* pos, double* vel)
+int fastcat_trap_update_vel(fastcat_trap_t* self, double t, double* pos, double* vel)
 {
   double dt;
 
@@ -509,7 +509,7 @@ int trap_update_vel(trap_t* self, double t, double* pos, double* vel)
       {
         *vel       = 0.0;
         *pos       = self->pos_fini;
-        self->mode = TRAP_MODE_IDLE;
+        self->mode = FASTCAT_TRAP_MODE_IDLE;
         return 1;
       }
     } else  // no max time, spinning at v_acc until directed to change...
@@ -523,7 +523,7 @@ int trap_update_vel(trap_t* self, double t, double* pos, double* vel)
   return 0;
 }
 
-void trap_print_trap_values(trap_t* self)
+void fastcat_trap_print_fastcat_trap_values(fastcat_trap_t* self)
 {
   MSG("Position: ini: %f, pre: %f, acc: %f, dec: %f, fin: %f", self->pos_init,
       self->pos_pre, self->pos_acc, self->pos_dec, self->pos_fini);
