@@ -134,7 +134,7 @@ class Actuator : public JsdDeviceBase
   ActuatorStateMachineState actuator_sms_;
   double                    last_transition_time_ = 0.0;
   double                    cycle_mono_time_      = 0.0;
-  trap_t                    trap_;
+  fastcat_trap_t            trap_;
   ActuatorParams            params_;
 
   ActuatorFastcatFault fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
