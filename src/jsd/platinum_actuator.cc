@@ -290,6 +290,11 @@ void fastcat::PlatinumActuator::ElmoSetPeakCurrent(double current)
   jsd_epd_set_peak_current((jsd_t*)context_, slave_id_, current);
 }
 
+void fastcat::PlatinumActuator::ElmoSetDigitalOutput(uint8_t digital_output_index, uint8_t output_level)
+{
+  jsd_epd_set_digital_output((jsd_t*)context_, slave_id_, digital_output_index, output_level);
+}
+
 void fastcat::PlatinumActuator::ElmoSetUnitMode(int32_t mode, uint16_t app_id)
 {
   jsd_epd_async_sdo_set_unit_mode((jsd_t*)context_, slave_id_,

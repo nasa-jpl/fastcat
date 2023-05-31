@@ -253,6 +253,13 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       return true;
       break;
 
+    case ACTUATOR_SET_DIGITAL_OUTPUT_CMD:
+      ElmoSetDigitalOutput(
+        cmd.actuator_set_digital_output_cmd.digital_output_index,
+        cmd.actuator_set_digital_output_cmd.output_level);
+      return true;
+      break;
+
     case ACTUATOR_SET_MAX_CURRENT_CMD:
       // This application may choose to set this during motions
       // in order to boost current during acceleration/decel
