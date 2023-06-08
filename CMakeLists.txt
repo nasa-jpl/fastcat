@@ -54,7 +54,8 @@ find_package(YamlCpp REQUIRED 0.6.3)
 include(FetchContent)
 FetchContent_Declare(jsd
     GIT_REPOSITORY https://github.com/nasa-jpl/jsd.git
-    GIT_TAG v2.3.3
+#    GIT_TAG v2.3.3
+    GIT_TAG dloret-platinum-multi-product-codes
     )
 FetchContent_MakeAvailable(jsd)
 

@@ -11,7 +11,7 @@ fastcat::PlatinumActuator::PlatinumActuator() { state_->type = PLATINUM_ACTUATOR
 
 void fastcat::PlatinumActuator::PopulateJsdSlaveConfig()
 {
-  jsd_slave_config_.product_code = JSD_EPD_PRODUCT_CODE;
+  jsd_slave_config_.product_code = JSD_EPD_PRODUCT_CODE_STD_FW;
 
   jsd_slave_config_.epd.max_motor_speed   = EuToCnts(params_.max_speed_eu_per_sec);
   jsd_slave_config_.epd.loop_period_ms    = lround(loop_period_ * 1000.0);
