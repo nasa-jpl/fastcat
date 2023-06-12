@@ -5,6 +5,7 @@
 #include "fastcat/config.h"
 #include "fastcat/jsd/gold_actuator_offline.h"
 #include "fastcat/signal_handling.h"
+#include "jsd/jsd_egd_types.h"
 #include "jsd/jsd_print.h"
 #include "jsd/jsd_pub.h"
 
@@ -40,7 +41,8 @@ class ActuatorTest : public ::testing::Test
   void SetUp() override
   {
     jsd_context_ = jsd_alloc();
-
+    jsd_context_->ecx_context.slavelist[0].eep_id = JSD_EGD_PRODUCT_CODE;
+    
     // FASTCAT_UNIT_TEST_DIR contains path to .
     base_dir_ = FASTCAT_UNIT_TEST_DIR;
     base_dir_ += "test_gold_actuator_yamls/";
@@ -153,9 +155,10 @@ TEST_F(ActuatorTest, RejectMotionCommandsWhenFaulted)
     EXPECT_TRUE(device_.Write(cmd));
 
     cmd.type = fastcat::ACTUATOR_SET_OUTPUT_POSITION_CMD;
+    cmd.actuator_set_digital_output_cmd.digital_output_index = 1; // Avoid 0-index'ing assert error
     EXPECT_TRUE(device_.Write(cmd));
-
     cmd.type = fastcat::ACTUATOR_SET_DIGITAL_OUTPUT_CMD;
+    
     EXPECT_TRUE(device_.Write(cmd));
 
     cmd.type = fastcat::ACTUATOR_SET_MAX_CURRENT_CMD;
