@@ -24,5 +24,6 @@ jobs:
                 mkdir -p build
                 cd build
                 cmake -DBUILD_JSD_TESTS=ON ..
+                make
                 make test
                 make memcheck
