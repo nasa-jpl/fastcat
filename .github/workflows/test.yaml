@@ -1,0 +1,26 @@
+name: test
+
+on:
+    workflow_dispatch:
+    push:
+        paths:
+            - "src/**"
+            - "test/**"
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: egor-tensin/setup-clang@v1
+            - uses: ConorMacBride/install-package@v1
+              with:
+                  apt: valgrind
+                  version: latest
+                  platform: x64
+            - run: |
+                mkdir -p build
+                cd build
+                cmake -DBUILD_JSD_TESTS=ON ..
+                make test
+                make memcheck
