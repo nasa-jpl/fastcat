@@ -18,8 +18,8 @@ jobs:
                   apt: valgrind
                   version: latest
                   platform: x64
-            - name: install yamlcpp
-              run: sudo apt install libyaml-cpp-dev
+            - name: install packages
+              run: sudo apt install libyaml-cpp-dev libgtest-dev doxygen
             - run: |
                 mkdir -p build
                 cd build
