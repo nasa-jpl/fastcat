@@ -1,11 +1,11 @@
 name: build
 
 on:
-    workflow_dispatch:
     push:
         paths:
             - "src/**"
             - "test/**"
+            - "tools/**"
 
 jobs:
     build:
@@ -16,8 +16,6 @@ jobs:
               with:
                   version: latest
                   platform: x64
-            - name: install yamlcpp
-              run: sudo apt install libyaml-cpp-dev
             - run: |
                 mkdir -p build
                 cd build
