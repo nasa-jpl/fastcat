@@ -1,11 +1,11 @@
 name: test
 
 on:
+    workflow_dispatch:
     push:
         paths:
             - "src/**"
             - "test/**"
-            - "tools/**"
 
 jobs:
     test:
@@ -18,9 +18,12 @@ jobs:
                   apt: valgrind
                   version: latest
                   platform: x64
+            - name: install packages
+              run: sudo apt install libyaml-cpp-dev libgtest-dev doxygen
             - run: |
                 mkdir -p build
                 cd build
                 cmake -DBUILD_JSD_TESTS=ON ..
+                make
                 make test
                 make memcheck
