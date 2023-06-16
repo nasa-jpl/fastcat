@@ -280,6 +280,11 @@ void fastcat::PlatinumActuator::ElmoRead()
          sizeof(jsd_epd_state_t));
 }
 
+void fastcat::PlatinumActuator::ElmoClearErrors()
+{
+  jsd_epd_clear_errors((jsd_t*)context_, slave_id_);
+}
+
 void fastcat::PlatinumActuator::ElmoReset()
 {
   jsd_epd_reset((jsd_t*)context_, slave_id_);

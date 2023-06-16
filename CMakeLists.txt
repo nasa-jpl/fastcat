@@ -55,7 +55,7 @@ include(FetchContent)
 FetchContent_Declare(jsd
     GIT_REPOSITORY https://github.com/nasa-jpl/jsd.git
 #    GIT_TAG v2.3.3
-    GIT_TAG dloret-platinum-multi-product-codes
+    GIT_TAG dloret-fix-platinum-error-latching
     )
 FetchContent_MakeAvailable(jsd)
 

@@ -35,6 +35,7 @@ class PlatinumActuator : public Actuator
   FaultType ProcessProfTorque() override;
 
   void ElmoRead() override;
+  void ElmoClearErrors() override;
   void ElmoFault() override{};
   void ElmoReset() override;
   void ElmoSetPeakCurrent(double current) override;
