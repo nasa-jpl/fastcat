@@ -54,8 +54,7 @@ find_package(YamlCpp REQUIRED 0.6.3)
 include(FetchContent)
 FetchContent_Declare(jsd
     GIT_REPOSITORY https://github.com/nasa-jpl/jsd.git
-#    GIT_TAG v2.3.3
-    GIT_TAG dloret-fix-platinum-error-latching
+    GIT_TAG v2.3.4
     )
 FetchContent_MakeAvailable(jsd)
 
