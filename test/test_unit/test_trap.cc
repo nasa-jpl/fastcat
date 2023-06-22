@@ -9,7 +9,7 @@ class TrapTest : public ::testing::Test
  protected:
   void SetUp() override {}
 
-  trap_t trap_1_;
+  fastcat_trap_t trap_1_;
 };
 
 TEST_F(TrapTest, TrapVelocityReInit)
@@ -22,8 +22,9 @@ TEST_F(TrapTest, TrapVelocityReInit)
   double max_time         = 10.0;
 
   // Generate the first version of the trap
-  trap_generate_vel(&trap_1_, time_initial, position_initial, velocity_initial,
-                    velocity_final, acceleration, max_time);
+  fastcat_trap_generate_vel(&trap_1_, time_initial, position_initial,
+                            velocity_initial, velocity_final, acceleration,
+                            max_time);
 
   double dt = 0.01;
 
@@ -33,16 +34,16 @@ TEST_F(TrapTest, TrapVelocityReInit)
 
   for (int i = 0; i < 1000; i++) {
     // Update trap before any change in time has occurred
-    trap_update_vel(&trap_1_, tracking_time, &tracking_position,
-                    &tracking_velocity);
+    fastcat_trap_update_vel(&trap_1_, tracking_time, &tracking_position,
+                            &tracking_velocity);
 
     // Increment time
     tracking_time += dt;
 
     // Regenerate trap to simulate incoming updated setpoint
-    trap_generate_vel(&trap_1_, tracking_time, tracking_position,
-                      tracking_velocity, velocity_final, acceleration,
-                      max_time);
+    fastcat_trap_generate_vel(&trap_1_, tracking_time, tracking_position,
+                              tracking_velocity, velocity_final, acceleration,
+                              max_time);
   }
 
   // The minimum dt used in track vel should guarantee that

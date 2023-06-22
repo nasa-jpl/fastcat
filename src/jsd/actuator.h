@@ -190,7 +190,7 @@ class Actuator : public JsdDeviceBase
 
   virtual void ElmoSetConfig();
   virtual void ElmoRead() = 0;
-  virtual void ElmoClearErrors(){};
+  virtual void ElmoClearErrors() = 0;
   virtual void ElmoFault()                                                              = 0;
   virtual void ElmoReset()                                                              = 0;
   virtual void ElmoSetPeakCurrent(double current)                                       = 0;
