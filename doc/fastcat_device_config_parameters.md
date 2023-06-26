@@ -366,6 +366,17 @@ Allowable `element` values (See the EL3208 Beckhoff Manual `0x80n0:19` Data Obje
   name: el3162_1
 ```
 
+## El1008 (8-channel 24v Digital Input)
+
+**The El1008 device has no configuration parameters**
+
+#### Example
+
+``` yaml
+- device_class: El1008
+  name: el1008_1
+```
+
 ## El3602 (2-channel +/-10v Diff. Analog Input)
 
 | Parameter   | Description                 |
