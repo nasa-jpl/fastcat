@@ -75,10 +75,11 @@ bool fastcat::Fbc::Read()
     for(int i=0; i < FBC_DATA_PACKET_SIZE; i++){
       received_bytes[i] = jsd_state->persistent_received_bytes[i];
     }
-    ready_to_parse = true;
+    ready_to_parse = true;    
   }
 
   if (ready_to_parse){
+    state_->fbc_state.is_data_available = true;    
     // parse received bytes into FBC State
     for (int i = FBC_BYTE_COUNTER; i <= FBC_BYTE_LATCHED_FAULT; i++) {
       // Copy over the received bytes for telem and diagnostics

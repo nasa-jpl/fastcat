@@ -445,6 +445,9 @@ states:
 
   - name: fbc
     fields:
+      - name: is_data_available
+        type: bool
+        comment: "Whether the data is there"
       - name: status      
         type: uint32_t
         comment: "From FbcStatus"
