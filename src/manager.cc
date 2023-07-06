@@ -568,6 +568,9 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("LinearInterpolation")) {
       device = std::make_shared<LinearInterpolation>();
 
+    } else if (0 == device_class.compare("ThreeNodeThermalModel")) {
+      device = std::make_shared<ThreeNodeThermalModel>();
+
     } else {
       ERROR("Unknown device_class: %s", device_class.c_str());
       return false;
