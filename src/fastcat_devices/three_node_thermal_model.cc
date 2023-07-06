@@ -140,7 +140,7 @@ FaultType ThreeNodeThermalModel::Process()
     }
     // throw fault if limit exceeded
     if (node_overtemp_persistences_[idx] > persistence_limit_) {
-      ERROR("Node %ld temperature (%f degrees Celcius) exceeded safety limit -- faulting", idx + 1u, node_temps_[idx]);
+      ERROR("Node %ld temperature (%f degrees Celsius) exceeded safety limit -- faulting", idx + 1u, node_temps_[idx]);
       return ALL_DEVICE_FAULT;
     }
   }
