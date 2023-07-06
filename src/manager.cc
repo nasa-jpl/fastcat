@@ -25,6 +25,7 @@
 #include "fastcat/fastcat_devices/saturation.h"
 #include "fastcat/fastcat_devices/schmitt_trigger.h"
 #include "fastcat/fastcat_devices/signal_generator.h"
+#include "fastcat/fastcat_devices/three_node_thermal_model.h"
 #include "fastcat/fastcat_devices/virtual_fts.h"
 #include "fastcat/jsd/ati_fts.h"
 #include "fastcat/jsd/ati_fts_offline.h"
