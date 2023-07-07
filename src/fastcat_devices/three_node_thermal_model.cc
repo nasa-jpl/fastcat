@@ -12,6 +12,7 @@ ThreeNodeThermalModel::ThreeNodeThermalModel()
 
 bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
 {
+  ERROR("ConfigFromYaml called!!!");
   if (!ParseVal(node, "name", name_)) {
     return false;
   }
