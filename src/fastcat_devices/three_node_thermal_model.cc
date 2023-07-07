@@ -62,6 +62,7 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
   }
   // initialize all temps to ref_temp
   // Note: this can be manually seeded later
+  ERROR("Initializing all temps to %f", ref_temp_);
   for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
     node_temps_[idx] = ref_temp_;
   }
