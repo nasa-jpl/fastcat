@@ -125,6 +125,15 @@ FaultType ThreeNodeThermalModel::Process()
   double q_node_2_to_3 =
       (node_temps_[1] - node_temps_[2]) / thermal_res_nodes_2_to_3_;
   // calculate temperatures
+
+
+  double time_subtraction = state_->time - last_time_;
+  ERROR("Time difference is %d", time_subtraction);
+  ERROR("q_node_1_to_2 is %d",  q_node_1_to_2);
+  ERROR("q_node_2_to_3 is %d",  q_node_2_to_3);
+
+
+
   node_temps_[0] += (q_in - q_node_1_to_2) *
                     ((state_->time - last_time_) / thermal_mass_node_1_);
   node_temps_[1] += (q_node_1_to_2 - q_node_2_to_3) *
