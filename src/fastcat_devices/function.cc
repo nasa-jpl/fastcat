@@ -43,8 +43,8 @@ bool fastcat::Function::ConfigFromYaml(YAML::Node node)
   }
   state_->name = name_;
   ERROR("\nGetting name...\n");
-  ERROR("Name from yaml is %s", name_);
-  ERROR("Name is %s", state_->name);
+  ERROR("Name from yaml is %s", name_.c_str());
+  ERROR("Name is %s", state_->name.c_str());
 
   if (!ParseVal(node, "function_type", function_type_string_)) {
     return false;

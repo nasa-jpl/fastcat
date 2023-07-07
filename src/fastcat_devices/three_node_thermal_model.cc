@@ -18,8 +18,8 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
   }
   state_->name = name_;
   ERROR("\nGetting name...\n");
-  ERROR("Name from yaml is %s", name_);
-  ERROR("Name is %s", state_->name);
+  ERROR("Name from yaml is %s", name_.c_str());
+  ERROR("Name is %s", state_->name.c_str());
 
   if (!ParseVal(node, "thermal_mass_node_1", thermal_mass_node_1_)) {
     return false;
