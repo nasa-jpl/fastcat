@@ -37,14 +37,10 @@ fastcat::FunctionType fastcat::FunctionTypeFromString(
 
 bool fastcat::Function::ConfigFromYaml(YAML::Node node)
 {
-  ERROR("ConfigFromYaml called!!!");
   if (!ParseVal(node, "name", name_)) {
     return false;
   }
   state_->name = name_;
-  ERROR("\nGetting name...\n");
-  ERROR("Name from yaml is %s", name_.c_str());
-  ERROR("Name is %s", state_->name.c_str());
 
   if (!ParseVal(node, "function_type", function_type_string_)) {
     return false;
