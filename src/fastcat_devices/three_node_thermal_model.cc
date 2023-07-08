@@ -141,6 +141,12 @@ FaultType ThreeNodeThermalModel::Process()
   node_temps_[3] =
       (k1_ * node_temps_[0] + k2_ * node_temps_[1] + k3_ * node_temps_[2]) /
       (k1_ + k2_ + k3_);
+  
+  ERROR("node_temps_[0] is %d", node_temps_[0]);
+  ERROR("node_temps_[1] is %d",  node_temps_[1]);
+  ERROR("node_temps_[2] is %d",  node_temps_[2]);
+
+
   // update persistence counter for each node
   for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
     if (node_temps_[idx] > max_allowable_temps_[idx]) {
