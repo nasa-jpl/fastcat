@@ -125,18 +125,6 @@ FaultType ThreeNodeThermalModel::Process()
   double q_node_2_to_3 =
       (node_temps_[1] - node_temps_[2]) / thermal_res_nodes_2_to_3_;
   // calculate temperatures
-
-
-  double time_subtraction = state_->time - last_time_;
-  ERROR("\n\nTime difference is %f", time_subtraction);
-  ERROR("q_node_1_to_2 is %f",  q_node_1_to_2);
-  ERROR("q_node_2_to_3 is %f",  q_node_2_to_3);
-
-  ERROR("node_temps_[0] before addition is %f", node_temps_[0]);
-  ERROR("node_temps_[1] before addition is %f",  node_temps_[1]);
-  ERROR("node_temps_[2] from sensor is %f",  node_temps_[2]);
-  ERROR("node_temps_[3] before addition is %f",  node_temps_[3]);
-
   node_temps_[0] += (q_in - q_node_1_to_2) *
                     ((state_->time - last_time_) / thermal_mass_node_1_);
   node_temps_[1] += (q_node_1_to_2 - q_node_2_to_3) *
@@ -144,12 +132,6 @@ FaultType ThreeNodeThermalModel::Process()
   node_temps_[3] =
       (k1_ * node_temps_[0] + k2_ * node_temps_[1] + k3_ * node_temps_[2]) /
       (k1_ + k2_ + k3_);
-  
-  ERROR("node_temps_[0] after addition is %f", node_temps_[0]);
-  ERROR("node_temps_[1] after addition is %f",  node_temps_[1]);
-  ERROR("node_temps_[2] from sensor is %f",  node_temps_[2]);
-  ERROR("node_temps_[3] after addition is %f",  node_temps_[3]);
-
 
   // update persistence counter for each node
   for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
