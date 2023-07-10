@@ -62,7 +62,6 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
   }
   // initialize all temps to ref_temp
   // Note: this can be manually seeded later
-  ERROR("Initializing all temps to %f", ref_temp_);
   for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
     node_temps_[idx] = ref_temp_;
   }
@@ -132,7 +131,6 @@ FaultType ThreeNodeThermalModel::Process()
   node_temps_[3] =
       (k1_ * node_temps_[0] + k2_ * node_temps_[1] + k3_ * node_temps_[2]) /
       (k1_ + k2_ + k3_);
-
   // update persistence counter for each node
   for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
     if (node_temps_[idx] > max_allowable_temps_[idx]) {
