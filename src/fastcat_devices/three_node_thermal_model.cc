@@ -7,7 +7,7 @@ ThreeNodeThermalModel::ThreeNodeThermalModel()
 {
   state_       = std::make_shared<DeviceState>();
   state_->type = THREE_NODE_THERMAL_MODEL_STATE;
-  last_time_   = state_->time;  // init time
+  last_time_   = jsd_time_get_time_sec();  // init time
 }
 
 bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
