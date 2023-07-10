@@ -134,7 +134,8 @@ FaultType ThreeNodeThermalModel::Process()
 
   ERROR("node_temps_[0] before addition is %f", node_temps_[0]);
   ERROR("node_temps_[1] before addition is %f",  node_temps_[1]);
-  ERROR("node_temps_[2] before addition is %f",  node_temps_[2]);
+  ERROR("node_temps_[2] from sensor is %f",  node_temps_[2]);
+  ERROR("node_temps_[3] before addition is %f",  node_temps_[3]);
 
   node_temps_[0] += (q_in - q_node_1_to_2) *
                     ((state_->time - last_time_) / thermal_mass_node_1_);
@@ -146,7 +147,8 @@ FaultType ThreeNodeThermalModel::Process()
   
   ERROR("node_temps_[0] after addition is %f", node_temps_[0]);
   ERROR("node_temps_[1] after addition is %f",  node_temps_[1]);
-  ERROR("node_temps_[2] after addition is %f",  node_temps_[2]);
+  ERROR("node_temps_[2] from sensor is %f",  node_temps_[2]);
+  ERROR("node_temps_[3] after addition is %f",  node_temps_[3]);
 
 
   // update persistence counter for each node
