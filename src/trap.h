@@ -1,5 +1,5 @@
-#ifndef FASTCAT_TRAP_H_
-#define FASTCAT_TRAP_H_
+#ifndef FASTCAT_FASTCAT_TRAP_H_
+#define FASTCAT_FASTCAT_TRAP_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -8,10 +8,10 @@ extern "C" {
 #include <stdint.h>
 
 typedef enum {
-  TRAP_MODE_IDLE = 0,
-  TRAP_MODE_RATE,
-  TRAP_MODE_POS,
-} trap_mode_t;
+  FASTCAT_TRAP_MODE_IDLE = 0,
+  FASTCAT_TRAP_MODE_RATE,
+  FASTCAT_TRAP_MODE_POS,
+} fastcat_trap_mode_t;
 
 typedef struct {
   double pos_init;  //!< absolute position of the start of the trajectory
@@ -42,18 +42,18 @@ typedef struct {
 
   int mode;
 
-} trap_t;
+} fastcat_trap_t;
 
-int trap_generate(trap_t* self, double t_init, double pos_init, double pos_fini,
+int fastcat_trap_generate(fastcat_trap_t* self, double t_init, double pos_init, double pos_fini,
                   double vel_init, double vel_fini, double max_vel, double acc);
 
-int trap_update(trap_t* self, double t, double* pos, double* vel);
+int fastcat_trap_update(fastcat_trap_t* self, double t, double* pos, double* vel);
 
-int trap_generate_vel(trap_t* self, double t_init_sec, double pos_init,
+int fastcat_trap_generate_vel(fastcat_trap_t* self, double t_init_sec, double pos_init,
                       double vel_init, double vel_fini, double acc,
                       double max_time);
 
-int trap_update_vel(trap_t* self, double t, double* pos, double* vel);
+int fastcat_trap_update_vel(fastcat_trap_t* self, double t, double* pos, double* vel);
 
 #ifdef __cplusplus
 }

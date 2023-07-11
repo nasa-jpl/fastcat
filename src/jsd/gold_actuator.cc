@@ -115,6 +115,11 @@ void fastcat::GoldActuator::ElmoSetPeakCurrent(double current)
   jsd_egd_set_peak_current((jsd_t*)context_, slave_id_, current);
 }
 
+void fastcat::GoldActuator::ElmoSetDigitalOutput(uint8_t digital_output_index, uint8_t output_level)
+{
+  jsd_egd_set_digital_output((jsd_t*)context_, slave_id_, digital_output_index, output_level);
+}
+
 void fastcat::GoldActuator::ElmoSetUnitMode(int32_t mode, uint16_t app_id)
 {
   MSG("Commanding new UM[1] = %d app_id = %u", mode, app_id);
@@ -190,7 +195,7 @@ bool fastcat::GoldActuator::HandleNewProfPosCmdImpl(const DeviceCmd& cmd)
     return true;
   }
 
-  trap_generate(
+  fastcat_trap_generate(
       &trap_, state_->time, state_->gold_actuator_state.actual_position,
       ComputeTargetPosProfPosCmd(cmd), state_->gold_actuator_state.cmd_velocity,
       cmd.actuator_prof_pos_cmd.end_velocity,
@@ -212,7 +217,7 @@ bool fastcat::GoldActuator::HandleNewProfVelCmdImpl(const DeviceCmd& cmd)
     return true;
   }
 
-  trap_generate_vel(&trap_, state_->time,
+  fastcat_trap_generate_vel(&trap_, state_->time,
                     state_->gold_actuator_state.actual_position,
                     state_->gold_actuator_state.cmd_velocity,
                     cmd.actuator_prof_vel_cmd.target_velocity,
@@ -234,7 +239,7 @@ bool fastcat::GoldActuator::HandleNewProfTorqueCmdImpl(const DeviceCmd& cmd)
     return true;
   }
 
-  trap_generate_vel(&trap_, state_->time, 0, 0,
+  fastcat_trap_generate_vel(&trap_, state_->time, 0, 0,
                     cmd.actuator_prof_torque_cmd.target_torque_amps,
                     params_.torque_slope_amps_per_sec,
                     cmd.actuator_prof_torque_cmd.max_duration);
@@ -259,7 +264,7 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfVel()
   jsd_elmo_motion_command_csv_t jsd_cmd;
 
   double pos_eu, vel;
-  int    complete = trap_update_vel(&trap_, state_->time, &pos_eu, &vel);
+  int    complete = fastcat_trap_update_vel(&trap_, state_->time, &pos_eu, &vel);
 
   jsd_cmd.target_velocity    = EuToCnts(vel);
   jsd_cmd.velocity_offset    = 0;
@@ -285,7 +290,7 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfTorque()
   jsd_elmo_motion_command_cst_t jsd_cmd;
 
   double dummy_pos_eu, current;
-  int complete = trap_update_vel(&trap_, state_->time, &dummy_pos_eu, &current);
+  int complete = fastcat_trap_update_vel(&trap_, state_->time, &dummy_pos_eu, &current);
 
   jsd_cmd.target_torque_amps = current;
   jsd_cmd.torque_offset_amps = 0;
@@ -308,7 +313,7 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfPosDisengaging()
   if (state_->gold_actuator_state.servo_enabled) {
     // If brakes are disengaged, setup the traps and transition to the execution
     // state
-    trap_generate(
+    fastcat_trap_generate(
         &trap_, state_->time, state_->gold_actuator_state.actual_position,
         ComputeTargetPosProfPosCmd(last_cmd_),
         state_->gold_actuator_state.cmd_velocity,
@@ -355,7 +360,7 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfVelDisengaging()
   if (state_->gold_actuator_state.servo_enabled) {
     // If brakes are disengaged, setup the traps and transition to the execution
     // state
-    trap_generate_vel(&trap_, state_->time,
+    fastcat_trap_generate_vel(&trap_, state_->time,
                       state_->gold_actuator_state.actual_position,
                       state_->gold_actuator_state.cmd_velocity,
                       last_cmd_.actuator_prof_vel_cmd.target_velocity,
@@ -398,7 +403,7 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfTorqueDisengaging()
   if (state_->gold_actuator_state.servo_enabled) {
     // If brakes are disengaged, setup the traps and transition to the execution
     // state
-    trap_generate_vel(&trap_, state_->time, 0, 0,
+    fastcat_trap_generate_vel(&trap_, state_->time, 0, 0,
                       last_cmd_.actuator_prof_torque_cmd.target_torque_amps,
                       params_.torque_slope_amps_per_sec,
                       last_cmd_.actuator_prof_torque_cmd.max_duration);

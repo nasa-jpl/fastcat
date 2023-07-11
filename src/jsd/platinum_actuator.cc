@@ -11,7 +11,7 @@ fastcat::PlatinumActuator::PlatinumActuator() { state_->type = PLATINUM_ACTUATOR
 
 void fastcat::PlatinumActuator::PopulateJsdSlaveConfig()
 {
-  jsd_slave_config_.product_code = JSD_EPD_PRODUCT_CODE;
+  jsd_slave_config_.product_code = JSD_EPD_PRODUCT_CODE_STD_FW;
 
   jsd_slave_config_.epd.max_motor_speed   = EuToCnts(params_.max_speed_eu_per_sec);
   jsd_slave_config_.epd.loop_period_ms    = lround(loop_period_ * 1000.0);
@@ -280,6 +280,11 @@ void fastcat::PlatinumActuator::ElmoRead()
          sizeof(jsd_epd_state_t));
 }
 
+void fastcat::PlatinumActuator::ElmoClearErrors()
+{
+  jsd_epd_clear_errors((jsd_t*)context_, slave_id_);
+}
+
 void fastcat::PlatinumActuator::ElmoReset()
 {
   jsd_epd_reset((jsd_t*)context_, slave_id_);
@@ -288,6 +293,11 @@ void fastcat::PlatinumActuator::ElmoReset()
 void fastcat::PlatinumActuator::ElmoSetPeakCurrent(double current)
 {
   jsd_epd_set_peak_current((jsd_t*)context_, slave_id_, current);
+}
+
+void fastcat::PlatinumActuator::ElmoSetDigitalOutput(uint8_t digital_output_index, uint8_t output_level)
+{
+  jsd_epd_set_digital_output((jsd_t*)context_, slave_id_, digital_output_index, output_level);
 }
 
 void fastcat::PlatinumActuator::ElmoSetUnitMode(int32_t mode, uint16_t app_id)

@@ -858,6 +858,13 @@ commands:
     - name: max_current
       type: double
 
+  - name: actuator_set_digital_output
+    fields:
+    - name: digital_output_index 
+      type: uint8_t
+    - name: output_level 
+      type: uint8_t
+
   - name: actuator_set_max_current
     fields:
     - name: current 

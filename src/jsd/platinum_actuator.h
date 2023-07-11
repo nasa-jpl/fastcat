@@ -35,9 +35,11 @@ class PlatinumActuator : public Actuator
   FaultType ProcessProfTorque() override;
 
   void ElmoRead() override;
+  void ElmoClearErrors() override;
   void ElmoFault() override{};
   void ElmoReset() override;
   void ElmoSetPeakCurrent(double current) override;
+  void ElmoSetDigitalOutput(uint8_t digital_output_index, uint8_t output_level) override;
   void ElmoSetUnitMode(int32_t mode, uint16_t app_id) override;
   void ElmoSetGainSchedulingMode(jsd_elmo_gain_scheduling_mode_t mode,
                                  uint16_t app_id) override;
