@@ -448,12 +448,8 @@ states:
       - name: is_data_available
         type: bool
         comment: "Whether the data is there"
-      - name: status      
-        type: uint32_t
-        comment: "From FbcStatus"
-      - name: op_code      
-        type: uint8_t
-        comment: "From FbcOpCode"      
+      - name: fbc_sms      
+        type: uint32_t        
       - name: raw_byte_02
         type: uint8_t
       - name: raw_byte_03

@@ -163,7 +163,7 @@ bool fastcat::Fbc::Read()
 
         case FBC_BYTE_MCU_STATUS:
           // Pull out bits 0 and 1 (0000 0011)
-          state_->fbc_state.status = (FbcStatus) (received_bytes[i] & 0x03);
+          state_->fbc_state.fbc_sms = (FbcSms) (received_bytes[i] & 0x03);
           break;
 
         case FBC_BYTE_LATCHED_FAULT:

@@ -75,12 +75,12 @@ typedef enum {
 } FbcChannels;
 
 typedef enum {
-  FBC_STATUS_ALL_OK = 0,
-  FBC_STATUS_FAULTED,
-  FBC_STATUS_STANDBY,
-  FBC_STATUS_HB_BYPASSED,
+  FBC_SMS_ALL_OK = 0,
+  FBC_SMS_FAULTED,
+  FBC_SMS_STANDBY,
+  FBC_SMS_HB_BYPASSED,
 
-} FbcStatus;
+} FbcSms;
 
 class Fbc : public JsdDeviceBase
 {
