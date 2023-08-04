@@ -369,21 +369,21 @@ states:
 
   - name: el1008
     fields:
-      - name: digital_value_ch1
+      - name: level_ch1
         type: uint8_t
-      - name: digital_value_ch2
+      - name: level_ch2
         type: uint8_t
-      - name: digital_value_ch3
+      - name: level_ch3
         type: uint8_t
-      - name: digital_value_ch4
+      - name: level_ch4
         type: uint8_t
-      - name: digital_value_ch5
+      - name: level_ch5
         type: uint8_t
-      - name: digital_value_ch6
+      - name: level_ch6
         type: uint8_t
-      - name: digital_value_ch7
+      - name: level_ch7
         type: uint8_t
-      - name: digital_value_ch8
+      - name: level_ch8
         type: uint8_t
 
   - name: el3104

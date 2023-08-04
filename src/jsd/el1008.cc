@@ -42,14 +42,14 @@ bool fastcat::El1008::Read()
   const jsd_el1008_state_t* jsd_state =
       jsd_el1008_get_state((jsd_t*)context_, slave_id_);
 
-  state_->el1008_state.digital_value_ch1   = jsd_state->values[0];
-  state_->el1008_state.digital_value_ch2   = jsd_state->values[1];
-  state_->el1008_state.digital_value_ch3   = jsd_state->values[2];
-  state_->el1008_state.digital_value_ch4   = jsd_state->values[3];
-  state_->el1008_state.digital_value_ch5   = jsd_state->values[4];
-  state_->el1008_state.digital_value_ch6   = jsd_state->values[5];
-  state_->el1008_state.digital_value_ch7   = jsd_state->values[6];
-  state_->el1008_state.digital_value_ch8   = jsd_state->values[7];
+  state_->el1008_state.level_ch1   = jsd_state->values[0];
+  state_->el1008_state.level_ch2   = jsd_state->values[1];
+  state_->el1008_state.level_ch3   = jsd_state->values[2];
+  state_->el1008_state.level_ch4   = jsd_state->values[3];
+  state_->el1008_state.level_ch5   = jsd_state->values[4];
+  state_->el1008_state.level_ch6   = jsd_state->values[5];
+  state_->el1008_state.level_ch7   = jsd_state->values[6];
+  state_->el1008_state.level_ch8   = jsd_state->values[7];
 
   return true;
 }
