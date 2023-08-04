@@ -370,21 +370,21 @@ states:
   - name: el1008
     fields:
       - name: digital_value_ch1
-        type: bool
+        type: uint8_t
       - name: digital_value_ch2
-        type: bool
+        type: uint8_t
       - name: digital_value_ch3
-        type: bool
+        type: uint8_t
       - name: digital_value_ch4
-        type: bool
+        type: uint8_t
       - name: digital_value_ch5
-        type: bool
+        type: uint8_t
       - name: digital_value_ch6
-        type: bool
+        type: uint8_t
       - name: digital_value_ch7
-        type: bool
+        type: uint8_t
       - name: digital_value_ch8
-        type: bool
+        type: uint8_t
 
   - name: el3104
     fields:
