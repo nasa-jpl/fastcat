@@ -53,17 +53,16 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseVal(node, "persistence_limit", persistence_limit_)) {
-    return false;
+  if (!ParseOptVal(node, "ref_temp", ref_temp_)) {
+    awaiting_seed_temp_ = true;
   }
-
-  if (!ParseVal(node, "ref_temp", ref_temp_)) {
-    return false;
-  }
-  // initialize all temps to ref_temp
-  // Note: this can be manually seeded later
-  for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
-    node_temps_[idx] = ref_temp_;
+  else {
+    awaiting_seed_temp_ = false;
+    // initialize all temps to ref_temp
+    // Note: this can be manually seeded later
+    for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
+      node_temps_[idx] = ref_temp_;
+    }
   }
 
   YAML::Node max_allowable_temp_node;
@@ -107,6 +106,14 @@ bool ThreeNodeThermalModel::Read()
   node_temps_[2] =
       signals_[NODE_3_TEMP_IDX].value;  // node 3 temperature is directly taken
                                         // from the signal measurement
+
+  if (awaiting_seed_temp_) { 
+    for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
+      node_temps_[idx] = node_temps_[2];
+    }
+    awaiting_seed_temp_ = false;
+  }
+
   motor_current_ = signals_[MOTOR_CURRENT_IDX].value;
   return true;
 }

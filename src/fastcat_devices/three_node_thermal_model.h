@@ -76,6 +76,10 @@ class ThreeNodeThermalModel : public DeviceBase
   double ref_temp_{0.0};  ///< the reference temperature for the winding
                           ///< resistance parameter, along with being used for
                           ///< calculating the dynamically varying resistance
+  bool awaiting_seed_temp_{false};  ///< This variable is used to delay setting 
+                                    ///< initial temperatures until we read the
+                                    ///< first temperature for node 3 and sets
+                                    ///< all nodes to that starting temperature
 
   // declare variables for storing signal data and estimates
   double motor_current_{
