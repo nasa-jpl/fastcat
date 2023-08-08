@@ -367,6 +367,25 @@ states:
       - name: adc_value_ch2
         type: int16_t
 
+  - name: el1008
+    fields:
+      - name: level_ch1
+        type: uint8_t
+      - name: level_ch2
+        type: uint8_t
+      - name: level_ch3
+        type: uint8_t
+      - name: level_ch4
+        type: uint8_t
+      - name: level_ch5
+        type: uint8_t
+      - name: level_ch6
+        type: uint8_t
+      - name: level_ch7
+        type: uint8_t
+      - name: level_ch8
+        type: uint8_t
+
   - name: el3104
     fields:
       - name: voltage_ch1
