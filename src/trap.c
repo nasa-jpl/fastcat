@@ -172,7 +172,7 @@ int fastcat_trap_generate(fastcat_trap_t* self, double t_init_sec, double pos_in
   // Only accept accelerations higher than epsilon since the result would be
   // a very, very long, slow profile.
   if (acc < eps) {
-    (void)ERROR("acc (%.11f) < %.11f", acc, eps);
+    ERROR("acc (%.11f) < %.11f", acc, eps);
     return -1;
   }
 
@@ -210,7 +210,7 @@ int fastcat_trap_generate(fastcat_trap_t* self, double t_init_sec, double pos_in
     t_m = fabs(d_m / vm);  // time = distance / velocity
 
     if (!(t_m >= 0.0)) {
-      (void)ERROR("pf %5.2f, pi %5.2f, d_acc %5.2f, d_dec %5.2f", pf, pi, d_im,
+      ERROR("pf %5.2f, pi %5.2f, d_acc %5.2f, d_dec %5.2f", pf, pi, d_im,
                   d_mf);
     }
 
@@ -218,7 +218,7 @@ int fastcat_trap_generate(fastcat_trap_t* self, double t_init_sec, double pos_in
     // should take out assertion and check return value to avoid losing
     // position, for example
     if (t_m < 0.0) {
-      (void)ERROR("Cruising time is negative. Failing trap. t_m: %f s", t_m);
+      ERROR("Cruising time is negative. Failing trap. t_m: %f s", t_m);
       assert(t_m >= 0.0);
       return -1;
     }
