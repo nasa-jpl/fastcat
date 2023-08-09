@@ -54,8 +54,7 @@ find_package(YamlCpp REQUIRED 0.6.3)
 include(FetchContent)
 FetchContent_Declare(jsd
     GIT_REPOSITORY https://github.com/nasa-jpl/jsd.git
-    GIT_TAG 2.3.7
-    GIT_TAG v2.3.6
+    GIT_TAG v2.3.7
     )
 FetchContent_MakeAvailable(jsd)
 
