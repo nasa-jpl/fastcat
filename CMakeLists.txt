@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.11)
 project(fastcat
     DESCRIPTION "C++ EtherCAT Device Command & Control Library"
-    VERSION 0.12.1
+    VERSION 0.12.9
     LANGUAGES C CXX
     )
 
@@ -55,6 +55,7 @@ include(FetchContent)
 FetchContent_Declare(jsd
     GIT_REPOSITORY https://github.com/nasa-jpl/jsd.git
     GIT_TAG 2.3.7
+    GIT_TAG v2.3.6
     )
 FetchContent_MakeAvailable(jsd)
 
