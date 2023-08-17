@@ -66,16 +66,6 @@ bool fastcat::El2809::Read()
 
 fastcat::FaultType fastcat::El2809::Process()
 {
-  ERROR("PROCESSING EL2809!");
-  const jsd_el2809_state_t* jsd_state =
-    jsd_el2809_get_state((jsd_t*)context_, slave_id_);
-
-  ERROR("VALUE OF PIN 1 IS %d", jsd_state->output[0]);
-
-
-
-
-
   jsd_el2809_process((jsd_t*)context_, slave_id_);
   return NO_FAULT;
 }
@@ -94,8 +84,6 @@ bool fastcat::El2809::Write(DeviceCmd& cmd)
       ERROR("Channel must be in range (1,%u)", JSD_EL2809_NUM_CHANNELS);
       return false;
     }
-
-    ERROR("GOT INTO THE WRITE SINGLE CHANNEL FUNCTION!!!");
 
     jsd_el2809_write_single_channel((jsd_t*)context_, slave_id_, ch - 1,
                                     cmd.el2809_write_channel_cmd.level);
