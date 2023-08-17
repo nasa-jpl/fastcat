@@ -85,6 +85,8 @@ bool fastcat::El2809::Write(DeviceCmd& cmd)
       return false;
     }
 
+    ERROR("GOT INTO THE WRITE SINGLE CHANNEL FUNCTION!!!");
+
     jsd_el2809_write_single_channel((jsd_t*)context_, slave_id_, ch - 1,
                                     cmd.el2809_write_channel_cmd.level);
 
