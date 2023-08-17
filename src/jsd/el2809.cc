@@ -66,6 +66,16 @@ bool fastcat::El2809::Read()
 
 fastcat::FaultType fastcat::El2809::Process()
 {
+  ERROR("PROCESSING EL2809!");
+  const jsd_el2809_state_t* jsd_state =
+    jsd_el2809_get_state((jsd_t*)context_, slave_id_);
+
+  ERROR("VALUE OF PIN 1 IS %d", jsd_state->output[0]);
+
+
+
+
+
   jsd_el2809_process((jsd_t*)context_, slave_id_);
   return NO_FAULT;
 }
