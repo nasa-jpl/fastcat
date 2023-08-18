@@ -177,6 +177,7 @@ void fastcat::GoldActuator::ElmoCST(
 
 void fastcat::GoldActuator::ElmoHalt()
 {
+  ERROR("Doing the elmo halt for gold actuator!");
   jsd_egd_halt((jsd_t*)context_, slave_id_);
 }
 
