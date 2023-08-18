@@ -183,6 +183,7 @@ void fastcat::GoldActuator::ElmoHalt()
 
 void fastcat::GoldActuator::ElmoProcess()
 {
+  ERROR("Doing the elmo process!");
   jsd_egd_process((jsd_t*)context_, slave_id_);
 }
 
