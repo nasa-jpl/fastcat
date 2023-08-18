@@ -169,12 +169,6 @@ bool fastcat::Actuator::HandleNewCSTCmd(const DeviceCmd& cmd)
   jsd_cmd.target_torque_amps = cmd.actuator_cst_cmd.target_torque_amps;
   jsd_cmd.torque_offset_amps = cmd.actuator_cst_cmd.torque_offset_amps;
 
-  jsd_egd_private_state_t* state = &((jsd_t*)context_)->slave_states[slave_id_].egd;
-  if(state->pub.actual_state_machine_state != JSD_ELMO_STATE_MACHINE_STATE_OPERATION_ENABLED) {
-    ERROR("Attempting to handle a cst command when the motor is not in an operation enabled state!");
-    return false;
-  }
-
   ElmoCST(jsd_cmd);
 
   TransitionToState(ACTUATOR_SMS_CS);
