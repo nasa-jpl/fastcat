@@ -366,6 +366,9 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
         ERROR("Failed to handle Actuator CST command");
         return false;
       }
+      else {
+        ERROR("Successfully handled CST command!!!");
+      }
       break;
 
     case ACTUATOR_PROF_POS_CMD:
