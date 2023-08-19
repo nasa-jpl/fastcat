@@ -31,8 +31,8 @@ class Conditional : public DeviceBase
 
  protected:
   std::string          conditional_type_string_;
-  enum ConditionalType conditional_type_;
-  double               compare_rhs_value_{0};
+  enum ConditionalType conditional_type_ = BAD_CONDITIONAL_TYPE;
+  double               compare_rhs_value_ = 0.0;
 };
 
 }  // namespace fastcat

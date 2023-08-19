@@ -129,17 +129,17 @@ class Actuator : public JsdDeviceBase
   jsd_elmo_gain_scheduling_mode_t ctrl_gs_mode_ =
       JSD_ELMO_GAIN_SCHEDULING_MODE_PRELOADED;
 
-  jsd_slave_config_t jsd_slave_config_;
+  jsd_slave_config_t jsd_slave_config_ = {};
 
   ActuatorStateMachineState actuator_sms_;
   double                    last_transition_time_ = 0.0;
   double                    cycle_mono_time_      = 0.0;
-  fastcat_trap_t            trap_;
-  ActuatorParams            params_;
+  fastcat_trap_t            trap_ = {};
+  ActuatorParams            params_ = {};
 
   ActuatorFastcatFault fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
 
-  DeviceCmd last_cmd_;
+  DeviceCmd last_cmd_ = {};
 
  private:
   bool PosExceedsCmdLimits(double pos_eu);
@@ -212,7 +212,7 @@ class Actuator : public JsdDeviceBase
 
   double overall_reduction_ = 1.0;
 
-  ActuatorCalibrateCmd cal_cmd_;
+  ActuatorCalibrateCmd cal_cmd_ = {};
 
   bool actuator_absolute_encoder_ = false;
   int32_t elmo_pos_offset_cnts_      = 1;

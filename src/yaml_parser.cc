@@ -105,7 +105,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, uint32_t& val)
     return false;
   }
   val = node[field].as<uint32_t>();
-  MSG_DEBUG("Parsed uint32_t field %s: %i", field.c_str(), val);
+  MSG_DEBUG("Parsed uint32_t field %s: %lu", field.c_str(), val);
   return true;
 }
 
@@ -250,7 +250,7 @@ bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
   if (lower <= val && val <= upper) {
     return true;
   }
-  ERROR("%s failed range check %u <= %u <= %u", field.c_str(), lower, val,
+  ERROR("%s failed range check %d <= %d <= %d", field.c_str(), lower, val,
         upper);
   return false;
 }

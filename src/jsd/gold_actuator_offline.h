@@ -32,8 +32,8 @@ class GoldActuatorOffline : public GoldActuator
   void ElmoSetGainSchedulingIndex(uint16_t index) override;
   void ElmoHalt() override;
 
-  double  motor_on_start_time_;
-  uint8_t last_motor_on_state_;
+  double  motor_on_start_time_ = 0.0;
+  uint8_t last_motor_on_state_ = 0;
 };
 
 }  // namespace fastcat

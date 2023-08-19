@@ -22,7 +22,7 @@ class Commander : public DeviceBase
 
  protected:
   std::string device_cmd_type_string_;
-  DeviceCmd   device_cmd_;
+  DeviceCmd   device_cmd_ = {};
 
   double enable_time_ = 0;
 

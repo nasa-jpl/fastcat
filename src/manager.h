@@ -194,7 +194,7 @@ class Manager
   void SaveActuatorPosFile();
   bool CheckDeviceNameIsUnique(std::string name);
 
-  double                        target_loop_rate_hz_;
+  double                        target_loop_rate_hz_ = 0.0;
   bool                          zero_latency_required_              = true;
   bool                          faulted_                            = false;
   bool                          actuator_fault_on_missing_pos_file_ = true;

@@ -41,7 +41,7 @@ class DeviceBase
 
  protected:
   std::string name_;         ///< unique device name
-  double      loop_period_;  ///< only some devices need
+  double      loop_period_ = 0.0;  ///< only some devices need
 
   /// device-level fault, manager also has fault status flag
   bool device_fault_active_ = false;

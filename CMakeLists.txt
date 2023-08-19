@@ -22,6 +22,25 @@ else(DISABLE_DEBUG_PRINTS)
     add_definitions(-DDEBUG)
 endif(DISABLE_DEBUG_PRINTS)
 
+option(ENABLE_CPPCHECK "Enable static analysis using cppcheck" OFF)
+if(ENABLE_CPPCHECK)
+  find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
+  if (CMAKE_CXX_CPPCHECK)
+      list(
+        APPEND CMAKE_CXX_CPPCHECK
+          "--enable=warning"
+          "--inconclusive"
+          "--force"
+          "--inline-suppr"
+          "--suppressions-list=${CMAKE_CURRENT_SOURCE_DIR}/.cppcheck_suppressions.txt"
+      )
+  else()
+      message(
+        WARNING
+        "cppcheck was not found on this system; code static analysis will not be performed")
+  endif()
+endif()
+
 # @TODO(kwehage,abrinkma) Clean up missing-field-initializers warnings
 add_definitions(
     -Wall

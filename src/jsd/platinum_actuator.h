@@ -17,7 +17,7 @@ class PlatinumActuator : public Actuator
   PlatinumActuator();
 
  protected:
-  jsd_epd_state_t jsd_epd_state_;
+  jsd_epd_state_t jsd_epd_state_ = {};
 
  private:
   void PopulateJsdSlaveConfig() override;

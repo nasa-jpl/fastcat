@@ -142,8 +142,8 @@ typedef struct {
   std::string cmd_field_name;
 
   // for data fetching and casting
-  data_type_t data_type;
-  void *data_loc;
+  data_type_t data_type = DATA_TYPE_UNINITIALIZED;
+  void *data_loc = nullptr;
   double value;
 
 } Signal;
@@ -163,7 +163,7 @@ enum FaultType {
 //////////////////////////////////
 
 typedef struct{
-  double position;
+  double position = 0.0;
 } ActuatorPosData;
 
 

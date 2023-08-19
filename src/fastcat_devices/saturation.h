@@ -18,8 +18,8 @@ class Saturation : public DeviceBase
   bool Read() override;
 
  protected:
-  double lower_limit_;
-  double upper_limit_;
+  double lower_limit_ = 0.0;
+  double upper_limit_ = 0.0;
 };
 
 }  // namespace fastcat

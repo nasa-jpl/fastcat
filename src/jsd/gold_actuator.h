@@ -20,7 +20,7 @@ class GoldActuator : public Actuator
   GoldActuator();
 
  protected:
-  jsd_egd_state_t jsd_egd_state_;
+  jsd_egd_state_t jsd_egd_state_ = {};
 
  private:
   void PopulateJsdSlaveConfig() override;
