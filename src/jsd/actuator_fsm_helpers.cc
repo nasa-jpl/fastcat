@@ -429,12 +429,12 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
   ElmoSetPeakCurrent(cal_cmd_.max_current);
 
   fastcat_trap_generate(&trap_, state_->time,
-                GetActualPosition(*state_),  // consider cmd position
-                target_position,
-                GetActualVelocity(),  // consider cmd velocity
-                0,  // pt2pt motion always uses terminating traps
-                fabs(cmd.actuator_calibrate_cmd.velocity),
-                cmd.actuator_calibrate_cmd.accel);
+                        GetActualPosition(*state_),  // consider cmd position
+                        target_position,
+                        GetActualVelocity(),  // consider cmd velocity
+                        0,  // pt2pt motion always uses terminating traps
+                        fabs(cmd.actuator_calibrate_cmd.velocity),
+                        cmd.actuator_calibrate_cmd.accel);
 
   TransitionToState(ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP);
 
@@ -638,8 +638,8 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
   SetOutputPosition(cal_position);
 
   fastcat_trap_generate(&trap_, state_->time, cal_position, backoff_position, 0,
-                0,  // pt2pt motion always uses terminating traps
-                fabs(cal_cmd_.velocity), cal_cmd_.accel);
+                        0,  // pt2pt motion always uses terminating traps
+                        fabs(cal_cmd_.velocity), cal_cmd_.accel);
 
   TransitionToState(ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP);
 
@@ -650,4 +650,3 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToSoftstop()
 {
   return ProcessProfPosTrapImpl();
 }
-

@@ -51,7 +51,6 @@ typedef enum {
 
 class Actuator : public JsdDeviceBase
 {
-
  public:
   Actuator();
 
@@ -106,7 +105,6 @@ class Actuator : public JsdDeviceBase
   const ActuatorParams& GetParams() { return params_; }
 
  protected:
-
   double  CntsToEu(int32_t cnts);
   double  EuToCnts(double eu);
   double  PosCntsToEu(int32_t cnts);
@@ -122,8 +120,7 @@ class Actuator : public JsdDeviceBase
   double ComputePower(double actual_velocity, double actual_current,
                       bool motor_is_on);
 
-  bool   compute_power_ = false;
-
+  bool compute_power_ = false;
 
   // Use mode saved in driver's volatile memory.
   jsd_elmo_gain_scheduling_mode_t ctrl_gs_mode_ =
@@ -134,8 +131,8 @@ class Actuator : public JsdDeviceBase
   ActuatorStateMachineState actuator_sms_;
   double                    last_transition_time_ = 0.0;
   double                    cycle_mono_time_      = 0.0;
-  fastcat_trap_t            trap_ = {};
-  ActuatorParams            params_ = {};
+  fastcat_trap_t            trap_                 = {};
+  ActuatorParams            params_               = {};
 
   ActuatorFastcatFault fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
 
@@ -189,21 +186,22 @@ class Actuator : public JsdDeviceBase
   virtual FaultType ProcessProfTorque()            = 0;
 
   virtual void ElmoSetConfig();
-  virtual void ElmoRead() = 0;
-  virtual void ElmoClearErrors() = 0;
-  virtual void ElmoFault()                                                              = 0;
-  virtual void ElmoReset()                                                              = 0;
-  virtual void ElmoSetPeakCurrent(double current)                                       = 0;
-  virtual void ElmoSetDigitalOutput(uint8_t digital_output_index, uint8_t output_level) = 0;
-  virtual void ElmoSetUnitMode(int32_t mode, uint16_t app_id)                           = 0;
+  virtual void ElmoRead()                                                = 0;
+  virtual void ElmoClearErrors()                                         = 0;
+  virtual void ElmoFault()                                               = 0;
+  virtual void ElmoReset()                                               = 0;
+  virtual void ElmoSetPeakCurrent(double current)                        = 0;
+  virtual void ElmoSetDigitalOutput(uint8_t digital_output_index,
+                                    uint8_t output_level)                = 0;
+  virtual void ElmoSetUnitMode(int32_t mode, uint16_t app_id)            = 0;
   virtual void ElmoSetGainSchedulingMode(jsd_elmo_gain_scheduling_mode_t mode,
-                                         uint16_t app_id)                               = 0;
-  virtual void ElmoSetGainSchedulingIndex(uint16_t index)                               = 0;
-  virtual void ElmoCSP(const jsd_elmo_motion_command_csp_t& jsd_csp_cmd)                = 0;
-  virtual void ElmoCSV(const jsd_elmo_motion_command_csv_t& jsd_csv_cmd)                = 0;
-  virtual void ElmoCST(const jsd_elmo_motion_command_cst_t& jsd_cst_cmd)                = 0;
-  virtual void ElmoHalt()                                                               = 0;
-  virtual void ElmoProcess()                                                            = 0;
+                                         uint16_t app_id)                = 0;
+  virtual void ElmoSetGainSchedulingIndex(uint16_t index)                = 0;
+  virtual void ElmoCSP(const jsd_elmo_motion_command_csp_t& jsd_csp_cmd) = 0;
+  virtual void ElmoCSV(const jsd_elmo_motion_command_csv_t& jsd_csv_cmd) = 0;
+  virtual void ElmoCST(const jsd_elmo_motion_command_cst_t& jsd_cst_cmd) = 0;
+  virtual void ElmoHalt()                                                = 0;
+  virtual void ElmoProcess()                                             = 0;
 
   virtual double                         GetActualVelocity()        = 0;
   virtual double                         GetElmoActualPosition()    = 0;
@@ -214,9 +212,8 @@ class Actuator : public JsdDeviceBase
 
   ActuatorCalibrateCmd cal_cmd_ = {};
 
-  bool actuator_absolute_encoder_ = false;
+  bool    actuator_absolute_encoder_ = false;
   int32_t elmo_pos_offset_cnts_      = 1;
-
 };
 
 }  // namespace fastcat

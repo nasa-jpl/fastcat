@@ -274,7 +274,8 @@ void print_csv_data(std::vector<fastcat::DeviceState> states)
 
         fprintf(file, "%u, ", state->platinum_actuator_state.target_reached);
 
-        fprintf(file, "%i, ", state->platinum_actuator_state.elmo_actual_position);
+        fprintf(file, "%i, ",
+                state->platinum_actuator_state.elmo_actual_position);
         fprintf(file, "%i, ", state->platinum_actuator_state.elmo_cmd_position);
 
         fprintf(file, "%u, ", state->platinum_actuator_state.motor_on);

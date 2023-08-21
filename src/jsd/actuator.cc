@@ -52,7 +52,8 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseValCheckRange(node, "counts_per_rev", params_.counts_per_rev, 0, 1.0e12)) {
+  if (!ParseValCheckRange(node, "counts_per_rev", params_.counts_per_rev, 0,
+                          1.0e12)) {
     return false;
   }
 
@@ -123,7 +124,8 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseVal(node, "elmo_brake_engage_msec", params_.elmo_brake_engage_msec)) {
+  if (!ParseVal(node, "elmo_brake_engage_msec",
+                params_.elmo_brake_engage_msec)) {
     return false;
   }
   if (!ParseVal(node, "elmo_brake_disengage_msec",
@@ -255,8 +257,8 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
 
     case ACTUATOR_SET_DIGITAL_OUTPUT_CMD:
       ElmoSetDigitalOutput(
-        cmd.actuator_set_digital_output_cmd.digital_output_index,
-        cmd.actuator_set_digital_output_cmd.output_level);
+          cmd.actuator_set_digital_output_cmd.digital_output_index,
+          cmd.actuator_set_digital_output_cmd.output_level);
       return true;
       break;
 
@@ -264,7 +266,8 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       // This application may choose to set this during motions
       // in order to boost current during acceleration/decel
       // phases so don't check the state machine
-      params_.peak_current_limit_amps = cmd.actuator_set_max_current_cmd.current;
+      params_.peak_current_limit_amps =
+          cmd.actuator_set_max_current_cmd.current;
       ElmoSetPeakCurrent(params_.peak_current_limit_amps);
       return true;
       break;
@@ -680,7 +683,8 @@ std::string fastcat::Actuator::GetFastcatFaultCodeAsString(
 {
   std::string fault_str;
 
-  if (state.type == GOLD_ACTUATOR_STATE || state.type == PLATINUM_ACTUATOR_STATE) {
+  if (state.type == GOLD_ACTUATOR_STATE ||
+      state.type == PLATINUM_ACTUATOR_STATE) {
     ActuatorFastcatFault fault;
     if (state.type == GOLD_ACTUATOR_STATE) {
       fault = static_cast<ActuatorFastcatFault>(

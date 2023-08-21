@@ -70,7 +70,7 @@ void fastcat::GoldActuatorOffline::ElmoFault()
   MSG("Faulting EGD through JSD: %s", name_.c_str());
 
   // TODO review with david
-  // need to clear so that old commands are not left over 
+  // need to clear so that old commands are not left over
   //  for new commands
   jsd_egd_state_.cmd_position = 0;
   jsd_egd_state_.cmd_velocity = 0;
@@ -97,7 +97,8 @@ void fastcat::GoldActuatorOffline::ElmoSetPeakCurrent(double /* current */)
   // no-op
 }
 
-void fastcat::GoldActuatorOffline::ElmoSetUnitMode(int32_t mode, uint16_t app_id)
+void fastcat::GoldActuatorOffline::ElmoSetUnitMode(int32_t  mode,
+                                                   uint16_t app_id)
 {
   MSG("Commanding new UM[1] = %d app_id = %u", mode, app_id);
   // no-op

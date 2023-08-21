@@ -20,9 +20,9 @@ class Pid : public DeviceBase
   void Fault() override;
 
  protected:
-  double kp_ = 0.0;
-  double ki_ = 0.0;
-  double kd_ = 0.0;
+  double kp_           = 0.0;
+  double ki_           = 0.0;
+  double kd_           = 0.0;
   double windup_limit_ = 0.0;
 
   PidActivateCmd pid_activate_cmd_ = {0};

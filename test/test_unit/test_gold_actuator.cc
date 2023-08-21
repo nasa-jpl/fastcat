@@ -11,25 +11,28 @@
 namespace fastcat
 {
 
-class Tester {
-  public:
-  jsd_egd_state_t* GetElmoState(GoldActuator& device){
+class Tester
+{
+ public:
+  jsd_egd_state_t* GetElmoState(GoldActuator& device)
+  {
     return &device.jsd_egd_state_;
   }
-  
-  ActuatorStateMachineState GetSMS(GoldActuator& device){
+
+  ActuatorStateMachineState GetSMS(GoldActuator& device)
+  {
     return device.actuator_sms_;
   }
 
-  
-  double  CntsToEu(GoldActuator& device, int32_t cnts){
+  double CntsToEu(GoldActuator& device, int32_t cnts)
+  {
     return device.CntsToEu(cnts);
   }
 
-  double  PosCntsToEu(GoldActuator& device, int32_t cnts){
+  double PosCntsToEu(GoldActuator& device, int32_t cnts)
+  {
     return device.PosCntsToEu(cnts);
   }
-
 };
 
 Tester tester;
@@ -52,9 +55,9 @@ class ActuatorTest : public ::testing::Test
 
   void TearDown() override { jsd_free(jsd_context_); }
 
-  jsd_t* jsd_context_;
-  std::string base_dir_;
-  YAML::Node node_;
+  jsd_t*                       jsd_context_;
+  std::string                  base_dir_;
+  YAML::Node                   node_;
   fastcat::GoldActuatorOffline device_;
 };
 
@@ -178,49 +181,52 @@ TEST_F(ActuatorTest, RejectMotionCommandsWhenFaulted)
   }
 }
 
-  TEST_F(ActuatorTest, NominalResetFunction) {
-    EXPECT_TRUE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_+"valid.yaml")));
-    device_.Fault();    
-    EXPECT_TRUE(tester.GetSMS(device_) == fastcat::ACTUATOR_SMS_FAULTED);
+TEST_F(ActuatorTest, NominalResetFunction)
+{
+  EXPECT_TRUE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_ + "valid.yaml")));
+  device_.Fault();
+  EXPECT_TRUE(tester.GetSMS(device_) == fastcat::ACTUATOR_SMS_FAULTED);
 
-    device_.Reset();
-    EXPECT_TRUE(tester.GetSMS(device_) == fastcat::ACTUATOR_SMS_HALTED);
-  }
+  device_.Reset();
+  EXPECT_TRUE(tester.GetSMS(device_) == fastcat::ACTUATOR_SMS_HALTED);
+}
 
-  TEST_F(ActuatorTest, FixDirtyCmdVelocityValues) {
-    EXPECT_TRUE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_+"valid.yaml")));
-    // Set the jsd egd device state to known, dirty values
-    // TODO setup for pos, and current values too
+TEST_F(ActuatorTest, FixDirtyCmdVelocityValues)
+{
+  EXPECT_TRUE(device_.ConfigFromYaml(YAML::LoadFile(base_dir_ + "valid.yaml")));
+  // Set the jsd egd device state to known, dirty values
+  // TODO setup for pos, and current values too
 
-    
-    jsd_egd_state_t* jsd_egd_state = tester.GetElmoState(device_);
+  jsd_egd_state_t* jsd_egd_state = tester.GetElmoState(device_);
 
-    jsd_egd_state->cmd_position = 1234;
-    jsd_egd_state->cmd_velocity = 1234;
-    jsd_egd_state->cmd_current = 1234;
-    
-    double expected_pos = tester.PosCntsToEu(device_, 1234);
-    double expected_vel = tester.CntsToEu(device_, 1234);
-    double expected_cur = 1234;
-    
-    device_.Read();
-    EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_position, expected_pos, 1e-2);
-    EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_velocity, expected_vel, 1e-2);
-    EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_current, expected_cur, 1e-2);
+  jsd_egd_state->cmd_position = 1234;
+  jsd_egd_state->cmd_velocity = 1234;
+  jsd_egd_state->cmd_current  = 1234;
 
-    device_.Fault();
-    EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_position, expected_pos, 1e-2);
-    EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_velocity, expected_vel, 1e-2);
-    EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_current, expected_cur, 1e-2);
-    
-    device_.Read();
-    EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_position, 0, 1e-2);
-    EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_velocity, 0, 1e-2);
-    EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_current, 0, 1e-2);
+  double expected_pos = tester.PosCntsToEu(device_, 1234);
+  double expected_vel = tester.CntsToEu(device_, 1234);
+  double expected_cur = 1234;
 
-  }
+  device_.Read();
+  EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_position,
+              expected_pos, 1e-2);
+  EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_velocity,
+              expected_vel, 1e-2);
+  EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_current, expected_cur,
+              1e-2);
 
+  device_.Fault();
+  EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_position,
+              expected_pos, 1e-2);
+  EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_velocity,
+              expected_vel, 1e-2);
+  EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_current, expected_cur,
+              1e-2);
 
+  device_.Read();
+  EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_position, 0, 1e-2);
+  EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_velocity, 0, 1e-2);
+  EXPECT_NEAR(device_.GetState()->gold_actuator_state.cmd_current, 0, 1e-2);
+}
 
-
-} // namespace
+}  // namespace fastcat

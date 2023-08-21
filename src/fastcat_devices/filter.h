@@ -18,7 +18,7 @@ class MovingAverageFilter
 
  private:
   std::vector<double> buffer_;
-  uint16_t            buffer_size_ = 0;
+  uint16_t            buffer_size_  = 0;
   uint16_t            buffer_index_ = 0;
 };
 

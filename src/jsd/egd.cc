@@ -154,11 +154,11 @@ bool fastcat::Egd::ConfigFromYamlCommon(YAML::Node node)
     return false;
   }
   if (cs_cmd_freq_hz_ < 1.0 || cs_cmd_freq_hz_ > 1000.0) {
-    ERROR("cs_cmd_freq_hz(%lf) needs to be >= 1 and <= 1000",
-          cs_cmd_freq_hz_);
+    ERROR("cs_cmd_freq_hz(%lf) needs to be >= 1 and <= 1000", cs_cmd_freq_hz_);
     return false;
   }
-  jsd_slave_config_.egd.loop_period_ms = static_cast<uint8_t>(1000.0 / cs_cmd_freq_hz_);
+  jsd_slave_config_.egd.loop_period_ms =
+      static_cast<uint8_t>(1000.0 / cs_cmd_freq_hz_);
 
   if (!ParseVal(node, "max_motor_speed",
                 jsd_slave_config_.egd.max_motor_speed)) {
@@ -392,8 +392,8 @@ bool fastcat::Egd::WriteCSMode(DeviceCmd& cmd)
     }
     case EGD_CST_CMD: {
       jsd_elmo_motion_command_cst_t jsd_cmd = {0};
-      jsd_cmd.target_torque_amps           = cmd.egd_cst_cmd.target_torque_amps;
-      jsd_cmd.torque_offset_amps           = cmd.egd_cst_cmd.torque_offset_amps;
+      jsd_cmd.target_torque_amps = cmd.egd_cst_cmd.target_torque_amps;
+      jsd_cmd.torque_offset_amps = cmd.egd_cst_cmd.torque_offset_amps;
 
       jsd_egd_set_motion_command_cst(context_, slave_id_, jsd_cmd);
       break;

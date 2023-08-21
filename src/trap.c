@@ -104,9 +104,9 @@ static bool profile_is_a_negative_ramp(double vel_start, double vel_max,
  * @param  acc        max acceleration/deceleration for the profile
  * @return            0 on success, -1 on failure
  */
-int fastcat_trap_generate(fastcat_trap_t* self, double t_init_sec, double pos_init,
-                  double pos_fini, double vel_init, double vel_fini,
-                  double vel_max, double acc)
+int fastcat_trap_generate(fastcat_trap_t* self, double t_init_sec,
+                          double pos_init, double pos_fini, double vel_init,
+                          double vel_fini, double vel_max, double acc)
 {
   /*
          Pos
@@ -210,8 +210,7 @@ int fastcat_trap_generate(fastcat_trap_t* self, double t_init_sec, double pos_in
     t_m = fabs(d_m / vm);  // time = distance / velocity
 
     if (!(t_m >= 0.0)) {
-      ERROR("pf %5.2f, pi %5.2f, d_acc %5.2f, d_dec %5.2f", pf, pi, d_im,
-                  d_mf);
+      ERROR("pf %5.2f, pi %5.2f, d_acc %5.2f, d_dec %5.2f", pf, pi, d_im, d_mf);
     }
 
     // cruising time should always be positive.
@@ -389,7 +388,8 @@ int fastcat_trap_generate(fastcat_trap_t* self, double t_init_sec, double pos_in
   return 0;
 }
 
-int fastcat_trap_update(fastcat_trap_t* self, double t, double* pos, double* vel)
+int fastcat_trap_update(fastcat_trap_t* self, double t, double* pos,
+                        double* vel)
 {
   double dt;
 
@@ -433,9 +433,9 @@ int fastcat_trap_update(fastcat_trap_t* self, double t, double* pos, double* vel
   return 0;
 }
 
-int fastcat_trap_generate_vel(fastcat_trap_t* self, double t_init_sec, double pos_init,
-                      double vel_init, double vel_fini, double acc,
-                      double max_time)
+int fastcat_trap_generate_vel(fastcat_trap_t* self, double t_init_sec,
+                              double pos_init, double vel_init, double vel_fini,
+                              double acc, double max_time)
 {
   double dt;
 
@@ -483,7 +483,8 @@ int fastcat_trap_generate_vel(fastcat_trap_t* self, double t_init_sec, double po
   return 0;
 }
 
-int fastcat_trap_update_vel(fastcat_trap_t* self, double t, double* pos, double* vel)
+int fastcat_trap_update_vel(fastcat_trap_t* self, double t, double* pos,
+                            double* vel)
 {
   double dt;
 
