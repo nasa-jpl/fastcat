@@ -62,7 +62,7 @@ class Manager
    * Manager::Process() function at the same frequency as the input YAML field
    * `target_loop_rate_hz`. This parameter is needed by certain devices for
    * profiling and filtering.
-   *   
+   *
    *   @param external_time Supply an external time if desired, otherwise
    *          defaults to jsd supplied system time
    *   @return Return true if bus is not faulted, otherwise a bus fault is
@@ -174,7 +174,8 @@ class Manager
 
   /** @brief names of actuator devices
    */
- void GetDeviceNamesByType(std::vector<std::string>&, fastcat::DeviceStateType);
+  void GetDeviceNamesByType(std::vector<std::string>&,
+                            fastcat::DeviceStateType);
 
  private:
   bool ConfigJSDBusFromYaml(YAML::Node node);
@@ -194,7 +195,7 @@ class Manager
   void SaveActuatorPosFile();
   bool CheckDeviceNameIsUnique(std::string name);
 
-  double                        target_loop_rate_hz_;
+  double                        target_loop_rate_hz_                = 0.0;
   bool                          zero_latency_required_              = true;
   bool                          faulted_                            = false;
   bool                          actuator_fault_on_missing_pos_file_ = true;
@@ -210,7 +211,6 @@ class Manager
   std::map<std::string, ActuatorPosData>             actuator_pos_map_;
   std::unordered_map<std::string, bool>              unique_device_map_;
   std::shared_ptr<std::queue<SdoResponse>>           sdo_response_queue_;
-
 };
 }  // namespace fastcat
 

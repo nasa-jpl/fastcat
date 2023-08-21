@@ -26,7 +26,7 @@ class Jed0200 : public JsdDeviceBase
   uint16_t initial_cmd_ = 0;
 
  private:
-  jsd_slave_config_t jsd_slave_config_;
+  jsd_slave_config_t jsd_slave_config_{0};
 };
 
 }  // namespace fastcat

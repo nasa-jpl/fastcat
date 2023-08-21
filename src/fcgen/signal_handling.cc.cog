@@ -75,7 +75,7 @@ bool fastcat::ConfigSignalsFromYaml(YAML::Node node,
   for (auto signal_node = signals_node.begin();
        signal_node != signals_node.end(); ++signal_node) {
 
-    Signal signal;
+    Signal signal = {};
     signal.data_type = DATA_TYPE_UNINITIALIZED;
     signal.value = 0;
 
