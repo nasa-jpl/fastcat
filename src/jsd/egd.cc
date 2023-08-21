@@ -120,7 +120,6 @@ bool fastcat::Egd::Write(DeviceCmd& cmd)
 
 void fastcat::Egd::Fault()
 {
-  ERROR("jsd_egd_halt was called!!!!");
   DeviceBase::Fault();
   jsd_egd_halt(context_, slave_id_);
 }
