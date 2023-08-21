@@ -56,6 +56,15 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
   if (!ParseOptVal(node, "ref_temp", ref_temp_)) {
     awaiting_seed_temp_ = true;
   }
+
+  if (!ParseOptVal(node, "exp_smoothing_alpha", exp_smoothing_alpha_)) {
+    exp_smoothing_alpha_ = 1.0; // If we set this to 1, it is the same as having no exp. smoothing
+  }
+  else if (exp_smoothing_alpha_ < 0.0 || exp_smoothing_alpha_ > 1.0) {
+    ERROR("Invalid choice for exp_smoothing_alpha! This must be between 0.0 and 1.0 for stability!");
+    return false;
+  }
+
   else {
     awaiting_seed_temp_ = false;
     // initialize all temps to ref_temp
@@ -102,17 +111,16 @@ bool ThreeNodeThermalModel::Read()
     }
   }
 
-  // store them
-  node_temps_[2] =
-      signals_[NODE_3_TEMP_IDX].value;  // node 3 temperature is directly taken
-                                        // from the signal measurement
+  double node_3_temp_sample = signals_[NODE_3_TEMP_IDX].value;
 
   if (awaiting_seed_temp_) { 
     for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
-      node_temps_[idx] = node_temps_[2];
+      node_temps_[idx] = node_3_temp_sample;
     }
     awaiting_seed_temp_ = false;
   }
+
+  node_temps_[2] = exp_smoothing_alpha_ * node_3_temp_sample + (1.0 - exp_smoothing_alpha_) * node_temps_[2];
 
   motor_current_ = signals_[MOTOR_CURRENT_IDX].value;
   return true;
