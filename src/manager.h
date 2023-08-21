@@ -43,7 +43,7 @@ class Manager
    *  @return true on successful initialization. If false, application should
    * quit.
    */
-  bool ConfigFromYaml(YAML::Node node);
+  bool ConfigFromYaml(YAML::Node node, double external_time = -1);
 
   /** @brief Updates synchronous PDO and background async SDO requests.
    *

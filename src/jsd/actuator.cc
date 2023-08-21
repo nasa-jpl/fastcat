@@ -19,14 +19,20 @@
 fastcat::Actuator::Actuator()
 {
   MSG_DEBUG("Constructed Actuator");
-
   state_                = std::make_shared<DeviceState>();
-  actuator_sms_         = ACTUATOR_SMS_HALTED;
-  last_transition_time_ = jsd_time_get_mono_time_sec();
 }
 
-bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
+
+bool fastcat::Actuator::ConfigFromYaml(YAML::Node node, double external_time)
 {
+  actuator_sms_         = ACTUATOR_SMS_HALTED;
+  
+  if(external_time > 0) {
+    last_transition_time_ = external_time;
+  } else {
+    last_transition_time_ = jsd_time_get_mono_time_sec();
+  }
+
   if (!ParseVal(node, "name", name_)) {
     return false;
   }
