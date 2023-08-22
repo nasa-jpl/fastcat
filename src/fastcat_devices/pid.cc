@@ -15,7 +15,7 @@ fastcat::Pid::Pid()
   state_->type = PID_STATE;
 }
 
-bool fastcat::Pid::ConfigFromYaml(YAML::Node node, double external_time)
+bool fastcat::Pid::ConfigFromYaml(YAML::Node node, double /*external_time*/)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

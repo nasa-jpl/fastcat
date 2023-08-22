@@ -30,7 +30,7 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node, double external_time)
   if(external_time > 0) {
     last_transition_time_ = external_time;
   } else {
-    last_transition_time_ = jsd_time_get_mono_time_sec();
+    last_transition_time_ = jsd_time_get_time_sec();
   }
 
   if (!ParseVal(node, "name", name_)) {
@@ -229,12 +229,8 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node, double external_time)
 
 bool fastcat::Actuator::Read()
 {
-  cycle_mono_time_ = jsd_time_get_mono_time_sec();
-
   ElmoRead();
-
   PopulateState();
-
   return true;
 }
 
@@ -598,7 +594,7 @@ bool fastcat::Actuator::CurrentExceedsCmdLimits(double current)
 
 void fastcat::Actuator::TransitionToState(ActuatorStateMachineState sms)
 {
-  last_transition_time_ = cycle_mono_time_;
+  last_transition_time_ = state_->time;
   if (actuator_sms_ != sms) {
     MSG("Requested Actuator %s state transition from %s to %s", name_.c_str(),
         StateMachineStateToString(actuator_sms_).c_str(),

@@ -13,7 +13,6 @@
 fastcat::GoldActuatorOffline::GoldActuatorOffline()
 {
   MSG_DEBUG("Constructed GoldActuatorOffline");
-
   memset(&jsd_egd_state_, 0, sizeof(jsd_egd_state_t));
   motor_on_start_time_ = jsd_time_get_time_sec();
 }

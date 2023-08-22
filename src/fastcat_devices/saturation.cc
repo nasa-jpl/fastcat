@@ -15,7 +15,7 @@ fastcat::Saturation::Saturation()
   state_->type = SATURATION_STATE;
 }
 
-bool fastcat::Saturation::ConfigFromYaml(YAML::Node node, double external_time)
+bool fastcat::Saturation::ConfigFromYaml(YAML::Node node, double /*external_time*/)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

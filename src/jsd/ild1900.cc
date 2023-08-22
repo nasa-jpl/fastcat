@@ -14,7 +14,7 @@ fastcat::Ild1900::Ild1900()
   state_->type = ILD1900_STATE;
 }
 
-bool fastcat::Ild1900::ConfigFromYaml(YAML::Node node, double external_time)
+bool fastcat::Ild1900::ConfigFromYaml(YAML::Node node, double /*external_time*/)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
