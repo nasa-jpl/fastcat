@@ -18,7 +18,7 @@ fastcat::El3104::El3104()
   state_->type = EL3104_STATE;
 }
 
-bool fastcat::El3104::ConfigFromYaml(YAML::Node node)
+bool fastcat::El3104::ConfigFromYaml(YAML::Node node, double external_time)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);

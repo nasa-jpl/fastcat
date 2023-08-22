@@ -15,7 +15,7 @@ class Egd : public JsdDeviceBase
 {
  public:
   Egd();
-  bool      ConfigFromYaml(YAML::Node node) override;
+  bool      ConfigFromYaml(YAML::Node node, double external_time = -1) override;
   bool      Read() override;
   FaultType Process() override;
   bool      Write(DeviceCmd& cmd) override;

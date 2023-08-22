@@ -178,9 +178,9 @@ class Manager
                             fastcat::DeviceStateType);
 
  private:
-  bool ConfigJSDBusFromYaml(YAML::Node node);
-  bool ConfigFastcatBusFromYaml(YAML::Node node);
-  bool ConfigOfflineBusFromYaml(YAML::Node node);
+  bool ConfigJSDBusFromYaml(YAML::Node node, double external_time);
+  bool ConfigFastcatBusFromYaml(YAML::Node node, double external_time);
+  bool ConfigOfflineBusFromYaml(YAML::Node node, double external_time);
   bool WriteCommands();
   bool ConfigSignals();
   bool SortFastcatDevice(
