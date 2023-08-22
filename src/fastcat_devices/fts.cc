@@ -15,7 +15,7 @@ fastcat::Fts::Fts()
   state_->type = FTS_STATE;
 }
 
-bool fastcat::Fts::ConfigFromYaml(YAML::Node node)
+bool fastcat::Fts::ConfigFromYaml(YAML::Node node, double external_time)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

@@ -84,7 +84,7 @@ void fastcat::Manager::Shutdown()
   SaveActuatorPosFile();
 }
 
-bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
+bool fastcat::Manager::ConfigFromYaml(YAML::Node node, double external_time)
 {
   // Configure Fastcat Parameters
   YAML::Node fastcat_node;
@@ -124,19 +124,19 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
     }
 
     if (0 == type.compare("jsd_bus")) {
-      if (!ConfigJSDBusFromYaml(*bus)) {
+      if (!ConfigJSDBusFromYaml(*bus, external_time)) {
         ERROR("Failed to configure JSD bus");
         return false;
       }
 
     } else if (0 == type.compare("fastcat_bus")) {
-      if (!ConfigFastcatBusFromYaml(*bus)) {
+      if (!ConfigFastcatBusFromYaml(*bus, external_time)) {
         ERROR("Failed to configure Fastcat bus");
         return false;
       }
 
     } else if (0 == type.compare("offline_bus")) {
-      if (!ConfigOfflineBusFromYaml(*bus)) {
+      if (!ConfigOfflineBusFromYaml(*bus, external_time)) {
         ERROR("Failed to configure Offline bus");
         return false;
       }
@@ -383,7 +383,7 @@ bool fastcat::Manager::RecoverBus(std::string ifname)
   return true;
 }
 
-bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
+bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node, double external_time)
 {
   std::string ifname;
   if (!ParseVal(node, "ifname", ifname)) {
@@ -407,11 +407,10 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
   std::shared_ptr<DeviceBase> device;
   uint16_t                    slave_id = 0;
 
-  for (auto device_node = devices_node.begin();
-       device_node != devices_node.end(); ++device_node) {
+  for (const auto& device_node : devices_node) {
     slave_id++;
     std::string device_class;
-    if (!ParseVal(*device_node, "device_class", device_class)) {
+    if (!ParseVal(device_node, "device_class", device_class)) {
       return false;
     }
 
@@ -487,7 +486,7 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
     jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
 
-    if (!device->ConfigFromYaml(*device_node)) {
+    if (!device->ConfigFromYaml(device_node, external_time)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
       return false;
@@ -508,7 +507,7 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
   return jsd_init(jsd, ifname.c_str(), enable_ar);
 }
 
-bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
+bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node, double external_time)
 {
   std::string ifname;
   if (!ParseVal(node, "ifname", ifname)) {
@@ -521,10 +520,9 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
   }
 
   std::shared_ptr<DeviceBase> device;
-  for (auto device_node = devices_node.begin();
-       device_node != devices_node.end(); ++device_node) {
+  for (const auto& device_node : devices_node) {
     std::string device_class;
-    if (!ParseVal(*device_node, "device_class", device_class)) {
+    if (!ParseVal(device_node, "device_class", device_class)) {
       return false;
     }
 
@@ -574,7 +572,7 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
       return false;
     }
 
-    if (!device->ConfigFromYaml(*device_node)) {
+    if (!device->ConfigFromYaml(device_node), external_time) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
       return false;
@@ -592,10 +590,9 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
   return true;
 }
 
-bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
+bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node, double external_time)
 {
-  // Here include any relevant bus level offline EGD parameters that may be
-  // neccesary, e.g.
+  // @TODO add other relevant bus level offline EGD parameters such as:
   // uint8_t plant_model;
   // if (!ParseVal(node, "plant_model", plant_model)) {
   //  return false;
@@ -613,11 +610,11 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
   std::shared_ptr<DeviceBase> device;
   uint16_t                    slave_id = 0;
 
-  for (auto device_node = devices_node.begin();
-       device_node != devices_node.end(); ++device_node) {
+  for (const auto& device_node : devices_node) {
+    
     slave_id++;
     std::string device_class;
-    if (!ParseVal(*device_node, "device_class", device_class)) {
+    if (!ParseVal(device_node, "device_class", device_class)) {
       return false;
     }
 
@@ -694,7 +691,7 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
     jsdDevice->SetOffline(true);
     jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
 
-    if (!device->ConfigFromYaml(*device_node)) {
+    if (!device->ConfigFromYaml(device_node), external_time) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
       return false;
@@ -742,16 +739,16 @@ bool fastcat::Manager::ConfigSignals()
 
     device->RegisterCmdQueue(cmd_queue_);
 
-    for (auto signal = device->signals_.begin();
-         signal != device->signals_.end(); ++signal) {
+    for (auto& signal : device->signals_) {
+      
       // we cannot use the [] operator as it will create a new entry
       // we cannot use the at() method as it will raise an exception
       // so find() it is
 
-      auto find_pair = device_map_.find(signal->observed_device_name);
+      auto find_pair = device_map_.find(signal.observed_device_name);
 
       if (find_pair == device_map_.end()) {
-        if (signal->observed_device_name.compare("FIXED_VALUE") != 0) {
+        if (signal.observed_device_name.compare("FIXED_VALUE") != 0) {
           ERROR("Did not find an Observed device name for %s",
                 device->GetName().c_str());
         }
@@ -760,7 +757,7 @@ bool fastcat::Manager::ConfigSignals()
 
       auto observed_state = find_pair->second->GetState();
 
-      if (!ConfigSignalByteIndexing(observed_state.get(), *signal)) {
+      if (!ConfigSignalByteIndexing(observed_state.get(), signal)) {
         ERROR("Could not configure the Signal Byte Indexing");
         return false;
       }
@@ -790,13 +787,13 @@ bool fastcat::Manager::SortFastcatDevice(
           if (zero_latency_required_) {
             ERROR(
                 "Cyclical signal loop detected. Devices %s and %s are mutually "
-                "reliant. Zero latency cannot be enforced.",
+                "dependent. Zero latency cannot be enforced.",
                 dev_name.c_str(), child.c_str());
             return false;
           } else {
             WARNING(
                 "Cyclical signal loop detected. Devices %s and %s are mutually "
-                "reliant. Zero latency cannot be enforced.",
+                "dependent. Zero latency cannot be enforced.",
                 dev_name.c_str(), child.c_str());
           }
         } else {

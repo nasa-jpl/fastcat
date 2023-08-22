@@ -43,7 +43,7 @@ class Filter : public DeviceBase
 {
  public:
   Filter();
-  bool ConfigFromYaml(YAML::Node node) override;
+  bool ConfigFromYaml(YAML::Node node, double external_time = -1) override;
   bool Read() override;
 
  protected:

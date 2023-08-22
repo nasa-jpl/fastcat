@@ -14,7 +14,7 @@ class SchmittTrigger : public DeviceBase
 {
  public:
   SchmittTrigger();
-  bool ConfigFromYaml(YAML::Node node) override;
+  bool ConfigFromYaml(YAML::Node node, double external_time = -1) override;
   bool Read() override;
 
  protected:

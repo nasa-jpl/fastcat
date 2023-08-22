@@ -24,7 +24,7 @@ class Fts : public DeviceBase
            * @param node The portion of the yaml file corresponding to this FTS device.
            * @return True if configuration completes without error; false otherwise.
            */
-  bool ConfigFromYaml(YAML::Node node) override;
+  bool ConfigFromYaml(YAML::Node node, double external_time = -1) override;
   /**
    * @brief Calculates wrench (forces and torques) from input signals.
    * @return True if device state is read without error; false otherwise.

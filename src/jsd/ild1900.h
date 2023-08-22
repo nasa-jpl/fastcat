@@ -15,7 +15,7 @@ class Ild1900 : public JsdDeviceBase
 {
  public:
   Ild1900();
-  bool ConfigFromYaml(YAML::Node node) override;
+  bool ConfigFromYaml(YAML::Node node, double external_time = -1) override;
   bool Read() override;
 
  protected:

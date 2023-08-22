@@ -13,7 +13,7 @@ namespace fastcat
 class Jed0200Offline : public Jed0200
 {
  public:
-  bool      ConfigFromYaml(YAML::Node node) override;
+  bool      ConfigFromYaml(YAML::Node node, double external_time = -1) override;
   bool      Read() override;
   FaultType Process() override;
   bool      Write(DeviceCmd& cmd) override;
