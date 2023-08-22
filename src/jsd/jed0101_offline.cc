@@ -7,7 +7,7 @@
 // Include external then project includes
 #include "jsd/jsd_print.h"
 
-bool fastcat::Jed0101Offline::ConfigFromYaml(YAML::Node node, double external_time)
+bool fastcat::Jed0101Offline::ConfigFromYaml(YAML::Node node, double /*external_time*/)
 {
   bool retval               = ConfigFromYamlCommon(node);
   state_->jed0101_state.cmd = initial_cmd_;

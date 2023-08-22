@@ -499,7 +499,7 @@ fastcat::FaultType fastcat::Actuator::ProcessHolding()
     return ALL_DEVICE_FAULT;
   }
 
-  if ((cycle_mono_time_ - last_transition_time_) >
+  if ((state_->time - last_transition_time_) >
       params_.holding_duration_sec) {
     ElmoHalt();
     TransitionToState(ACTUATOR_SMS_HALTED);
@@ -540,7 +540,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
     return ALL_DEVICE_FAULT;
   }
 
-  if ((cycle_mono_time_ - last_transition_time_) > 5 * loop_period_) {
+  if ((state_->time - last_transition_time_) > 5 * loop_period_) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
   }
 
@@ -613,10 +613,10 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
           JSD_ELMO_STATE_MACHINE_STATE_OPERATION_ENABLED &&
       IsJsdFaultCodePresent(*state_)) {
     // We have waited too long, fault
-    if ((cycle_mono_time_ - last_transition_time_) > 5.0) {
+    if ((state_->time - last_transition_time_) > 5.0) {
       ERROR("Act %s: %s: %lf", name_.c_str(),
             "Waited too long for drive to reset in CAL_AT_HARDSTOP state",
-            (cycle_mono_time_ - last_transition_time_));
+            (state_->time - last_transition_time_));
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
     }

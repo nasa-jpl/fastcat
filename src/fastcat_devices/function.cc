@@ -35,7 +35,7 @@ fastcat::FunctionType fastcat::FunctionTypeFromString(
   }
 }
 
-bool fastcat::Function::ConfigFromYaml(YAML::Node node, double external_time)
+bool fastcat::Function::ConfigFromYaml(YAML::Node node, double /*external_time*/)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

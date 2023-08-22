@@ -198,7 +198,7 @@ fastcat::FaultType fastcat::PlatinumActuator::ProcessProfPosDisengaging()
   // fault.
   if (state_->platinum_actuator_state.setpoint_ack_rise) {
     TransitionToState(ACTUATOR_SMS_PROF_POS);
-  } else if ((cycle_mono_time_ - last_transition_time_) >
+  } else if ((state_->time - last_transition_time_) >
              (1.0 + 2.0 * loop_period_)) {
     ERROR(
         "Act %s: Profiled Position command was not acknowledged by drive "
@@ -239,7 +239,7 @@ fastcat::FaultType fastcat::PlatinumActuator::ProcessProfVel()
   // If max_duration is greater than zero, zero out the target after the
   // commanded duration.
   if (last_cmd_.actuator_prof_vel_cmd.max_duration > 1e-9 &&
-      (cycle_mono_time_ - last_transition_time_) >
+      (state_->time - last_transition_time_) >
           last_cmd_.actuator_prof_vel_cmd.max_duration) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
 
@@ -273,7 +273,7 @@ fastcat::FaultType fastcat::PlatinumActuator::ProcessProfTorque()
   // If max_duration is greater than zero, zero out the target after the
   // commanded duration.
   if (last_cmd_.actuator_prof_torque_cmd.max_duration > 1e-9 &&
-      (cycle_mono_time_ - last_transition_time_) >
+      (state_->time - last_transition_time_) >
           last_cmd_.actuator_prof_torque_cmd.max_duration) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
 
