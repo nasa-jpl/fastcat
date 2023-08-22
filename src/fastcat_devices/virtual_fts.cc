@@ -15,7 +15,8 @@ fastcat::VirtualFts::VirtualFts()
   state_->type = FTS_STATE;
 }
 
-bool fastcat::VirtualFts::ConfigFromYaml(YAML::Node node, double /*external_time*/)
+bool fastcat::VirtualFts::ConfigFromYaml(YAML::Node node,
+                                         double /*external_time*/)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

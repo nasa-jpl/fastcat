@@ -221,22 +221,25 @@ bool fastcat::Manager::Process(double external_time)
   }
 
   // Pass the PDO read time for consistent timestamping before the device Read()
-  //   method is invoked
+  // method is invoked
   double read_time;
-  if (external_time > 0) {
+  double monotonic_time;
+  if (external_time < 0) {
+    read_time      = jsd_time_get_time_sec();
+    monotonic_time = jsd_time_get_mono_time_sec();
+  } else {
     if (online_devices_exist_) {
       ERROR(
           "Applications cannot use online devices and supply external time, "
           "refusing to run");
       return false;
     }
-    read_time = external_time;
-  } else {
-    read_time = jsd_time_get_time_sec();
+    read_time      = external_time;
+    monotonic_time = external_time;
   }
 
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
-    (*it)->SetTime(read_time);
+    (*it)->SetTime(read_time, monotonic_time);
 
     if (!(*it)->Read()) {
       WARNING("Bad Process on %s", (*it)->GetName().c_str());
@@ -245,7 +248,7 @@ bool fastcat::Manager::Process(double external_time)
 
   for (auto it = fastcat_device_list_.begin(); it != fastcat_device_list_.end();
        ++it) {
-    (*it)->SetTime(read_time);
+    (*it)->SetTime(read_time, monotonic_time);
 
     if (!(*it)->Read()) {
       WARNING("Bad Process on %s", (*it)->GetName().c_str());
@@ -383,7 +386,8 @@ bool fastcat::Manager::RecoverBus(std::string ifname)
   return true;
 }
 
-bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node, double external_time)
+bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node,
+                                            double     external_time)
 {
   std::string ifname;
   if (!ParseVal(node, "ifname", ifname)) {
@@ -507,7 +511,8 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node, double external_tim
   return jsd_init(jsd, ifname.c_str(), enable_ar);
 }
 
-bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node, double external_time)
+bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node,
+                                                double     external_time)
 {
   std::string ifname;
   if (!ParseVal(node, "ifname", ifname)) {
@@ -590,7 +595,8 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node, double external
   return true;
 }
 
-bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node, double external_time)
+bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node,
+                                                double     external_time)
 {
   // @TODO add other relevant bus level offline EGD parameters such as:
   // uint8_t plant_model;
@@ -611,7 +617,6 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node, double external
   uint16_t                    slave_id = 0;
 
   for (const auto& device_node : devices_node) {
-    
     slave_id++;
     std::string device_class;
     if (!ParseVal(device_node, "device_class", device_class)) {
@@ -740,7 +745,6 @@ bool fastcat::Manager::ConfigSignals()
     device->RegisterCmdQueue(cmd_queue_);
 
     for (auto& signal : device->signals_) {
-      
       // we cannot use the [] operator as it will create a new entry
       // we cannot use the at() method as it will raise an exception
       // so find() it is

@@ -21,7 +21,7 @@ class DeviceBase
   virtual ~DeviceBase();
   // Pure virtual methods
   virtual bool ConfigFromYaml(YAML::Node node, double external_time = -1) = 0;
-  virtual bool Read()                          = 0;
+  virtual bool Read()                                                     = 0;
 
   // Non-pure virtual methods with default implementation
   virtual FaultType Process();
@@ -34,7 +34,7 @@ class DeviceBase
   std::string                  GetName();
   std::shared_ptr<DeviceState> GetState();
 
-  void SetTime(double time);
+  void SetTime(double time, double monotonic_time);
   void SetLoopPeriod(double loop_period);
 
   std::vector<Signal> signals_;

@@ -16,8 +16,10 @@ fastcat::PlatinumActuatorOffline::PlatinumActuatorOffline()
   memset(&jsd_epd_state_, 0, sizeof(jsd_epd_state_t));
 }
 
-bool fastcat::PlatinumActuatorOffline::ConfigFromYaml(YAML::Node node, double external_time) {
-  if(external_time < 0) {
+bool fastcat::PlatinumActuatorOffline::ConfigFromYaml(YAML::Node node,
+                                                      double     external_time)
+{
+  if (external_time < 0) {
     motor_on_start_time_ = jsd_time_get_time_sec();
   } else {
     motor_on_start_time_ = external_time;

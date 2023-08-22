@@ -115,6 +115,7 @@ for state in data['states']:
 
   };
   double time;
+  double monotonic_time;
 } DeviceState;
 
 

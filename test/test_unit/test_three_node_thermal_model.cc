@@ -116,25 +116,25 @@ TEST_F(ThreeNodeThermalModelTest, CurrentInput)
   *node_3_temp_input   = 20.0;
   *motor_current_input = 1.0;
   EXPECT_TRUE(device_.Read());
-  device_.SetTime(1.0);
+  device_.SetTime(1.0, 1.0);
   EXPECT_EQ(device_.Process(), fastcat::NO_FAULT);
   EXPECT_NEAR(*node_1_temp_output, 21.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_2_temp_output, 20.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_3_temp_output, 20.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_4_temp_output, 20.333333333333, DOUBLE_COMP_THRESHOLD);
-  device_.SetTime(2.0);
+  device_.SetTime(2.0, 2.0);
   EXPECT_EQ(device_.Process(), fastcat::NO_FAULT);
   EXPECT_NEAR(*node_1_temp_output, 21.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_2_temp_output, 21.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_3_temp_output, 20.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_4_temp_output, 20.666666666666, DOUBLE_COMP_THRESHOLD);
-  device_.SetTime(3.0);
+  device_.SetTime(3.0, 3.0);
   EXPECT_EQ(device_.Process(), fastcat::NO_FAULT);
   EXPECT_NEAR(*node_1_temp_output, 22.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_2_temp_output, 20.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_3_temp_output, 20.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_4_temp_output, 20.666666666666, DOUBLE_COMP_THRESHOLD);
-  device_.SetTime(4.0);
+  device_.SetTime(4.0, 4.0);
   EXPECT_EQ(device_.Process(), fastcat::NO_FAULT);
   EXPECT_NEAR(*node_1_temp_output, 21.0, DOUBLE_COMP_THRESHOLD);
   EXPECT_NEAR(*node_2_temp_output, 22.0, DOUBLE_COMP_THRESHOLD);
@@ -176,7 +176,7 @@ TEST_F(ThreeNodeThermalModelTest, TempFault)
   *node_3_temp_input   = 20.0;
   *motor_current_input = 100.0;
   EXPECT_TRUE(device_.Read());
-  device_.SetTime(1.0);
+  device_.SetTime(1.0, 1.0);
   EXPECT_EQ(device_.Process(),
             fastcat::NO_FAULT);  // config allows one cycle of persistance
                                  // before faulting

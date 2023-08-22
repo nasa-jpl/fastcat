@@ -19,18 +19,19 @@
 fastcat::Actuator::Actuator()
 {
   MSG_DEBUG("Constructed Actuator");
-  state_                = std::make_shared<DeviceState>();
+  state_ = std::make_shared<DeviceState>();
 }
-
 
 bool fastcat::Actuator::ConfigFromYaml(YAML::Node node, double external_time)
 {
-  actuator_sms_         = ACTUATOR_SMS_HALTED;
-  
-  if(external_time > 0) {
-    last_transition_time_ = external_time;
+  actuator_sms_ = ACTUATOR_SMS_HALTED;
+
+  if (external_time < 0) {
+    // if not simulating, use monotonic time to compute durations
+    last_transition_time_ = jsd_time_get_mono_time_sec();
   } else {
-    last_transition_time_ = jsd_time_get_time_sec();
+    // if in simulation mode, monotonic time = linux time
+    last_transition_time_ = external_time;
   }
 
   if (!ParseVal(node, "name", name_)) {
@@ -594,7 +595,7 @@ bool fastcat::Actuator::CurrentExceedsCmdLimits(double current)
 
 void fastcat::Actuator::TransitionToState(ActuatorStateMachineState sms)
 {
-  last_transition_time_ = state_->time;
+  last_transition_time_ = state_->monotonic_time;
   if (actuator_sms_ != sms) {
     MSG("Requested Actuator %s state transition from %s to %s", name_.c_str(),
         StateMachineStateToString(actuator_sms_).c_str(),
