@@ -186,7 +186,7 @@ fastcat::FaultType fastcat::PlatinumActuatorOffline::ProcessProfPosDisengaging()
 
     // Check runout timer here, brake engage/disengage time cannot exceed 1
     // second per MAN-G-CR Section BP - Brake Parameters
-    if ((state_->time - last_transition_time_) > (1.0 + 2 * loop_period_)) {
+    if ((state_->monotonic_time - last_transition_time_) > (1.0 + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting",
             name_.c_str());
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
@@ -229,7 +229,7 @@ fastcat::FaultType fastcat::PlatinumActuatorOffline::ProcessProfVelDisengaging()
 
     // Check runout timer here, brake engage/disengage time cannot exceed 1
     // second per MAN-G-CR Section BP - Brake Parameters
-    if ((state_->time - last_transition_time_) > (1.0 + 2 * loop_period_)) {
+    if ((state_->monotonic_time - last_transition_time_) > (1.0 + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting",
             name_.c_str());
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
@@ -271,7 +271,7 @@ fastcat::PlatinumActuatorOffline::ProcessProfTorqueDisengaging()
 
     // Check runout timer here, brake engage/disengage time cannot exceed 1
     // second per MAN-G-CR Section BP - Brake Parameters
-    if ((state_->time - last_transition_time_) > (1.0 + 2 * loop_period_)) {
+    if ((state_->monotonic_time - last_transition_time_) > (1.0 + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting",
             name_.c_str());
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
