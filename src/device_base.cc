@@ -25,7 +25,11 @@ void fastcat::DeviceBase::SetLoopPeriod(double loop_period)
   loop_period_ = loop_period;
 }
 
-void fastcat::DeviceBase::SetTime(double time) { state_->time = time; }
+void fastcat::DeviceBase::SetTime(double time, double monotonic_time)
+{
+  state_->time           = time;
+  state_->monotonic_time = monotonic_time;
+}
 
 bool fastcat::DeviceBase::Write(fastcat::DeviceCmd& /* cmd */)
 {
