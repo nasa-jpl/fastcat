@@ -14,6 +14,7 @@ class GoldActuatorOffline : public GoldActuator
 {
  public:
   GoldActuatorOffline();
+  bool ConfigFromYaml(YAML::Node node, double external_time = -1) override;
 
  private:
   void ElmoSetConfig() override;

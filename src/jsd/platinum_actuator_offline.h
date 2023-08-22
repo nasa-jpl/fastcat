@@ -14,6 +14,7 @@ class PlatinumActuatorOffline : public PlatinumActuator
 {
  public:
   PlatinumActuatorOffline();
+  bool ConfigFromYaml(YAML::Node node, double external_time = -1) override;
 
  private:
   bool HandleNewProfPosCmdImpl(const DeviceCmd& cmd) override;

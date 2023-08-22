@@ -1,4 +1,4 @@
-// Include related header (for cc files)
+// Include related headers
 #include "fastcat/jsd/platinum_actuator_offline.h"
 
 // Include c then c++ libraries
@@ -13,9 +13,16 @@
 fastcat::PlatinumActuatorOffline::PlatinumActuatorOffline()
 {
   MSG_DEBUG("Constructed PlatinumActuatorOffline");
-
   memset(&jsd_epd_state_, 0, sizeof(jsd_epd_state_t));
-  motor_on_start_time_ = jsd_time_get_time_sec();
+}
+
+bool fastcat::PlatinumActuatorOffline::ConfigFromYaml(YAML::Node node, double external_time) {
+  if(external_time < 0) {
+    motor_on_start_time_ = jsd_time_get_time_sec();
+  } else {
+    motor_on_start_time_ = external_time;
+  }
+  return fastcat::PlatinumActuator::ConfigFromYaml(node, external_time);
 }
 
 bool fastcat::PlatinumActuatorOffline::HandleNewProfPosCmdImpl(
@@ -307,13 +314,12 @@ void fastcat::PlatinumActuatorOffline::ElmoProcess()
 
   // reset motor_on timer on rising edge
   if (!last_motor_on_state_ && jsd_epd_state_.motor_on) {
-    motor_on_start_time_ = jsd_time_get_time_sec();
+    motor_on_start_time_ = state_->time;
   }
   last_motor_on_state_ = jsd_epd_state_.motor_on;
 
-  //
   if (!jsd_epd_state_.servo_enabled && jsd_epd_state_.motor_on) {
-    double brake_on_dur = jsd_time_get_time_sec() - motor_on_start_time_;
+    double brake_on_dur = state_->time - motor_on_start_time_;
     if (brake_on_dur > params_.elmo_brake_disengage_msec / 1000.0) {
       jsd_epd_state_.servo_enabled = 1;
     }
