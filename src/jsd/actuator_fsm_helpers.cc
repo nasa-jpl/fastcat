@@ -115,6 +115,18 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
   // account for any latency between time when command message was generated
   // and when it is processed here
   double dt = fmax(state_->time - cmd.actuator_csp_cmd.request_time, 0.0);
+  
+  // reject command if request_time > 5 * loop_period, which indicates request
+  // is stale, clocks are out of sync, or request_time was not correctly populated by
+  // calling module
+  if (dt > (5.0 * loop_period_)) {
+    TransitionToState(ACTUATOR_SMS_FAULTED);
+    ERROR("Act %s: %s", name_.c_str(), 
+      "Failing CSP Command due to stale request_time; "
+      "the request may be stale or the clocks may not be synchronized");
+    return false;
+  }
+
   double offset_target_position = cmd.actuator_csp_cmd.target_position + 
     cmd.actuator_csp_cmd.velocity_offset * dt;
   jsd_elmo_motion_command_csp_t jsd_cmd;
