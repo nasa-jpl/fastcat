@@ -22,7 +22,9 @@ typedef enum {
   ACTUATOR_SMS_PROF_VEL_DISENGAGING,
   ACTUATOR_SMS_PROF_TORQUE,
   ACTUATOR_SMS_PROF_TORQUE_DISENGAGING,
-  ACTUATOR_SMS_CS,
+  ACTUATOR_SMS_CSP,
+  ACTUATOR_SMS_CSV,
+  ACTUATOR_SMS_CST,
   ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP,
   ACTUATOR_SMS_CAL_AT_HARDSTOP,
   ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP,
@@ -213,6 +215,8 @@ class Actuator : public JsdDeviceBase
 
   bool    actuator_absolute_encoder_ = false;
   int32_t elmo_pos_offset_cnts_      = 1;
+
+  DeviceCmd last_device_cmd_ = {};
 };
 
 }  // namespace fastcat

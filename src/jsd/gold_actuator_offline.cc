@@ -50,7 +50,9 @@ void fastcat::GoldActuatorOffline::ElmoProcess()
     case ACTUATOR_SMS_PROF_POS:
     case ACTUATOR_SMS_PROF_VEL:
     case ACTUATOR_SMS_PROF_TORQUE:
-    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CSP:
+    case ACTUATOR_SMS_CSV:
+    case ACTUATOR_SMS_CST:
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:

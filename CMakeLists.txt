@@ -43,6 +43,7 @@ endif()
 
 # @TODO(kwehage,abrinkma) Clean up missing-field-initializers warnings
 add_definitions(
+    -Werror=all
     -Wall
     -Wextra
     -Wno-missing-field-initializers

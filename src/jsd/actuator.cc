@@ -454,7 +454,9 @@ fastcat::FaultType fastcat::Actuator::Process()
       retval = ProcessProfTorqueDisengaging();
       break;
 
-    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CSP:
+    case ACTUATOR_SMS_CSV:
+    case ACTUATOR_SMS_CST:
       retval = ProcessCS();
       break;
 
@@ -636,8 +638,14 @@ std::string fastcat::Actuator::StateMachineStateToString(
     case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
       str = std::string("PROF_TORQUE_DISENGAGING");
       break;
-    case ACTUATOR_SMS_CS:
-      str = std::string("CS");
+    case ACTUATOR_SMS_CSP:
+      str = std::string("CSP");
+      break;
+    case ACTUATOR_SMS_CSV:
+      str = std::string("CSV");
+      break;
+    case ACTUATOR_SMS_CST:
+      str = std::string("CST");
       break;
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
       str = std::string("CAL_MOVE_TO_HARDSTOP");

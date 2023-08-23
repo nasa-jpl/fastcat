@@ -35,8 +35,10 @@ bool fastcat::Actuator::CheckStateMachineMotionCmds()
     case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
     case ACTUATOR_SMS_PROF_TORQUE:
     case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
-    case ACTUATOR_SMS_CS:
-      // All of these commands can be safely preempted with CS cmds
+    case ACTUATOR_SMS_CSP:
+    case ACTUATOR_SMS_CSV:
+    case ACTUATOR_SMS_CST:
+      // All of these commands can be safely preempted with CS* cmds
       break;
 
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
@@ -69,7 +71,9 @@ bool fastcat::Actuator::CheckStateMachineGainSchedulingCmds()
     case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
     case ACTUATOR_SMS_PROF_TORQUE:
     case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
-    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CSP:
+    case ACTUATOR_SMS_CSV:
+    case ACTUATOR_SMS_CST:
       break;
 
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
@@ -106,15 +110,22 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
     return false;
   }
 
+  last_device_cmd_ = cmd;
+
+  // account for any latency between time when command message was generated
+  // and when it is processed here
+  double dt = fmax(state_->time - cmd.actuator_csp_cmd.request_time, 0.0);
+  double offset_target_position = cmd.actuator_csp_cmd.target_position + 
+    cmd.actuator_csp_cmd.velocity_offset * dt;
   jsd_elmo_motion_command_csp_t jsd_cmd;
-  jsd_cmd.target_position = PosEuToCnts(cmd.actuator_csp_cmd.target_position);
+  jsd_cmd.target_position = PosEuToCnts(offset_target_position);
   jsd_cmd.position_offset = EuToCnts(cmd.actuator_csp_cmd.position_offset);
   jsd_cmd.velocity_offset = EuToCnts(cmd.actuator_csp_cmd.velocity_offset);
   jsd_cmd.torque_offset_amps = cmd.actuator_csp_cmd.torque_offset_amps;
 
   ElmoCSP(jsd_cmd);
 
-  TransitionToState(ACTUATOR_SMS_CS);
+  TransitionToState(ACTUATOR_SMS_CSP);
 
   return true;
 }
@@ -143,7 +154,7 @@ bool fastcat::Actuator::HandleNewCSVCmd(const DeviceCmd& cmd)
 
   ElmoCSV(jsd_cmd);
 
-  TransitionToState(ACTUATOR_SMS_CS);
+  TransitionToState(ACTUATOR_SMS_CSV);
 
   return true;
 }
@@ -171,7 +182,7 @@ bool fastcat::Actuator::HandleNewCSTCmd(const DeviceCmd& cmd)
 
   ElmoCST(jsd_cmd);
 
-  TransitionToState(ACTUATOR_SMS_CS);
+  TransitionToState(ACTUATOR_SMS_CST);
 
   return true;
 }
@@ -259,7 +270,9 @@ bool fastcat::Actuator::HandleNewHaltCmd()
     case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
     case ACTUATOR_SMS_PROF_TORQUE:
     case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
-    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CSP:
+    case ACTUATOR_SMS_CSV:
+    case ACTUATOR_SMS_CST:
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
@@ -290,7 +303,9 @@ bool fastcat::Actuator::HandleNewSetOutputPositionCmd(const DeviceCmd& cmd)
     case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
     case ACTUATOR_SMS_PROF_TORQUE:
     case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
-    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CSP:
+    case ACTUATOR_SMS_CSV:
+    case ACTUATOR_SMS_CST:
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
@@ -325,7 +340,9 @@ bool fastcat::Actuator::HandleNewSetUnitModeCmd(const DeviceCmd& cmd)
     case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
     case ACTUATOR_SMS_PROF_TORQUE:
     case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
-    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CSP:
+    case ACTUATOR_SMS_CSV:
+    case ACTUATOR_SMS_CST:
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
@@ -365,7 +382,9 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
     case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
     case ACTUATOR_SMS_PROF_TORQUE:
     case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
-    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CSP:
+    case ACTUATOR_SMS_CSV:
+    case ACTUATOR_SMS_CST:
       TransitionToState(ACTUATOR_SMS_FAULTED);
       ERROR("Act %s: %s", name_.c_str(),
             "Calibration requested during active motion command, faulting");
@@ -538,6 +557,33 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
   if (IsMotionFaultConditionMet()) {
     ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
+  }
+
+  switch(actuator_sms_) {
+    case ACTUATOR_SMS_CSP: {
+        // account for updated position offset
+        double dt = 
+          fmax(state_->time - last_device_cmd_.actuator_csp_cmd.request_time, 0.0);
+        double offset_target_position = 
+          last_device_cmd_.actuator_csp_cmd.target_position + 
+          last_device_cmd_.actuator_csp_cmd.velocity_offset * dt;
+        jsd_elmo_motion_command_csp_t jsd_cmd;
+        jsd_cmd.target_position = PosEuToCnts(offset_target_position);
+        jsd_cmd.position_offset = EuToCnts(last_device_cmd_.actuator_csp_cmd.position_offset);
+        jsd_cmd.velocity_offset = EuToCnts(last_device_cmd_.actuator_csp_cmd.velocity_offset);
+        jsd_cmd.torque_offset_amps = last_device_cmd_.actuator_csp_cmd.torque_offset_amps;
+        ElmoCSP(jsd_cmd);
+      }
+      break;
+    case ACTUATOR_SMS_CSV:
+    case ACTUATOR_SMS_CST:
+      break;
+
+    default:
+      // this criteria should never be met, we should only be in one of {CSP,CSV,CST}
+      // modes when ProcessCS() function is called
+      ERROR("Invalid device state found for ProcessCS() function");
+      return ALL_DEVICE_FAULT;
   }
 
   if ((state_->monotonic_time - last_transition_time_) > 5 * loop_period_) {

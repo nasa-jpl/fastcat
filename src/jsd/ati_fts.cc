@@ -67,7 +67,7 @@ bool fastcat::AtiFts::ConfigFromYamlCommon(YAML::Node node)
   return true;
 }
 
-bool fastcat::AtiFts::ConfigFromYaml(YAML::Node node, double /*external_time*/)
+bool fastcat::AtiFts::ConfigFromYaml(YAML::Node node, double /* external_time */)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);

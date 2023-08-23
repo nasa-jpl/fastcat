@@ -539,7 +539,7 @@ commands:
       type: double
 
   - name: egd_csv
-    fields: 
+    fields:
     - name: target_velocity
       type: int32_t
     - name: velocity_offset
@@ -679,6 +679,8 @@ commands:
 
   - name: actuator_csp
     fields: 
+    - name: request_time
+      type: double
     - name: target_position
       type: double
     - name: position_offset
