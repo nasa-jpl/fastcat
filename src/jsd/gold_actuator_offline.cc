@@ -16,7 +16,7 @@ fastcat::GoldActuatorOffline::GoldActuatorOffline()
   memset(&jsd_egd_state_, 0, sizeof(jsd_egd_state_t));
 }
 
-bool fastcat::GoldActuatorOffline::ConfigFromYaml(YAML::Node node,
+bool fastcat::GoldActuatorOffline::ConfigFromYaml(const YAML::Node& node,
                                                   double     external_time)
 {
   if (external_time < 0) {

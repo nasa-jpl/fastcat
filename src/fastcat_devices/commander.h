@@ -14,7 +14,7 @@ class Commander : public DeviceBase
 {
  public:
   Commander();
-  bool ConfigFromYaml(YAML::Node node, double external_time = -1) override;
+  bool ConfigFromYaml(const YAML::Node& node, double external_time = -1) override;
   bool Read() override;
   bool Write(DeviceCmd& cmd) override;
   void Fault() override;

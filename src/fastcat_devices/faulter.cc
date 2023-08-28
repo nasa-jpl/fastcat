@@ -15,7 +15,7 @@ fastcat::Faulter::Faulter()
   state_->type = FAULTER_STATE;
 }
 
-bool fastcat::Faulter::ConfigFromYaml(YAML::Node node, double /*external_time*/)
+bool fastcat::Faulter::ConfigFromYaml(const YAML::Node& node, double /*external_time*/)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

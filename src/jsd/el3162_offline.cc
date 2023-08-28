@@ -5,7 +5,7 @@
 
 // Include external then project includes
 
-bool fastcat::El3162Offline::ConfigFromYaml(YAML::Node node,
+bool fastcat::El3162Offline::ConfigFromYaml(const YAML::Node& node,
                                             double /*external_time*/)
 {
   return ConfigFromYamlCommon(node);

@@ -20,7 +20,7 @@ class DeviceBase
  public:
   virtual ~DeviceBase();
   // Pure virtual methods
-  virtual bool ConfigFromYaml(YAML::Node node, double external_time = -1) = 0;
+  virtual bool ConfigFromYaml(const YAML::Node& node, double external_time = -1) = 0;
   virtual bool Read()                                                     = 0;
 
   // Non-pure virtual methods with default implementation

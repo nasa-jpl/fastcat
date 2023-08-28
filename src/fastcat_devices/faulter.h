@@ -24,7 +24,7 @@ class Faulter : public DeviceBase
    * device.
    * @return True if configuration completes without error; false otherwise.
    */
-  bool ConfigFromYaml(YAML::Node node, double external_time = -1) override;
+  bool ConfigFromYaml(const YAML::Node& node, double external_time = -1) override;
   /**
    * @brief Updates device state.
    * @return True if device state is read without error; false otherwise.

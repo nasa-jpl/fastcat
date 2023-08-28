@@ -16,7 +16,7 @@ fastcat::PlatinumActuatorOffline::PlatinumActuatorOffline()
   memset(&jsd_epd_state_, 0, sizeof(jsd_epd_state_t));
 }
 
-bool fastcat::PlatinumActuatorOffline::ConfigFromYaml(YAML::Node node,
+bool fastcat::PlatinumActuatorOffline::ConfigFromYaml(const YAML::Node& node,
                                                       double     external_time)
 {
   if (external_time < 0) {

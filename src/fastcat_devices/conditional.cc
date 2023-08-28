@@ -41,7 +41,7 @@ fastcat::Conditional::Conditional()
   state_->type = CONDITIONAL_STATE;
 }
 
-bool fastcat::Conditional::ConfigFromYaml(YAML::Node node,
+bool fastcat::Conditional::ConfigFromYaml(const YAML::Node& node,
                                           double /*external_time*/)
 {
   if (!ParseVal(node, "name", name_)) {

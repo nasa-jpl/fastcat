@@ -15,7 +15,7 @@ class Egd : public JsdDeviceBase
 {
  public:
   Egd();
-  bool      ConfigFromYaml(YAML::Node node, double external_time = -1) override;
+  bool      ConfigFromYaml(const YAML::Node& node, double external_time = -1) override;
   bool      Read() override;
   FaultType Process() override;
   bool      Write(DeviceCmd& cmd) override;
@@ -23,7 +23,7 @@ class Egd : public JsdDeviceBase
   void      Reset() override;
 
  protected:
-  bool ConfigFromYamlCommon(YAML::Node node);
+  bool ConfigFromYamlCommon(const YAML::Node& node);
   bool DriveCmdModeFromString(std::string               dcm_string,
                               jsd_egd_drive_cmd_mode_t& dcm);
 

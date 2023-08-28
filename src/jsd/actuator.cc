@@ -22,7 +22,7 @@ fastcat::Actuator::Actuator()
   state_ = std::make_shared<DeviceState>();
 }
 
-bool fastcat::Actuator::ConfigFromYaml(YAML::Node node, double external_time)
+bool fastcat::Actuator::ConfigFromYaml(const YAML::Node& node, double external_time)
 {
   actuator_sms_ = ACTUATOR_SMS_HALTED;
 

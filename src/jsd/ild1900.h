@@ -15,11 +15,11 @@ class Ild1900 : public JsdDeviceBase
 {
  public:
   Ild1900();
-  bool ConfigFromYaml(YAML::Node node, double external_time = -1) override;
+  bool ConfigFromYaml(const YAML::Node& node, double external_time = -1) override;
   bool Read() override;
 
  protected:
-  bool ConfigFromYamlCommon(YAML::Node node);
+  bool ConfigFromYamlCommon(const YAML::Node& node);
 
  private:
   bool ModelFromString(std::string model_string, jsd_ild1900_model_t& model);

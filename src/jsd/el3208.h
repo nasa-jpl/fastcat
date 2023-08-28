@@ -15,12 +15,12 @@ class El3208 : public JsdDeviceBase
 {
  public:
   El3208();
-  bool      ConfigFromYaml(YAML::Node node, double external_time = -1) override;
+  bool      ConfigFromYaml(const YAML::Node& node, double external_time = -1) override;
   bool      Read() override;
   FaultType Process() override;
 
  protected:
-  bool ConfigFromYamlCommon(YAML::Node node);
+  bool ConfigFromYamlCommon(const YAML::Node& node);
 
   bool ElementFromString(std::string           element_string,
                          jsd_el3208_element_t& element);

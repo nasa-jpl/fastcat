@@ -16,13 +16,13 @@ fastcat::Jed0200::Jed0200()
   state_->type = JED0200_STATE;
 }
 
-bool fastcat::Jed0200::ConfigFromYaml(YAML::Node node, double /*external_time*/)
+bool fastcat::Jed0200::ConfigFromYaml(const YAML::Node& node, double /*external_time*/)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
   return retval;
 }
-bool fastcat::Jed0200::ConfigFromYamlCommon(YAML::Node node)
+bool fastcat::Jed0200::ConfigFromYamlCommon(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

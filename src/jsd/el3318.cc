@@ -18,14 +18,14 @@ fastcat::El3318::El3318()
   state_->type = EL3318_STATE;
 }
 
-bool fastcat::El3318::ConfigFromYaml(YAML::Node node, double /*external_time*/)
+bool fastcat::El3318::ConfigFromYaml(const YAML::Node& node, double /*external_time*/)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
   return retval;
 }
 
-bool fastcat::El3318::ConfigFromYamlCommon(YAML::Node node)
+bool fastcat::El3318::ConfigFromYamlCommon(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

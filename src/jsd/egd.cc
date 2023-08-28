@@ -18,7 +18,7 @@ fastcat::Egd::Egd()
   state_->type = EGD_STATE;
 }
 
-bool fastcat::Egd::ConfigFromYaml(YAML::Node node, double /*external_time*/)
+bool fastcat::Egd::ConfigFromYaml(const YAML::Node& node, double /*external_time*/)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config(context_, slave_id_, jsd_slave_config_);
@@ -130,7 +130,7 @@ void fastcat::Egd::Reset()
   jsd_egd_reset(context_, slave_id_);
 }
 
-bool fastcat::Egd::ConfigFromYamlCommon(YAML::Node node)
+bool fastcat::Egd::ConfigFromYamlCommon(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;
