@@ -43,7 +43,7 @@ class Manager
    *  @return true on successful initialization. If false, application should
    * quit.
    */
-  bool ConfigFromYaml(YAML::Node node, double external_time = -1);
+  bool ConfigFromYaml(const YAML::Node& node, double external_time = -1);
 
   /** @brief Updates synchronous PDO and background async SDO requests.
    *
@@ -178,9 +178,9 @@ class Manager
                             fastcat::DeviceStateType);
 
  private:
-  bool ConfigJSDBusFromYaml(YAML::Node node, double external_time);
-  bool ConfigFastcatBusFromYaml(YAML::Node node, double external_time);
-  bool ConfigOfflineBusFromYaml(YAML::Node node, double external_time);
+  bool ConfigJSDBusFromYaml(const YAML::Node& node, double external_time);
+  bool ConfigFastcatBusFromYaml(const YAML::Node& node, double external_time);
+  bool ConfigOfflineBusFromYaml(const YAML::Node& node, double external_time);
   bool WriteCommands();
   bool ConfigSignals();
   bool SortFastcatDevice(

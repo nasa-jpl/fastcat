@@ -84,7 +84,7 @@ void fastcat::Manager::Shutdown()
   SaveActuatorPosFile();
 }
 
-bool fastcat::Manager::ConfigFromYaml(YAML::Node node, double external_time)
+bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node, double external_time)
 {
   // Configure Fastcat Parameters
   YAML::Node fastcat_node;
@@ -386,7 +386,7 @@ bool fastcat::Manager::RecoverBus(std::string ifname)
   return true;
 }
 
-bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node,
+bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
                                             double     external_time)
 {
   std::string ifname;
@@ -511,7 +511,7 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node,
   return jsd_init(jsd, ifname.c_str(), enable_ar);
 }
 
-bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node,
+bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
                                                 double     external_time)
 {
   std::string ifname;
@@ -595,7 +595,7 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node,
   return true;
 }
 
-bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node,
+bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
                                                 double     external_time)
 {
   // @TODO add other relevant bus level offline EGD parameters such as:
