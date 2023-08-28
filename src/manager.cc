@@ -516,14 +516,12 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
 {
   std::string ifname;
   if (!ParseVal(node, "ifname", ifname)) {
-    std::cout << "Failed to parse 'ifname'" << std::endl;
     return false;
   
   }
 
   YAML::Node devices_node;
   if (!ParseList(node, "devices", devices_node)) {
-    std::cout << "Failed to parse 'devices'" << std::endl;
     return false;
   }
 
@@ -531,7 +529,6 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
   for (const auto& device_node : devices_node) {
     std::string device_class;
     if (!ParseVal(device_node, "device_class", device_class)) {
-      std::cout << "Failed to parse 'device_class'" << std::endl;
       return false;
     }
 
@@ -581,7 +578,7 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
       return false;
     }
 
-    if (!device->ConfigFromYaml(device_node), external_time) {
+    if (!device->ConfigFromYaml(device_node, external_time)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
       return false;
@@ -700,7 +697,7 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
     jsdDevice->SetOffline(true);
     jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
 
-    if (!device->ConfigFromYaml(device_node), external_time) {
+    if (!device->ConfigFromYaml(device_node, external_time)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
       return false;
