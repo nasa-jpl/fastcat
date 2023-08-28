@@ -6,7 +6,7 @@
 // Include external then project includes
 #include "jsd/jsd_print.h"
 
-bool fastcat::ParseNode(YAML::Node node, std::string field, YAML::Node& val)
+bool fastcat::ParseNode(const YAML::Node& node, const std::string& field, YAML::Node& val)
 {
   if (!node[field]) {
     ERROR("Expecting YAML Node: %s", field.c_str());
@@ -17,7 +17,7 @@ bool fastcat::ParseNode(YAML::Node node, std::string field, YAML::Node& val)
   return true;
 }
 
-bool fastcat::ParseList(YAML::Node node, std::string field, YAML::Node& val)
+bool fastcat::ParseList(const YAML::Node& node, const std::string& field, YAML::Node& val)
 {
   if (!node[field]) {
     ERROR("Expecting YAML List Node: %s", field.c_str());
@@ -32,7 +32,7 @@ bool fastcat::ParseList(YAML::Node node, std::string field, YAML::Node& val)
   return true;
 }
 
-bool fastcat::ParseVal(YAML::Node node, std::string field, double& val)
+bool fastcat::ParseVal(const YAML::Node& node, const std::string& field, double& val)
 {
   if (!node[field]) {
     ERROR("Expecting double field: %s", field.c_str());
@@ -43,7 +43,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, double& val)
   return true;
 }
 
-bool fastcat::ParseVal(YAML::Node node, std::string field, float& val)
+bool fastcat::ParseVal(const YAML::Node& node, const std::string& field, float& val)
 {
   if (!node[field]) {
     ERROR("Expecting float field: %s", field.c_str());
@@ -54,7 +54,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, float& val)
   return true;
 }
 
-bool fastcat::ParseVal(YAML::Node node, std::string field, std::string& val)
+bool fastcat::ParseVal(const YAML::Node& node, const std::string& field, std::string& val)
 {
   if (!node[field]) {
     ERROR("Expecting string field: %s", field.c_str());
@@ -65,7 +65,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, std::string& val)
   return true;
 }
 
-bool fastcat::ParseVal(YAML::Node node, std::string field, int64_t& val)
+bool fastcat::ParseVal(const YAML::Node& node, const std::string& field, int64_t& val)
 {
   if (!node[field]) {
     ERROR("Expecting int64_t field: %s", field.c_str());
@@ -76,7 +76,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, int64_t& val)
   return true;
 }
 
-bool fastcat::ParseVal(YAML::Node node, std::string field, uint64_t& val)
+bool fastcat::ParseVal(const YAML::Node& node, const std::string& field, uint64_t& val)
 {
   if (!node[field]) {
     ERROR("Expecting uint64_t field: %s", field.c_str());
@@ -87,7 +87,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, uint64_t& val)
   return true;
 }
 
-bool fastcat::ParseVal(YAML::Node node, std::string field, int32_t& val)
+bool fastcat::ParseVal(const YAML::Node& node, const std::string& field, int32_t& val)
 {
   if (!node[field]) {
     ERROR("Expection int32_t field: %s", field.c_str());
@@ -98,7 +98,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, int32_t& val)
   return true;
 }
 
-bool fastcat::ParseVal(YAML::Node node, std::string field, uint32_t& val)
+bool fastcat::ParseVal(const YAML::Node& node, const std::string& field, uint32_t& val)
 {
   if (!node[field]) {
     ERROR("Expection uint32_t field: %s", field.c_str());
@@ -109,7 +109,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, uint32_t& val)
   return true;
 }
 
-bool fastcat::ParseVal(YAML::Node node, std::string field, int16_t& val)
+bool fastcat::ParseVal(const YAML::Node& node, const std::string& field, int16_t& val)
 {
   if (!node[field]) {
     ERROR("Expection int16_t field: %s", field.c_str());
@@ -120,7 +120,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, int16_t& val)
   return true;
 }
 
-bool fastcat::ParseVal(YAML::Node node, std::string field, uint16_t& val)
+bool fastcat::ParseVal(const YAML::Node& node, const std::string& field, uint16_t& val)
 {
   if (!node[field]) {
     ERROR("Expection uint16_t field: %s", field.c_str());
@@ -131,7 +131,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, uint16_t& val)
   return true;
 }
 
-bool fastcat::ParseVal(YAML::Node node, std::string field, int8_t& val)
+bool fastcat::ParseVal(const YAML::Node& node, const std::string& field, int8_t& val)
 {
   if (!node[field]) {
     ERROR("Expection int8_t field: %s", field.c_str());
@@ -142,7 +142,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, int8_t& val)
   return true;
 }
 
-bool fastcat::ParseVal(YAML::Node node, std::string field, uint8_t& val)
+bool fastcat::ParseVal(const YAML::Node& node, const std::string& field, uint8_t& val)
 {
   if (!node[field]) {
     ERROR("Expection uint8_t field: %s", field.c_str());
@@ -153,7 +153,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, uint8_t& val)
   return true;
 }
 
-bool fastcat::ParseVal(YAML::Node node, std::string field, bool& val)
+bool fastcat::ParseVal(const YAML::Node& node, const std::string& field, bool& val)
 {
   if (!node[field]) {
     ERROR("Expection bool field: %s", field.c_str());
@@ -165,7 +165,7 @@ bool fastcat::ParseVal(YAML::Node node, std::string field, bool& val)
   return true;
 }
 
-bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
+bool fastcat::ParseValCheckRange(const YAML::Node& node, const std::string& field,
                                  double& val, double lower, double upper)
 {
   if (!ParseVal(node, field, val)) {
@@ -180,7 +180,7 @@ bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
   return false;
 }
 
-bool fastcat::ParseValCheckRange(YAML::Node node, std::string field, float& val,
+bool fastcat::ParseValCheckRange(const YAML::Node& node, const std::string& field, float& val,
                                  float lower, float upper)
 {
   if (!ParseVal(node, field, val)) {
@@ -195,7 +195,7 @@ bool fastcat::ParseValCheckRange(YAML::Node node, std::string field, float& val,
   return false;
 }
 
-bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
+bool fastcat::ParseValCheckRange(const YAML::Node& node, const std::string& field,
                                  int32_t& val, int32_t lower, int32_t upper)
 {
   if (!ParseVal(node, field, val)) {
@@ -210,7 +210,7 @@ bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
   return false;
 }
 
-bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
+bool fastcat::ParseValCheckRange(const YAML::Node& node, const std::string& field,
                                  uint32_t& val, uint32_t lower, uint32_t upper)
 {
   if (!ParseVal(node, field, val)) {
@@ -225,7 +225,7 @@ bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
   return false;
 }
 
-bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
+bool fastcat::ParseValCheckRange(const YAML::Node& node, const std::string& field,
                                  int16_t& val, int16_t lower, int16_t upper)
 {
   if (!ParseVal(node, field, val)) {
@@ -240,7 +240,7 @@ bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
   return false;
 }
 
-bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
+bool fastcat::ParseValCheckRange(const YAML::Node& node, const std::string& field,
                                  uint16_t& val, int16_t lower, int16_t upper)
 {
   if (!ParseVal(node, field, val)) {
@@ -255,7 +255,7 @@ bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
   return false;
 }
 
-bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
+bool fastcat::ParseValCheckRange(const YAML::Node& node, const std::string& field,
                                  int8_t& val, int8_t lower, int8_t upper)
 {
   if (!ParseVal(node, field, val)) {
@@ -270,7 +270,7 @@ bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
   return false;
 }
 
-bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
+bool fastcat::ParseValCheckRange(const YAML::Node& node, const std::string& field,
                                  uint8_t& val, uint8_t lower, uint8_t upper)
 {
   if (!ParseVal(node, field, val)) {
@@ -287,7 +287,7 @@ bool fastcat::ParseValCheckRange(YAML::Node node, std::string field,
 
 // Optional value parsing
 
-bool fastcat::ParseOptVal(YAML::Node node, std::string field, double& val)
+bool fastcat::ParseOptVal(const YAML::Node& node, const std::string& field, double& val)
 {
   if (!node[field]) {
     MSG_DEBUG("Did not find optional double field: %s", field.c_str());
@@ -298,7 +298,7 @@ bool fastcat::ParseOptVal(YAML::Node node, std::string field, double& val)
   return true;
 }
 
-bool fastcat::ParseOptVal(YAML::Node node, std::string field, std::string& val)
+bool fastcat::ParseOptVal(const YAML::Node& node, const std::string& field, std::string& val)
 {
   if (!node[field]) {
     MSG_DEBUG("Did not find optional string field: %s", field.c_str());
@@ -309,7 +309,7 @@ bool fastcat::ParseOptVal(YAML::Node node, std::string field, std::string& val)
   return true;
 }
 
-bool fastcat::ParseOptVal(YAML::Node node, std::string field, bool& val)
+bool fastcat::ParseOptVal(const YAML::Node& node, const std::string& field, bool& val)
 {
   if (!node[field]) {
     MSG_DEBUG("Did not find optional bool field: %s", field.c_str());
@@ -321,7 +321,7 @@ bool fastcat::ParseOptVal(YAML::Node node, std::string field, bool& val)
   return true;
 }
 
-bool fastcat::ParseOptValCheckRange(YAML::Node node, std::string field,
+bool fastcat::ParseOptValCheckRange(const YAML::Node& node, const std::string& field,
                                     double& val, double lower, double upper)
 {
   if (!ParseOptVal(node, field, val)) {
