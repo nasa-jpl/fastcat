@@ -117,26 +117,26 @@ bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node, double external_ti
     return false;
   }
 
-  for (auto bus = buses_node.begin(); bus != buses_node.end(); ++bus) {
+  for (const auto& bus : buses_node) {
     std::string type;
-    if (!ParseVal(*bus, "type", type)) {
+    if (!ParseVal(bus, "type", type)) {
       return false;
     }
 
     if (0 == type.compare("jsd_bus")) {
-      if (!ConfigJSDBusFromYaml(*bus, external_time)) {
+      if (!ConfigJSDBusFromYaml(bus, external_time)) {
         ERROR("Failed to configure JSD bus");
         return false;
       }
 
     } else if (0 == type.compare("fastcat_bus")) {
-      if (!ConfigFastcatBusFromYaml(*bus, external_time)) {
+      if (!ConfigFastcatBusFromYaml(bus, external_time)) {
         ERROR("Failed to configure Fastcat bus");
         return false;
       }
 
     } else if (0 == type.compare("offline_bus")) {
-      if (!ConfigOfflineBusFromYaml(*bus, external_time)) {
+      if (!ConfigOfflineBusFromYaml(bus, external_time)) {
         ERROR("Failed to configure Offline bus");
         return false;
       }
@@ -516,11 +516,14 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
 {
   std::string ifname;
   if (!ParseVal(node, "ifname", ifname)) {
+    std::cout << "Failed to parse 'ifname'" << std::endl;
     return false;
+  
   }
 
   YAML::Node devices_node;
   if (!ParseList(node, "devices", devices_node)) {
+    std::cout << "Failed to parse 'devices'" << std::endl;
     return false;
   }
 
@@ -528,6 +531,7 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
   for (const auto& device_node : devices_node) {
     std::string device_class;
     if (!ParseVal(device_node, "device_class", device_class)) {
+      std::cout << "Failed to parse 'device_class'" << std::endl;
       return false;
     }
 
