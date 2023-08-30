@@ -114,7 +114,9 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
 
   // account for any latency between time when command message was generated
   // and when it is processed here
-  double dt = fmax(state_->time - cmd.actuator_csp_cmd.request_time, 0.0);
+  double dt = fmax((state_->time - cmd.actuator_csp_cmd.request_time), 0.0);
+  
+  MSG("monotonic time: %d, last_transition_time: %d, time: %d", state_->monotonic_time, last_transition_time_, state_->time);
   
   // reject command if request_time > 5 * loop_period, which indicates request
   // is stale, clocks are out of sync, or request_time was not correctly populated by
@@ -575,7 +577,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
     case ACTUATOR_SMS_CSP: {
         // account for updated position offset
         double dt = 
-          fmax(state_->time - last_device_cmd_.actuator_csp_cmd.request_time, 0.0);
+          fmax((state_->time - last_device_cmd_.actuator_csp_cmd.request_time), 0.0);
         double offset_target_position = 
           last_device_cmd_.actuator_csp_cmd.target_position + 
           last_device_cmd_.actuator_csp_cmd.velocity_offset * dt;
@@ -598,7 +600,8 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
       return ALL_DEVICE_FAULT;
   }
 
-  if ((state_->monotonic_time - last_transition_time_) > 5 * loop_period_) {
+  MSG("monotonic time: %d, last_transition_time: %d", state_->monotonic_time, last_transition_time_);
+  if ((state_->monotonic_time - last_transition_time_) > (5 * loop_period_)) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
   }
 
