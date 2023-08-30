@@ -111,6 +111,7 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
   }
 
   last_device_cmd_ = cmd;
+  csp_counts_ = 0;
 
   // account for any latency between time when command message was generated
   // and when it is processed here
@@ -580,6 +581,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
         double dt = 
           fmax((state_->time - last_device_cmd_.actuator_csp_cmd.request_time), 0.0);
         MSG("dt: %f", dt);
+        MSG("csp_counts_: %d", csp_counts_);
         double offset_target_position = 
           last_device_cmd_.actuator_csp_cmd.target_position + 
           last_device_cmd_.actuator_csp_cmd.velocity_offset * dt;
@@ -589,6 +591,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
         jsd_cmd.velocity_offset = EuToCnts(last_device_cmd_.actuator_csp_cmd.velocity_offset);
         jsd_cmd.torque_offset_amps = last_device_cmd_.actuator_csp_cmd.torque_offset_amps;
         ElmoCSP(jsd_cmd);
+        csp_counts_++;
       }
       break;
     case ACTUATOR_SMS_CSV:
