@@ -117,6 +117,7 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
   double dt = fmax((state_->time - cmd.actuator_csp_cmd.request_time), 0.0);
   
   MSG("HandleNewCSPCmd() %s: monotonic time: %f, last_transition_time: %f, time: %f", name_.c_str(), state_->monotonic_time, last_transition_time_, state_->time);
+  MSG("dt: %f", dt);
   
   // reject command if request_time > 5 * loop_period, which indicates request
   // is stale, clocks are out of sync, or request_time was not correctly populated by
@@ -578,6 +579,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
         // account for updated position offset
         double dt = 
           fmax((state_->time - last_device_cmd_.actuator_csp_cmd.request_time), 0.0);
+        MSG("dt: %f", dt);
         double offset_target_position = 
           last_device_cmd_.actuator_csp_cmd.target_position + 
           last_device_cmd_.actuator_csp_cmd.velocity_offset * dt;
