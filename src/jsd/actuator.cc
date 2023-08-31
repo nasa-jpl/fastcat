@@ -26,7 +26,7 @@ bool fastcat::Actuator::ConfigFromYaml(const YAML::Node& node)
 {
   actuator_sms_ = ACTUATOR_SMS_HALTED;
 
-  // monotonic_initialization_time_sec_ set by member method
+  // monotonic_initialization_time_sec_ set by base class method
   // SetInitializationTime, which must be called prior to ConfigFromYaml
   last_transition_time_ = monotonic_initialization_time_sec_;
 
