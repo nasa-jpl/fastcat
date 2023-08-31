@@ -131,16 +131,17 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
     return false;
   }
 
-  double offset_target_position = cmd.actuator_csp_cmd.target_position + 
-    cmd.actuator_csp_cmd.velocity_offset * dt;
-  jsd_elmo_motion_command_csp_t jsd_cmd;
-  jsd_cmd.target_position = PosEuToCnts(offset_target_position);
-  jsd_cmd.position_offset = EuToCnts(cmd.actuator_csp_cmd.position_offset);
-  jsd_cmd.velocity_offset = EuToCnts(cmd.actuator_csp_cmd.velocity_offset);
-  jsd_cmd.torque_offset_amps = cmd.actuator_csp_cmd.torque_offset_amps;
+  // double offset_target_position = cmd.actuator_csp_cmd.target_position + 
+  //   cmd.actuator_csp_cmd.velocity_offset * dt;
+  // jsd_elmo_motion_command_csp_t jsd_cmd;
+  // jsd_cmd.target_position = PosEuToCnts(offset_target_position);
+  // jsd_cmd.position_offset = EuToCnts(cmd.actuator_csp_cmd.position_offset);
+  // jsd_cmd.velocity_offset = EuToCnts(cmd.actuator_csp_cmd.velocity_offset);
+  // jsd_cmd.torque_offset_amps = cmd.actuator_csp_cmd.torque_offset_amps;
 
-  ElmoCSP(jsd_cmd);
+  // ElmoCSP(jsd_cmd);
 
+  // execution of command will be handled in ProcessCS function
   TransitionToState(ACTUATOR_SMS_CSP);
 
   return true;
