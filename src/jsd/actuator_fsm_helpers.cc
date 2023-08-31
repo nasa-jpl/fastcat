@@ -117,9 +117,6 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
   // and when it is processed here
   double dt = fmax((state_->time - cmd.actuator_csp_cmd.request_time), 0.0);
   
-  MSG("HandleNewCSPCmd() %s: monotonic time: %f, last_transition_time: %f, time: %f", name_.c_str(), state_->monotonic_time, last_transition_time_, state_->time);
-  MSG("dt: %f", dt);
-  
   // reject command if request_time > 5 * loop_period, which indicates request
   // is stale, clocks are out of sync, or request_time was not correctly populated by
   // calling module
@@ -131,6 +128,11 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
     return false;
   }
 
+  // We could deploy a CSP command on initial receipt of command per the code below,
+  // but we will cache the incoming command to `last_device_cmd_` and defer its execution 
+  // to the Process() function, which is always called after new commands are handled
+  // for JSD devices
+  //
   // double offset_target_position = cmd.actuator_csp_cmd.target_position + 
   //   cmd.actuator_csp_cmd.velocity_offset * dt;
   // jsd_elmo_motion_command_csp_t jsd_cmd;
@@ -138,10 +140,8 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
   // jsd_cmd.position_offset = EuToCnts(cmd.actuator_csp_cmd.position_offset);
   // jsd_cmd.velocity_offset = EuToCnts(cmd.actuator_csp_cmd.velocity_offset);
   // jsd_cmd.torque_offset_amps = cmd.actuator_csp_cmd.torque_offset_amps;
-
   // ElmoCSP(jsd_cmd);
 
-  // execution of command will be handled in ProcessCS function
   TransitionToState(ACTUATOR_SMS_CSP);
 
   return true;
@@ -581,8 +581,6 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
         // account for updated position offset
         double dt = 
           fmax((state_->time - last_device_cmd_.actuator_csp_cmd.request_time), 0.0);
-        MSG("dt: %f", dt);
-        MSG("csp_counts_: %d", csp_counts_);
         double offset_target_position = 
           last_device_cmd_.actuator_csp_cmd.target_position + 
           last_device_cmd_.actuator_csp_cmd.velocity_offset * dt;
@@ -605,7 +603,6 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
       ERROR("Invalid device state found for ProcessCS() function");
       return ALL_DEVICE_FAULT;
   }
-  MSG("ProcessCS() %s: monotonic time: %f, last_transition_time: %f, time: %f", name_.c_str(), state_->monotonic_time, last_transition_time_, state_->time);
  
   if ((state_->monotonic_time - last_transition_time_) > (5 * loop_period_)) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
