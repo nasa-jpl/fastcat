@@ -15,7 +15,7 @@ class Jed0200 : public JsdDeviceBase
 {
  public:
   Jed0200();
-  bool      ConfigFromYaml(const YAML::Node& node, double external_time = -1) override;
+  bool      ConfigFromYaml(const YAML::Node& node) override;
   bool      Read() override;
   FaultType Process() override;
   bool      Write(DeviceCmd& cmd) override;

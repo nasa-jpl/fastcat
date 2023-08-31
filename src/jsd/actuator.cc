@@ -22,17 +22,13 @@ fastcat::Actuator::Actuator()
   state_ = std::make_shared<DeviceState>();
 }
 
-bool fastcat::Actuator::ConfigFromYaml(const YAML::Node& node, double external_time)
+bool fastcat::Actuator::ConfigFromYaml(const YAML::Node& node)
 {
   actuator_sms_ = ACTUATOR_SMS_HALTED;
 
-  if (external_time < 0) {
-    // if not simulating, use monotonic time to compute durations
-    last_transition_time_ = jsd_time_get_mono_time_sec();
-  } else {
-    // if in simulation mode, monotonic time = linux time
-    last_transition_time_ = external_time;
-  }
+  // monotonic_initialization_time_sec_ set by member method
+  // SetInitializationTime, which must be called prior to ConfigFromYaml
+  last_transition_time_ = monotonic_initialization_time_sec_;
 
   if (!ParseVal(node, "name", name_)) {
     return false;

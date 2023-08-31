@@ -26,7 +26,7 @@ class Conditional : public DeviceBase
 {
  public:
   Conditional();
-  bool ConfigFromYaml(const YAML::Node& node, double external_time = -1) override;
+  bool ConfigFromYaml(const YAML::Node& node) override;
   bool Read() override;
 
  protected:

@@ -33,8 +33,7 @@ fastcat::SignalGenerator::SignalGenerator()
   state_->type = SIGNAL_GENERATOR_STATE;
 }
 
-bool fastcat::SignalGenerator::ConfigFromYaml(const YAML::Node& node,
-                                              double /*external_time*/)
+bool fastcat::SignalGenerator::ConfigFromYaml(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

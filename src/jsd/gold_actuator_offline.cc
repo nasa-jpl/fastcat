@@ -16,15 +16,10 @@ fastcat::GoldActuatorOffline::GoldActuatorOffline()
   memset(&jsd_egd_state_, 0, sizeof(jsd_egd_state_t));
 }
 
-bool fastcat::GoldActuatorOffline::ConfigFromYaml(const YAML::Node& node,
-                                                  double     external_time)
+bool fastcat::GoldActuatorOffline::ConfigFromYaml(const YAML::Node& node)
 {
-  if (external_time < 0) {
-    motor_on_start_time_ = jsd_time_get_time_sec();
-  } else {
-    motor_on_start_time_ = external_time;
-  }
-  return fastcat::GoldActuator::ConfigFromYaml(node, external_time);
+  motor_on_start_time_ = initialization_time_sec_;
+  return fastcat::GoldActuator::ConfigFromYaml(node);
 }
 
 void fastcat::GoldActuatorOffline::ElmoSetConfig()

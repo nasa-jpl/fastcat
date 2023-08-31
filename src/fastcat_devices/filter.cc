@@ -101,7 +101,7 @@ fastcat::Filter::Filter()
   state_->type = FILTER_STATE;
 }
 
-bool fastcat::Filter::ConfigFromYaml(const YAML::Node& node, double /*external_time*/)
+bool fastcat::Filter::ConfigFromYaml(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

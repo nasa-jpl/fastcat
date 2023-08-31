@@ -11,8 +11,7 @@
 
 fastcat::EgdOffline::EgdOffline() { MSG_DEBUG("Constructed EgdOffline"); }
 
-bool fastcat::EgdOffline::ConfigFromYaml(const YAML::Node& node,
-                                         double /*external_time*/)
+bool fastcat::EgdOffline::ConfigFromYaml(const YAML::Node& node)
 {
   return ConfigFromYamlCommon(node);
 }

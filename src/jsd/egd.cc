@@ -18,7 +18,7 @@ fastcat::Egd::Egd()
   state_->type = EGD_STATE;
 }
 
-bool fastcat::Egd::ConfigFromYaml(const YAML::Node& node, double /*external_time*/)
+bool fastcat::Egd::ConfigFromYaml(const YAML::Node& node)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config(context_, slave_id_, jsd_slave_config_);

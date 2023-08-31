@@ -10,8 +10,7 @@ ThreeNodeThermalModel::ThreeNodeThermalModel()
   last_time_   = state_->time;  // init time
 }
 
-bool ThreeNodeThermalModel::ConfigFromYaml(const YAML::Node& node,
-                                           double /*external_time*/)
+bool ThreeNodeThermalModel::ConfigFromYaml(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

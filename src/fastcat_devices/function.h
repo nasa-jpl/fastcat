@@ -37,7 +37,7 @@ class Function : public DeviceBase
 {
  public:
   Function();
-  bool ConfigFromYaml(const YAML::Node& node, double external_time = -1) override;
+  bool ConfigFromYaml(const YAML::Node& node) override;
   bool Read() override;
 
  protected:

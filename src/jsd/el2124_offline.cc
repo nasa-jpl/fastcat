@@ -10,8 +10,7 @@
 // Include external then project includes
 #include "fastcat/yaml_parser.h"
 
-bool fastcat::El2124Offline::ConfigFromYaml(const YAML::Node& node,
-                                            double /*external_time*/)
+bool fastcat::El2124Offline::ConfigFromYaml(const YAML::Node& node)
 {
   return ConfigFromYamlCommon(node);
 }

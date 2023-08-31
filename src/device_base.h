@@ -20,14 +20,19 @@ class DeviceBase
  public:
   virtual ~DeviceBase();
   // Pure virtual methods
-  virtual bool ConfigFromYaml(const YAML::Node& node, double external_time = -1) = 0;
-  virtual bool Read()                                                     = 0;
+  virtual bool ConfigFromYaml(const YAML::Node& node) = 0;
+  virtual bool Read()                                 = 0;
 
   // Non-pure virtual methods with default implementation
   virtual FaultType Process();
   virtual bool      Write(DeviceCmd& cmd);
   virtual void      Fault();
   virtual void      Reset();
+  virtual void SetInitializationTime(double time_sec, double monotonic_time_sec)
+  {
+    initialization_time_sec_           = time_sec;
+    monotonic_initialization_time_sec_ = monotonic_time_sec;
+  }
 
   // non-virtual methods
   void RegisterCmdQueue(std::shared_ptr<std::queue<DeviceCmd>> cmd_queue);
@@ -40,8 +45,11 @@ class DeviceBase
   std::vector<Signal> signals_;
 
  protected:
-  std::string name_;               ///< unique device name
-  double      loop_period_ = 0.0;  ///< only some devices need
+  std::string name_;  ///< unique device name
+
+  double loop_period_                       = 0.0;  ///< only some devices need
+  double initialization_time_sec_           = -1;   ///< only some devices need
+  double monotonic_initialization_time_sec_ = -1;   ///< only some devices need
 
   /// device-level fault, manager also has fault status flag
   bool device_fault_active_ = false;

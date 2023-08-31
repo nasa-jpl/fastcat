@@ -84,7 +84,8 @@ void fastcat::Manager::Shutdown()
   SaveActuatorPosFile();
 }
 
-bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node, double external_time)
+bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
+                                      double            external_time)
 {
   // Configure Fastcat Parameters
   YAML::Node fastcat_node;
@@ -224,7 +225,7 @@ bool fastcat::Manager::Process(double external_time)
   // method is invoked
   double read_time;
   double monotonic_time;
-  if (external_time < 0) {
+  if (external_time < 0.0) {
     read_time      = jsd_time_get_time_sec();
     monotonic_time = jsd_time_get_mono_time_sec();
   } else {
@@ -387,7 +388,7 @@ bool fastcat::Manager::RecoverBus(std::string ifname)
 }
 
 bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
-                                            double     external_time)
+                                            double            external_time)
 {
   std::string ifname;
   if (!ParseVal(node, "ifname", ifname)) {
@@ -410,6 +411,16 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
 
   std::shared_ptr<DeviceBase> device;
   uint16_t                    slave_id = 0;
+
+  double monotonic_time_sec = 0.0;
+  double time_sec           = 0.0;
+  if (external_time < 0) {
+    monotonic_time_sec = jsd_time_get_mono_time_sec();
+    time_sec           = jsd_time_get_time_sec();
+  } else {
+    monotonic_time_sec = external_time;
+    time_sec           = external_time;
+  }
 
   for (const auto& device_node : devices_node) {
     slave_id++;
@@ -489,8 +500,9 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
     jsdDevice->SetSlaveId(slave_id);
     jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
     jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
+    jsdDevice->SetInitializationTime(time_sec, monotonic_time_sec);
 
-    if (!device->ConfigFromYaml(device_node, external_time)) {
+    if (!device->ConfigFromYaml(device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
       return false;
@@ -512,17 +524,26 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
 }
 
 bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
-                                                double     external_time)
+                                                double            external_time)
 {
   std::string ifname;
   if (!ParseVal(node, "ifname", ifname)) {
     return false;
-  
   }
 
   YAML::Node devices_node;
   if (!ParseList(node, "devices", devices_node)) {
     return false;
+  }
+
+  double monotonic_time_sec = 0.0;
+  double time_sec           = 0.0;
+  if (external_time < 0.0) {
+    monotonic_time_sec = jsd_time_get_mono_time_sec();
+    time_sec           = jsd_time_get_time_sec();
+  } else {
+    monotonic_time_sec = external_time;
+    time_sec           = external_time;
   }
 
   std::shared_ptr<DeviceBase> device;
@@ -578,7 +599,8 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
       return false;
     }
 
-    if (!device->ConfigFromYaml(device_node, external_time)) {
+    device->SetInitializationTime(time_sec, monotonic_time_sec);
+    if (!device->ConfigFromYaml(device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
       return false;
@@ -597,7 +619,7 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
 }
 
 bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
-                                                double     external_time)
+                                                double            external_time)
 {
   // @TODO add other relevant bus level offline EGD parameters such as:
   // uint8_t plant_model;
@@ -612,6 +634,16 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
   YAML::Node devices_node;
   if (!ParseList(node, "devices", devices_node)) {
     return false;
+  }
+
+  double monotonic_time_sec = 0.0;
+  double time_sec           = 0.0;
+  if (external_time < 0) {
+    monotonic_time_sec = jsd_time_get_mono_time_sec();
+    time_sec           = jsd_time_get_time_sec();
+  } else {
+    monotonic_time_sec = external_time;
+    time_sec           = external_time;
   }
 
   std::shared_ptr<DeviceBase> device;
@@ -696,8 +728,8 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
     jsdDevice->SetSlaveId(slave_id);
     jsdDevice->SetOffline(true);
     jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
-
-    if (!device->ConfigFromYaml(device_node, external_time)) {
+    jsdDevice->SetInitializationTime(time_sec, monotonic_time_sec);
+    if (!device->ConfigFromYaml(device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
       return false;

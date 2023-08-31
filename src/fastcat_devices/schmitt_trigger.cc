@@ -15,8 +15,7 @@ fastcat::SchmittTrigger::SchmittTrigger()
   state_->type = SCHMITT_TRIGGER_STATE;
 }
 
-bool fastcat::SchmittTrigger::ConfigFromYaml(const YAML::Node& node,
-                                             double /*external_time*/)
+bool fastcat::SchmittTrigger::ConfigFromYaml(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

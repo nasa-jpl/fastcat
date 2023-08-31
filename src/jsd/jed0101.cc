@@ -16,7 +16,7 @@ fastcat::Jed0101::Jed0101()
   state_->type = JED0101_STATE;
 }
 
-bool fastcat::Jed0101::ConfigFromYaml(const YAML::Node& node, double /*external_time*/)
+bool fastcat::Jed0101::ConfigFromYaml(const YAML::Node& node)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);

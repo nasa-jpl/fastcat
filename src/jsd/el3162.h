@@ -15,7 +15,7 @@ class El3162 : public JsdDeviceBase
 {
  public:
   El3162();
-  bool ConfigFromYaml(const YAML::Node& node, double external_time = -1) override;
+  bool ConfigFromYaml(const YAML::Node& node) override;
   bool Read() override;
 
  protected:
