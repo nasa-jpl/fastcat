@@ -116,10 +116,10 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
   // and when it is processed here
   double dt = fmax((state_->time - cmd.actuator_csp_cmd.request_time), 0.0);
 
-  // reject command if request_time > 5 * loop_period, which indicates request
+  // reject command if request_time > 7 * loop_period, which indicates request
   // is stale, clocks are out of sync, or request_time was not correctly
   // populated by calling module
-  if (dt > (5.0 * loop_period_)) {
+  if (dt > (7.0 * loop_period_)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(),
           "Failing CSP Command due to stale request_time; "
@@ -604,7 +604,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
       return ALL_DEVICE_FAULT;
   }
 
-  if ((state_->monotonic_time - last_transition_time_) > (5 * loop_period_)) {
+  if ((state_->monotonic_time - last_transition_time_) > (7.0 * loop_period_)) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
   }
 
