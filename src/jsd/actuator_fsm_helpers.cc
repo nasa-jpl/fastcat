@@ -115,7 +115,8 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
   // account for any latency between time when command message was generated
   // and when it is processed here
   double dt = fmax((state_->time - cmd.actuator_csp_cmd.request_time), 0.0);
-  MSG("Initiating new CSP command with delay: %f", dt);
+  
+  // MSG("Initiating new CSP command with delay: %f", dt);
 
   // reject command if request_time > 10 * loop_period, which indicates request
   // is stale, clocks are out of sync, or request_time was not correctly
@@ -587,13 +588,13 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
           last_device_cmd_.actuator_csp_cmd.target_position +
           last_device_cmd_.actuator_csp_cmd.velocity_offset * dt;
       
-      MSG(
-        "ProcessCS(): target_position: %f, offset_position: %f, dt: %f, target_velocity: %f",
-        last_device_cmd_.actuator_csp_cmd.target_position,
-        offset_target_position,
-        dt,
-        last_device_cmd_.actuator_csp_cmd.velocity_offset
-      );
+      // MSG(
+      //   "ProcessCS(): target_position: %f, offset_position: %f, dt: %f, target_velocity: %f",
+      //   last_device_cmd_.actuator_csp_cmd.target_position,
+      //   offset_target_position,
+      //   dt,
+      //   last_device_cmd_.actuator_csp_cmd.velocity_offset
+      // );
       
       jsd_elmo_motion_command_csp_t jsd_cmd;
       jsd_cmd.target_position = PosEuToCnts(offset_target_position);
