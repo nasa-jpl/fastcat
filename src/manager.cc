@@ -35,8 +35,6 @@
 #include "fastcat/jsd/el1008_offline.h"
 #include "fastcat/jsd/el2124.h"
 #include "fastcat/jsd/el2124_offline.h"
-#include "fastcat/jsd/el2809.h"
-#include "fastcat/jsd/el2809_offline.h"
 #include "fastcat/jsd/el3104.h"
 #include "fastcat/jsd/el3104_offline.h"
 #include "fastcat/jsd/el3162.h"
