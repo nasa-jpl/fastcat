@@ -435,9 +435,6 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("El2124")) {
       device = std::make_shared<El2124>();
 
-    } else if (0 == device_class.compare("El2809")) {
-      device = std::make_shared<El2809>();
-
     } else if (0 == device_class.compare("El4102")) {
       device = std::make_shared<El4102>();
 
@@ -639,9 +636,6 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("El2124")) {
       device = std::make_shared<El2124Offline>();
-
-    } else if (0 == device_class.compare("El2809")) {
-      device = std::make_shared<El2809Offline>();
 
     } else if (0 == device_class.compare("El3208")) {
       device = std::make_shared<El3208Offline>();
