@@ -228,7 +228,9 @@ bool fastcat::Manager::Process(double external_time)
   double read_time;
   if (external_time > 0) {
     if (online_devices_exist_) {
-      ERROR("Applications cannot use online devices and supply external time, refusing to run");
+      ERROR(
+          "Applications cannot use online devices and supply external time, "
+          "refusing to run");
       return false;
     }
     read_time = external_time;
@@ -299,9 +301,9 @@ bool fastcat::Manager::Process(double external_time)
       } else {
         entry.device_name = "invalid name";
       }
-      MSG_DEBUG(
-          "JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)",
-          it->first.c_str(), entry.device_name.c_str(), entry.response.app_id);
+      MSG_DEBUG("JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)",
+                it->first.c_str(), entry.device_name.c_str(),
+                entry.response.app_id);
       sdo_response_queue_->push(entry);
     }
   }
@@ -470,8 +472,12 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
       device = std::make_shared<AtiFts>();
 
     } else if (0 == device_class.compare("Actuator")) {
-      WARNING("Starting in v0.12.0, Platinum device support has been added to Fastcat!");
-      WARNING("Therefore the 'Actuator' class has been renamed to the 'GoldActuator' to make room for the new 'PlatinumActuator' device");
+      WARNING(
+          "Starting in v0.12.0, Platinum device support has been added to "
+          "Fastcat!");
+      WARNING(
+          "Therefore the 'Actuator' class has been renamed to the "
+          "'GoldActuator' to make room for the new 'PlatinumActuator' device");
       ERROR("Update your topology for all 'Actuator' entries");
       return false;
 
@@ -678,8 +684,12 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
       device = std::make_shared<AtiFtsOffline>();
 
     } else if (0 == device_class.compare("Actuator")) {
-      WARNING("Starting in v0.12.0, Platinum device support has been added to Fastcat!");
-      WARNING("Therefore the 'Actuator' class has been renamed to the 'GoldActuator' to make room for the new 'PlatinumActuator' device");
+      WARNING(
+          "Starting in v0.12.0, Platinum device support has been added to "
+          "Fastcat!");
+      WARNING(
+          "Therefore the 'Actuator' class has been renamed to the "
+          "'GoldActuator' to make room for the new 'PlatinumActuator' device");
       ERROR("Update your topology for all 'Actuator' entries");
       return false;
 
@@ -928,8 +938,8 @@ bool fastcat::Manager::LoadActuatorPosFile()
 {
   // Look for the existence of at least one actuator in the topology
   bool actuators_in_topo = false;
-  for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end(); ++device) 
-  {
+  for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
+       ++device) {
     if ((*device)->GetState()->type == GOLD_ACTUATOR_STATE ||
         (*device)->GetState()->type == PLATINUM_ACTUATOR_STATE) {
       actuators_in_topo = true;

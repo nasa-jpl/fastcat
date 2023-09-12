@@ -40,8 +40,8 @@ class DeviceBase
   std::vector<Signal> signals_;
 
  protected:
-  std::string name_;         ///< unique device name
-  double      loop_period_;  ///< only some devices need
+  std::string name_;               ///< unique device name
+  double      loop_period_ = 0.0;  ///< only some devices need
 
   /// device-level fault, manager also has fault status flag
   bool device_fault_active_ = false;

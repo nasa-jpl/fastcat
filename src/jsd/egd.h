@@ -31,7 +31,7 @@ class Egd : public JsdDeviceBase
   jsd_slave_config_t jsd_slave_config_ = {0};
   jsd_egd_state_t    jsd_egd_state_    = {0};
 
-  double cs_cmd_freq_hz_;
+  double cs_cmd_freq_hz_ = 0.0;
 
  private:
   bool WriteProfiledMode(DeviceCmd& cmd);
