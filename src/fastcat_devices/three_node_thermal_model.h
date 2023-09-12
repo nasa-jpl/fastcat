@@ -11,7 +11,6 @@
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd_print.h"
-#include "jsd/jsd_time.h"
 
 namespace fastcat
 {

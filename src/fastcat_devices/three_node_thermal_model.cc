@@ -7,7 +7,7 @@ ThreeNodeThermalModel::ThreeNodeThermalModel()
 {
   state_       = std::make_shared<DeviceState>();
   state_->type = THREE_NODE_THERMAL_MODEL_STATE;
-  last_time_   = jsd_time_get_time_sec();  // init time
+  last_time_   = state_->time;  // init time
 }
 
 bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
@@ -140,7 +140,7 @@ FaultType ThreeNodeThermalModel::Process()
     }
     // throw fault if limit exceeded
     if (node_overtemp_persistences_[idx] > persistence_limit_) {
-      ERROR("Node %ld temperature (%f degrees Celsius) exceeded safety limit -- faulting", idx + 1u, node_temps_[idx]);
+      ERROR("Node %ld temperature exceeded safety limit -- faulting", idx + 1u);
       return ALL_DEVICE_FAULT;
     }
   }
