@@ -77,6 +77,13 @@ class ThreeNodeThermalModel : public DeviceBase
   double ref_temp_{0.0};  ///< the reference temperature for the winding
                           ///< resistance parameter, along with being used for
                           ///< calculating the dynamically varying resistance
+  double exp_smoothing_alpha_{1.0}; ///< this parameter specifies the extent
+                                    ///< to which smoothing is applied to the
+                                    ///< temperature sensor value      
+  bool awaiting_seed_temp_{false};  ///< this variable is used to delay setting 
+                                    ///< initial temperatures until we read the
+                                    ///< first temperature for node 3 and sets
+                                    ///< all nodes to that starting temperature
 
   // declare variables for storing signal data and estimates
   double motor_current_{
