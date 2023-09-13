@@ -14,7 +14,7 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | El3162           | Beckhoff      | 2-channel 0-10v SE Analog Input           |
 | El3602           | Beckhoff      | 2-channel +/-10v Diff. Analog Input       |
 | El2124           | Beckhoff      | 4-channel 5v Digital Output               |
-| El2809           | Beckhoff      | 16-channel 28v Digital Output             |
+| El2809           | Beckhoff      | 16-channel 24v Digital Output             |
 | El4102           | Beckhoff      | 2-channel 0-10v Analog Output             |
 | Ild1900          | Micro-Epsilon | Distance Laser Sensor                     |
 | AtiFts           | ATI           | Force-Torque Sensor                       |
