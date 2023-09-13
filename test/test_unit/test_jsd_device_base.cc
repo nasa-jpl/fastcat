@@ -16,7 +16,7 @@ class JsdDeviceBaseTest : public ::testing::Test
     device_.SetOffline(true);
   }
 
-  fastcat::GoldActuatorOffline                       device_;
+  fastcat::GoldActuatorOffline                      device_;
   std::shared_ptr<std::queue<fastcat::SdoResponse>> sdo_response_queue_;
 };
 

@@ -44,16 +44,19 @@ typedef struct {
 
 } fastcat_trap_t;
 
-int fastcat_trap_generate(fastcat_trap_t* self, double t_init, double pos_init, double pos_fini,
-                  double vel_init, double vel_fini, double max_vel, double acc);
+int fastcat_trap_generate(fastcat_trap_t* self, double t_init, double pos_init,
+                          double pos_fini, double vel_init, double vel_fini,
+                          double max_vel, double acc);
 
-int fastcat_trap_update(fastcat_trap_t* self, double t, double* pos, double* vel);
+int fastcat_trap_update(fastcat_trap_t* self, double t, double* pos,
+                        double* vel);
 
-int fastcat_trap_generate_vel(fastcat_trap_t* self, double t_init_sec, double pos_init,
-                      double vel_init, double vel_fini, double acc,
-                      double max_time);
+int fastcat_trap_generate_vel(fastcat_trap_t* self, double t_init_sec,
+                              double pos_init, double vel_init, double vel_fini,
+                              double acc, double max_time);
 
-int fastcat_trap_update_vel(fastcat_trap_t* self, double t, double* pos, double* vel);
+int fastcat_trap_update_vel(fastcat_trap_t* self, double t, double* pos,
+                            double* vel);
 
 #ifdef __cplusplus
 }

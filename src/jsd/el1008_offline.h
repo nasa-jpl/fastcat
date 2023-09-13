@@ -1,25 +1,20 @@
-#ifndef FASTCAT_SATURATION_H_
-#define FASTCAT_SATURATION_H_
+#ifndef FASTCAT_EL1008_OFFLINE_H_
+#define FASTCAT_EL1008_OFFLINE_H_
 
 // Include related header (for cc files)
 
 // Include c then c++ libraries
 
 // Include external then project includes
-#include "fastcat/device_base.h"
+#include "fastcat/jsd/el1008.h"
 
 namespace fastcat
 {
-class Saturation : public DeviceBase
+class El1008Offline : public El1008
 {
  public:
-  Saturation();
   bool ConfigFromYaml(YAML::Node node) override;
   bool Read() override;
-
- protected:
-  double lower_limit_ = 0.0;
-  double upper_limit_ = 0.0;
 };
 
 }  // namespace fastcat

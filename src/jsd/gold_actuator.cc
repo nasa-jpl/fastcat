@@ -14,12 +14,15 @@ void fastcat::GoldActuator::PopulateJsdSlaveConfig()
 {
   jsd_slave_config_.product_code = JSD_EGD_PRODUCT_CODE;
 
-  jsd_slave_config_.egd.drive_cmd_mode    = JSD_EGD_DRIVE_CMD_MODE_CS;
-  jsd_slave_config_.egd.max_motor_speed   = EuToCnts(params_.max_speed_eu_per_sec);
-  jsd_slave_config_.egd.loop_period_ms    = lround(loop_period_ * 1000.0);
-  jsd_slave_config_.egd.torque_slope      = params_.torque_slope_amps_per_sec;
-  jsd_slave_config_.egd.max_profile_accel = EuToCnts(params_.max_accel_eu_per_sec2);
-  jsd_slave_config_.egd.max_profile_decel = EuToCnts(params_.max_accel_eu_per_sec2);
+  jsd_slave_config_.egd.drive_cmd_mode = JSD_EGD_DRIVE_CMD_MODE_CS;
+  jsd_slave_config_.egd.max_motor_speed =
+      EuToCnts(params_.max_speed_eu_per_sec);
+  jsd_slave_config_.egd.loop_period_ms = lround(loop_period_ * 1000.0);
+  jsd_slave_config_.egd.torque_slope   = params_.torque_slope_amps_per_sec;
+  jsd_slave_config_.egd.max_profile_accel =
+      EuToCnts(params_.max_accel_eu_per_sec2);
+  jsd_slave_config_.egd.max_profile_decel =
+      EuToCnts(params_.max_accel_eu_per_sec2);
   jsd_slave_config_.egd.velocity_tracking_error =
       EuToCnts(params_.vel_tracking_error_eu_per_sec);
   jsd_slave_config_.egd.position_tracking_error =
@@ -33,14 +36,15 @@ void fastcat::GoldActuator::PopulateJsdSlaveConfig()
   jsd_slave_config_.egd.motor_stuck_timeout            = 0.0f;  // disable
   jsd_slave_config_.egd.over_speed_threshold =
       params_.over_speed_multiplier * EuToCnts(params_.max_speed_eu_per_sec);
-  jsd_slave_config_.egd.low_position_limit   = 0;  // disable
-  jsd_slave_config_.egd.high_position_limit  = 0;  // disable
-  jsd_slave_config_.egd.brake_engage_msec    = params_.elmo_brake_engage_msec;
-  jsd_slave_config_.egd.brake_disengage_msec = params_.elmo_brake_disengage_msec;
-  jsd_slave_config_.egd.crc                  = params_.elmo_crc;
+  jsd_slave_config_.egd.low_position_limit  = 0;  // disable
+  jsd_slave_config_.egd.high_position_limit = 0;  // disable
+  jsd_slave_config_.egd.brake_engage_msec   = params_.elmo_brake_engage_msec;
+  jsd_slave_config_.egd.brake_disengage_msec =
+      params_.elmo_brake_disengage_msec;
+  jsd_slave_config_.egd.crc = params_.elmo_crc;
   jsd_slave_config_.egd.drive_max_current_limit =
       params_.elmo_drive_max_cur_limit_amps;
-  jsd_slave_config_.egd.smooth_factor = params_.smooth_factor;
+  jsd_slave_config_.egd.smooth_factor             = params_.smooth_factor;
   jsd_slave_config_.egd.ctrl_gain_scheduling_mode = ctrl_gs_mode_;
 }
 
@@ -115,9 +119,11 @@ void fastcat::GoldActuator::ElmoSetPeakCurrent(double current)
   jsd_egd_set_peak_current((jsd_t*)context_, slave_id_, current);
 }
 
-void fastcat::GoldActuator::ElmoSetDigitalOutput(uint8_t digital_output_index, uint8_t output_level)
+void fastcat::GoldActuator::ElmoSetDigitalOutput(uint8_t digital_output_index,
+                                                 uint8_t output_level)
 {
-  jsd_egd_set_digital_output((jsd_t*)context_, slave_id_, digital_output_index, output_level);
+  jsd_egd_set_digital_output((jsd_t*)context_, slave_id_, digital_output_index,
+                             output_level);
 }
 
 void fastcat::GoldActuator::ElmoSetUnitMode(int32_t mode, uint16_t app_id)
@@ -144,7 +150,7 @@ void fastcat::GoldActuator::ElmoFault()
   jsd_egd_fault((jsd_t*)context_, slave_id_);
 
   // TODO review with david
-  // need to clear so that old commands are not left over 
+  // need to clear so that old commands are not left over
   //  for new commands
   jsd_egd_state_.cmd_position = 0;
   jsd_egd_state_.cmd_velocity = 0;
@@ -218,11 +224,11 @@ bool fastcat::GoldActuator::HandleNewProfVelCmdImpl(const DeviceCmd& cmd)
   }
 
   fastcat_trap_generate_vel(&trap_, state_->time,
-                    state_->gold_actuator_state.actual_position,
-                    state_->gold_actuator_state.cmd_velocity,
-                    cmd.actuator_prof_vel_cmd.target_velocity,
-                    cmd.actuator_prof_vel_cmd.profile_accel,
-                    cmd.actuator_prof_vel_cmd.max_duration);
+                            state_->gold_actuator_state.actual_position,
+                            state_->gold_actuator_state.cmd_velocity,
+                            cmd.actuator_prof_vel_cmd.target_velocity,
+                            cmd.actuator_prof_vel_cmd.profile_accel,
+                            cmd.actuator_prof_vel_cmd.max_duration);
 
   TransitionToState(ACTUATOR_SMS_PROF_VEL);
 
@@ -240,9 +246,9 @@ bool fastcat::GoldActuator::HandleNewProfTorqueCmdImpl(const DeviceCmd& cmd)
   }
 
   fastcat_trap_generate_vel(&trap_, state_->time, 0, 0,
-                    cmd.actuator_prof_torque_cmd.target_torque_amps,
-                    params_.torque_slope_amps_per_sec,
-                    cmd.actuator_prof_torque_cmd.max_duration);
+                            cmd.actuator_prof_torque_cmd.target_torque_amps,
+                            params_.torque_slope_amps_per_sec,
+                            cmd.actuator_prof_torque_cmd.max_duration);
 
   TransitionToState(ACTUATOR_SMS_PROF_TORQUE);
 
@@ -264,7 +270,7 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfVel()
   jsd_elmo_motion_command_csv_t jsd_cmd;
 
   double pos_eu, vel;
-  int    complete = fastcat_trap_update_vel(&trap_, state_->time, &pos_eu, &vel);
+  int complete = fastcat_trap_update_vel(&trap_, state_->time, &pos_eu, &vel);
 
   jsd_cmd.target_velocity    = EuToCnts(vel);
   jsd_cmd.velocity_offset    = 0;
@@ -290,7 +296,8 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfTorque()
   jsd_elmo_motion_command_cst_t jsd_cmd;
 
   double dummy_pos_eu, current;
-  int complete = fastcat_trap_update_vel(&trap_, state_->time, &dummy_pos_eu, &current);
+  int    complete =
+      fastcat_trap_update_vel(&trap_, state_->time, &dummy_pos_eu, &current);
 
   jsd_cmd.target_torque_amps = current;
   jsd_cmd.torque_offset_amps = 0;
@@ -361,11 +368,11 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfVelDisengaging()
     // If brakes are disengaged, setup the traps and transition to the execution
     // state
     fastcat_trap_generate_vel(&trap_, state_->time,
-                      state_->gold_actuator_state.actual_position,
-                      state_->gold_actuator_state.cmd_velocity,
-                      last_cmd_.actuator_prof_vel_cmd.target_velocity,
-                      last_cmd_.actuator_prof_vel_cmd.profile_accel,
-                      last_cmd_.actuator_prof_vel_cmd.max_duration);
+                              state_->gold_actuator_state.actual_position,
+                              state_->gold_actuator_state.cmd_velocity,
+                              last_cmd_.actuator_prof_vel_cmd.target_velocity,
+                              last_cmd_.actuator_prof_vel_cmd.profile_accel,
+                              last_cmd_.actuator_prof_vel_cmd.max_duration);
 
     TransitionToState(ACTUATOR_SMS_PROF_VEL);
 
@@ -403,10 +410,11 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfTorqueDisengaging()
   if (state_->gold_actuator_state.servo_enabled) {
     // If brakes are disengaged, setup the traps and transition to the execution
     // state
-    fastcat_trap_generate_vel(&trap_, state_->time, 0, 0,
-                      last_cmd_.actuator_prof_torque_cmd.target_torque_amps,
-                      params_.torque_slope_amps_per_sec,
-                      last_cmd_.actuator_prof_torque_cmd.max_duration);
+    fastcat_trap_generate_vel(
+        &trap_, state_->time, 0, 0,
+        last_cmd_.actuator_prof_torque_cmd.target_torque_amps,
+        params_.torque_slope_amps_per_sec,
+        last_cmd_.actuator_prof_torque_cmd.max_duration);
 
     TransitionToState(ACTUATOR_SMS_PROF_TORQUE);
 

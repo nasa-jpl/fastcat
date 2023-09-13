@@ -25,11 +25,14 @@
 #include "fastcat/fastcat_devices/saturation.h"
 #include "fastcat/fastcat_devices/schmitt_trigger.h"
 #include "fastcat/fastcat_devices/signal_generator.h"
+#include "fastcat/fastcat_devices/three_node_thermal_model.h"
 #include "fastcat/fastcat_devices/virtual_fts.h"
 #include "fastcat/jsd/ati_fts.h"
 #include "fastcat/jsd/ati_fts_offline.h"
 #include "fastcat/jsd/egd.h"
 #include "fastcat/jsd/egd_offline.h"
+#include "fastcat/jsd/el1008.h"
+#include "fastcat/jsd/el1008_offline.h"
 #include "fastcat/jsd/el2124.h"
 #include "fastcat/jsd/el2124_offline.h"
 #include "fastcat/jsd/el3104.h"
@@ -225,7 +228,9 @@ bool fastcat::Manager::Process(double external_time)
   double read_time;
   if (external_time > 0) {
     if (online_devices_exist_) {
-      ERROR("Applications cannot use online devices and supply external time, refusing to run");
+      ERROR(
+          "Applications cannot use online devices and supply external time, "
+          "refusing to run");
       return false;
     }
     read_time = external_time;
@@ -296,9 +301,9 @@ bool fastcat::Manager::Process(double external_time)
       } else {
         entry.device_name = "invalid name";
       }
-      MSG_DEBUG(
-          "JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)",
-          it->first.c_str(), entry.device_name.c_str(), entry.response.app_id);
+      MSG_DEBUG("JSD bus:(%s) new SDO response for device:(%s) app_id:(%d)",
+                it->first.c_str(), entry.device_name.c_str(),
+                entry.response.app_id);
       sdo_response_queue_->push(entry);
     }
   }
@@ -436,7 +441,10 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("El3162")) {
       device = std::make_shared<El3162>();
 
-    } else if (0 == device_class.compare("El3104")) {
+    } else if (0 == device_class.compare("El1008")) {
+      device = std::make_shared<El1008>();
+
+    }else if (0 == device_class.compare("El3104")) {
       device = std::make_shared<El3104>();
 
     } else if (0 == device_class.compare("El3202")) {
@@ -464,8 +472,12 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
       device = std::make_shared<AtiFts>();
 
     } else if (0 == device_class.compare("Actuator")) {
-      WARNING("Starting in v0.12.0, Platinum device support has been added to Fastcat!");
-      WARNING("Therefore the 'Actuator' class has been renamed to the 'GoldActuator' to make room for the new 'PlatinumActuator' device");
+      WARNING(
+          "Starting in v0.12.0, Platinum device support has been added to "
+          "Fastcat!");
+      WARNING(
+          "Therefore the 'Actuator' class has been renamed to the "
+          "'GoldActuator' to make room for the new 'PlatinumActuator' device");
       ERROR("Update your topology for all 'Actuator' entries");
       return false;
 
@@ -563,6 +575,9 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("LinearInterpolation")) {
       device = std::make_shared<LinearInterpolation>();
 
+    } else if (0 == device_class.compare("ThreeNodeThermalModel")) {
+      device = std::make_shared<ThreeNodeThermalModel>();
+
     } else {
       ERROR("Unknown device_class: %s", device_class.c_str());
       return false;
@@ -647,7 +662,10 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
     } else if (0 == device_class.compare("El3162")) {
       device = std::make_shared<El3162Offline>();
 
-    } else if (0 == device_class.compare("Ild1900")) {
+    } else if (0 == device_class.compare("El1008")) {
+      device = std::make_shared<El1008Offline>();
+
+    }else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900Offline>();
 
     } else if (0 == device_class.compare("GoldActuator")) {
@@ -666,8 +684,12 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
       device = std::make_shared<AtiFtsOffline>();
 
     } else if (0 == device_class.compare("Actuator")) {
-      WARNING("Starting in v0.12.0, Platinum device support has been added to Fastcat!");
-      WARNING("Therefore the 'Actuator' class has been renamed to the 'GoldActuator' to make room for the new 'PlatinumActuator' device");
+      WARNING(
+          "Starting in v0.12.0, Platinum device support has been added to "
+          "Fastcat!");
+      WARNING(
+          "Therefore the 'Actuator' class has been renamed to the "
+          "'GoldActuator' to make room for the new 'PlatinumActuator' device");
       ERROR("Update your topology for all 'Actuator' entries");
       return false;
 
@@ -916,8 +938,8 @@ bool fastcat::Manager::LoadActuatorPosFile()
 {
   // Look for the existence of at least one actuator in the topology
   bool actuators_in_topo = false;
-  for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end(); ++device) 
-  {
+  for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
+       ++device) {
     if ((*device)->GetState()->type == GOLD_ACTUATOR_STATE ||
         (*device)->GetState()->type == PLATINUM_ACTUATOR_STATE) {
       actuators_in_topo = true;

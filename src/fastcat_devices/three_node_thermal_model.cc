@@ -7,7 +7,7 @@ ThreeNodeThermalModel::ThreeNodeThermalModel()
 {
   state_       = std::make_shared<DeviceState>();
   state_->type = THREE_NODE_THERMAL_MODEL_STATE;
-  last_time_   = state_->time;  // init time
+  last_time_   = jsd_time_get_time_sec();  // init time
 }
 
 bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
@@ -53,17 +53,25 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  if (!ParseVal(node, "persistence_limit", persistence_limit_)) {
+  if (!ParseOptVal(node, "ref_temp", ref_temp_)) {
+    awaiting_seed_temp_ = true;
+  }
+
+  if (!ParseOptVal(node, "exp_smoothing_alpha", exp_smoothing_alpha_)) {
+    exp_smoothing_alpha_ = 1.0; // If we set this to 1, it is the same as having no exp. smoothing
+  }
+  else if (exp_smoothing_alpha_ < 0.0 || exp_smoothing_alpha_ > 1.0) {
+    ERROR("Invalid choice for exp_smoothing_alpha! This must be between 0.0 and 1.0 for stability!");
     return false;
   }
 
-  if (!ParseVal(node, "ref_temp", ref_temp_)) {
-    return false;
-  }
-  // initialize all temps to ref_temp
-  // Note: this can be manually seeded later
-  for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
-    node_temps_[idx] = ref_temp_;
+  else {
+    awaiting_seed_temp_ = false;
+    // initialize all temps to ref_temp
+    // Note: this can be manually seeded later
+    for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
+      node_temps_[idx] = ref_temp_;
+    }
   }
 
   YAML::Node max_allowable_temp_node;
@@ -103,10 +111,17 @@ bool ThreeNodeThermalModel::Read()
     }
   }
 
-  // store them
-  node_temps_[2] =
-      signals_[NODE_3_TEMP_IDX].value;  // node 3 temperature is directly taken
-                                        // from the signal measurement
+  double node_3_temp_sample = signals_[NODE_3_TEMP_IDX].value;
+
+  if (awaiting_seed_temp_) { 
+    for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
+      node_temps_[idx] = node_3_temp_sample;
+    }
+    awaiting_seed_temp_ = false;
+  }
+
+  node_temps_[2] = exp_smoothing_alpha_ * node_3_temp_sample + (1.0 - exp_smoothing_alpha_) * node_temps_[2];
+
   motor_current_ = signals_[MOTOR_CURRENT_IDX].value;
   return true;
 }
@@ -140,7 +155,7 @@ FaultType ThreeNodeThermalModel::Process()
     }
     // throw fault if limit exceeded
     if (node_overtemp_persistences_[idx] > persistence_limit_) {
-      ERROR("Node %ld temperature exceeded safety limit -- faulting", idx + 1u);
+      ERROR("Node %ld temperature (%f degrees Celsius) exceeded safety limit -- faulting", idx + 1u, node_temps_[idx]);
       return ALL_DEVICE_FAULT;
     }
   }

@@ -11,6 +11,7 @@
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd_print.h"
+#include "jsd/jsd_time.h"
 
 namespace fastcat
 {
@@ -65,7 +66,7 @@ class ThreeNodeThermalModel : public DeviceBase
   double thermal_res_nodes_2_to_3_{
       0.0};  ///< thermal resistance from node 2 to 3 (deg C / W)
   double winding_res_{0.0};  ///< motor winding electrical resistance (ohms)
-  double winding_thermal_cor_{0.0};  ///< coefficient of resistance
+  double winding_thermal_cor_{0.0};     ///< coefficient of resistance
   double k1_{0.0}, k2_{0.0}, k3_{0.0};  ///< weights for T4 estimate
 
   // declare fault protection parameters
@@ -76,6 +77,13 @@ class ThreeNodeThermalModel : public DeviceBase
   double ref_temp_{0.0};  ///< the reference temperature for the winding
                           ///< resistance parameter, along with being used for
                           ///< calculating the dynamically varying resistance
+  double exp_smoothing_alpha_{1.0}; ///< this parameter specifies the extent
+                                    ///< to which smoothing is applied to the
+                                    ///< temperature sensor value      
+  bool awaiting_seed_temp_{false};  ///< this variable is used to delay setting 
+                                    ///< initial temperatures until we read the
+                                    ///< first temperature for node 3 and sets
+                                    ///< all nodes to that starting temperature
 
   // declare variables for storing signal data and estimates
   double motor_current_{

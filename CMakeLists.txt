@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.11)
 project(fastcat
     DESCRIPTION "C++ EtherCAT Device Command & Control Library"
-    VERSION 0.12.1
+    VERSION 0.12.11
     LANGUAGES C CXX
     )
 
@@ -21,6 +21,25 @@ if(DISABLE_DEBUG_PRINTS)
 else(DISABLE_DEBUG_PRINTS)
     add_definitions(-DDEBUG)
 endif(DISABLE_DEBUG_PRINTS)
+
+option(ENABLE_CPPCHECK "Enable static analysis using cppcheck" OFF)
+if(ENABLE_CPPCHECK)
+  find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
+  if (CMAKE_CXX_CPPCHECK)
+      list(
+        APPEND CMAKE_CXX_CPPCHECK
+          "--enable=warning"
+          "--inconclusive"
+          "--force"
+          "--inline-suppr"
+          "--suppressions-list=${CMAKE_CURRENT_SOURCE_DIR}/.cppcheck_suppressions.txt"
+      )
+  else()
+      message(
+        WARNING
+        "cppcheck was not found on this system; code static analysis will not be performed")
+  endif()
+endif()
 
 # @TODO(kwehage,abrinkma) Clean up missing-field-initializers warnings
 add_definitions(
@@ -54,7 +73,7 @@ find_package(YamlCpp REQUIRED 0.6.3)
 include(FetchContent)
 FetchContent_Declare(jsd
     GIT_REPOSITORY https://github.com/nasa-jpl/jsd.git
-    GIT_TAG v2.3.3
+    GIT_TAG v2.3.8
     )
 FetchContent_MakeAvailable(jsd)
 

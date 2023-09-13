@@ -78,7 +78,8 @@ bool fastcat::Fts::ConfigFromYaml(YAML::Node node)
 
   size_t el = 0;
   for (auto cc = calib_node.begin(); cc != calib_node.end(); ++cc) {
-    calibration_[el / signals_.size()][el % signals_.size()] = (*cc).as<double>();
+    calibration_[el / signals_.size()][el % signals_.size()] =
+        (*cc).as<double>();
     el++;
   }
 

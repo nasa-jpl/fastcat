@@ -18,8 +18,8 @@ class MovingAverageFilter
 
  private:
   std::vector<double> buffer_;
-  uint16_t            buffer_size_;
-  uint16_t            buffer_index_{0};
+  uint16_t            buffer_size_  = 0;
+  uint16_t            buffer_index_ = 0;
 };
 
 class DigitalABFilter
@@ -48,7 +48,7 @@ class Filter : public DeviceBase
 
  protected:
   std::string                          filter_type_string_;
-  enum FilterType                      filter_type_;
+  enum FilterType                      filter_type_ = BAD_FILTER_TYPE;
   std::unique_ptr<MovingAverageFilter> mov_avg_;
   std::unique_ptr<DigitalABFilter>     digital_ab_;
 };

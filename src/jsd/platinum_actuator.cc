@@ -7,17 +7,23 @@
 
 // Include external then project includes
 
-fastcat::PlatinumActuator::PlatinumActuator() { state_->type = PLATINUM_ACTUATOR_STATE; }
+fastcat::PlatinumActuator::PlatinumActuator()
+{
+  state_->type = PLATINUM_ACTUATOR_STATE;
+}
 
 void fastcat::PlatinumActuator::PopulateJsdSlaveConfig()
 {
-  jsd_slave_config_.product_code = JSD_EPD_PRODUCT_CODE;
+  jsd_slave_config_.product_code = JSD_EPD_PRODUCT_CODE_STD_FW;
 
-  jsd_slave_config_.epd.max_motor_speed   = EuToCnts(params_.max_speed_eu_per_sec);
-  jsd_slave_config_.epd.loop_period_ms    = lround(loop_period_ * 1000.0);
-  jsd_slave_config_.epd.torque_slope      = params_.torque_slope_amps_per_sec;
-  jsd_slave_config_.epd.max_profile_accel = EuToCnts(params_.max_accel_eu_per_sec2);
-  jsd_slave_config_.epd.max_profile_decel = EuToCnts(params_.max_accel_eu_per_sec2);
+  jsd_slave_config_.epd.max_motor_speed =
+      EuToCnts(params_.max_speed_eu_per_sec);
+  jsd_slave_config_.epd.loop_period_ms = lround(loop_period_ * 1000.0);
+  jsd_slave_config_.epd.torque_slope   = params_.torque_slope_amps_per_sec;
+  jsd_slave_config_.epd.max_profile_accel =
+      EuToCnts(params_.max_accel_eu_per_sec2);
+  jsd_slave_config_.epd.max_profile_decel =
+      EuToCnts(params_.max_accel_eu_per_sec2);
   jsd_slave_config_.epd.velocity_tracking_error =
       EuToCnts(params_.vel_tracking_error_eu_per_sec);
   jsd_slave_config_.epd.position_tracking_error =
@@ -38,10 +44,11 @@ void fastcat::PlatinumActuator::PopulateJsdSlaveConfig()
       0.0;  // Disable out of position limits protection
   jsd_slave_config_.epd.high_position_limit =
       0.0;  // Disable out of position limits protection
-  jsd_slave_config_.epd.brake_engage_msec    = params_.elmo_brake_engage_msec;
-  jsd_slave_config_.epd.brake_disengage_msec = params_.elmo_brake_disengage_msec;
-  jsd_slave_config_.epd.crc                  = params_.elmo_crc;
-  jsd_slave_config_.epd.smooth_factor        = params_.smooth_factor;
+  jsd_slave_config_.epd.brake_engage_msec = params_.elmo_brake_engage_msec;
+  jsd_slave_config_.epd.brake_disengage_msec =
+      params_.elmo_brake_disengage_msec;
+  jsd_slave_config_.epd.crc                       = params_.elmo_crc;
+  jsd_slave_config_.epd.smooth_factor             = params_.smooth_factor;
   jsd_slave_config_.epd.ctrl_gain_scheduling_mode = ctrl_gs_mode_;
 }
 
@@ -51,7 +58,8 @@ void fastcat::PlatinumActuator::PopulateState()
       PosCntsToEu(jsd_epd_state_.actual_position);
   state_->platinum_actuator_state.actual_velocity =
       CntsToEu(jsd_epd_state_.actual_velocity);
-  state_->platinum_actuator_state.actual_current = jsd_epd_state_.actual_current;
+  state_->platinum_actuator_state.actual_current =
+      jsd_epd_state_.actual_current;
 
   state_->platinum_actuator_state.cmd_position =
       PosCntsToEu(jsd_epd_state_.cmd_position + jsd_epd_state_.cmd_ff_position);
@@ -64,18 +72,21 @@ void fastcat::PlatinumActuator::PopulateState()
       jsd_epd_state_.cmd_prof_velocity;
   state_->platinum_actuator_state.cmd_prof_end_velocity =
       jsd_epd_state_.cmd_prof_end_velocity;
-  state_->platinum_actuator_state.cmd_prof_accel = jsd_epd_state_.cmd_prof_accel;
+  state_->platinum_actuator_state.cmd_prof_accel =
+      jsd_epd_state_.cmd_prof_accel;
 
-  state_->platinum_actuator_state.cmd_max_current = jsd_epd_state_.cmd_max_current;
+  state_->platinum_actuator_state.cmd_max_current =
+      jsd_epd_state_.cmd_max_current;
 
   state_->platinum_actuator_state.elmo_state_machine_state =
       static_cast<uint32_t>(jsd_epd_state_.actual_state_machine_state);
   state_->platinum_actuator_state.elmo_mode_of_operation =
       static_cast<uint32_t>(jsd_epd_state_.actual_mode_of_operation);
 
-  state_->platinum_actuator_state.sto_engaged    = jsd_epd_state_.sto_engaged;
-  state_->platinum_actuator_state.hall_state     = jsd_epd_state_.hall_state;
-  state_->platinum_actuator_state.target_reached = jsd_epd_state_.target_reached;
+  state_->platinum_actuator_state.sto_engaged = jsd_epd_state_.sto_engaged;
+  state_->platinum_actuator_state.hall_state  = jsd_epd_state_.hall_state;
+  state_->platinum_actuator_state.target_reached =
+      jsd_epd_state_.target_reached;
   state_->platinum_actuator_state.setpoint_ack_rise =
       jsd_epd_state_.setpoint_ack_rise;
   state_->platinum_actuator_state.motor_on      = jsd_epd_state_.motor_on;
@@ -85,8 +96,10 @@ void fastcat::PlatinumActuator::PopulateState()
       static_cast<uint32_t>(jsd_epd_state_.fault_code);
   state_->platinum_actuator_state.fastcat_fault_code =
       static_cast<uint32_t>(fastcat_fault_);
-  state_->platinum_actuator_state.emcy_error_code = jsd_epd_state_.emcy_error_code;
-  state_->platinum_actuator_state.faulted = (actuator_sms_ == ACTUATOR_SMS_FAULTED);
+  state_->platinum_actuator_state.emcy_error_code =
+      jsd_epd_state_.emcy_error_code;
+  state_->platinum_actuator_state.faulted =
+      (actuator_sms_ == ACTUATOR_SMS_FAULTED);
 
   state_->platinum_actuator_state.bus_voltage = jsd_epd_state_.bus_voltage;
   state_->platinum_actuator_state.drive_temperature =
@@ -94,7 +107,8 @@ void fastcat::PlatinumActuator::PopulateState()
 
   state_->platinum_actuator_state.elmo_actual_position =
       jsd_epd_state_.actual_position;
-  state_->platinum_actuator_state.elmo_cmd_position = jsd_epd_state_.cmd_position;
+  state_->platinum_actuator_state.elmo_cmd_position =
+      jsd_epd_state_.cmd_position;
 
   state_->platinum_actuator_state.actuator_state_machine_state =
       static_cast<uint32_t>(actuator_sms_);
@@ -206,7 +220,8 @@ fastcat::FaultType fastcat::PlatinumActuator::ProcessProfPos()
 
   // Transition to ACTUATOR_SMS_HOLDING once profile execution is complete if
   // the option to actively hold position is not on.
-  if (state_->platinum_actuator_state.target_reached && !params_.prof_pos_hold) {
+  if (state_->platinum_actuator_state.target_reached &&
+      !params_.prof_pos_hold) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
   }
 
@@ -280,6 +295,11 @@ void fastcat::PlatinumActuator::ElmoRead()
          sizeof(jsd_epd_state_t));
 }
 
+void fastcat::PlatinumActuator::ElmoClearErrors()
+{
+  jsd_epd_clear_errors((jsd_t*)context_, slave_id_);
+}
+
 void fastcat::PlatinumActuator::ElmoReset()
 {
   jsd_epd_reset((jsd_t*)context_, slave_id_);
@@ -290,9 +310,11 @@ void fastcat::PlatinumActuator::ElmoSetPeakCurrent(double current)
   jsd_epd_set_peak_current((jsd_t*)context_, slave_id_, current);
 }
 
-void fastcat::PlatinumActuator::ElmoSetDigitalOutput(uint8_t digital_output_index, uint8_t output_level)
+void fastcat::PlatinumActuator::ElmoSetDigitalOutput(
+    uint8_t digital_output_index, uint8_t output_level)
 {
-  jsd_epd_set_digital_output((jsd_t*)context_, slave_id_, digital_output_index, output_level);
+  jsd_epd_set_digital_output((jsd_t*)context_, slave_id_, digital_output_index,
+                             output_level);
 }
 
 void fastcat::PlatinumActuator::ElmoSetUnitMode(int32_t mode, uint16_t app_id)
@@ -351,7 +373,8 @@ double fastcat::PlatinumActuator::GetElmoActualPosition()
   return state_->platinum_actuator_state.elmo_actual_position;
 }
 
-jsd_elmo_state_machine_state_t fastcat::PlatinumActuator::GetElmoStateMachineState()
+jsd_elmo_state_machine_state_t
+fastcat::PlatinumActuator::GetElmoStateMachineState()
 {
   return static_cast<jsd_elmo_state_machine_state_t>(
       state_->platinum_actuator_state.elmo_state_machine_state);

@@ -27,7 +27,7 @@ class EgdOffline : public Egd
   bool WriteProfiledMode(DeviceCmd& cmd);
   bool WriteCSMode(DeviceCmd& cmd);
 
-  jsd_egd_motion_command_t jsd_motion_cmd_;
+  jsd_egd_motion_command_t jsd_motion_cmd_ = {};
 };
 
 }  // namespace fastcat
