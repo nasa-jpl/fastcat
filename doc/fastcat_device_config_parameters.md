@@ -1300,4 +1300,6 @@ Where $C_{temp}$ represents the thermal coefficient of resistance, and $CM_{n}$ 
     request_signal_name:  output
   - observed_device_name: egd_1
     request_signal_name:  actual_current
+  - observed_device_name: egd_1
+    request_signal_name:  motor_on
 ```
