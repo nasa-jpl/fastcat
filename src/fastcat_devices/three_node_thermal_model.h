@@ -89,6 +89,8 @@ class ThreeNodeThermalModel : public DeviceBase
   // declare variables for storing signal data and estimates
   double motor_current_{
       0.0};  ///< this value is retrieved from a motor controller measurement
+  bool motor_on_status_{
+      false};  ///< this value is retrieved from the motor controller status
   double motor_res_{0.0};  ///< this value is estimated based on the temp 1
                            ///< estimate and represents the resistance of the
                            ///< motor, which is used for calculated power
