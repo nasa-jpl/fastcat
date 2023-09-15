@@ -325,7 +325,8 @@ buses:
 
     - device_class: ThreeNodeThermalModel
       name:         three_node_thermal_model_1 
-      thermal_mass_node_1: 1.0
+      thermal_mass_node_1_on: 0.8
+      thermal_mass_node_1_off: 1.0
       thermal_mass_node_2: 2.0
       thermal_res_nodes_1_to_2: 3.0
       thermal_res_nodes_2_to_3: 4.0
@@ -342,5 +343,7 @@ buses:
         request_signal_name:  output
       - observed_device_name: egd_1
         request_signal_name:  actual_current
+      - observed_device_name: egd_1
+        request_signal_name:  motor_on
 
 

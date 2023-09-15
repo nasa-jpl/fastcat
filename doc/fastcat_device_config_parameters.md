@@ -1241,7 +1241,8 @@ This example implements an absolute value function over the range of [-9, 9]
 
 | Parameter   | Description |
 | ----------- | ----------- |
-| thermal_mass_node_1      | The thermal mass that represents the winding node -- node 1 (J * kg / deg C) |
+| thermal_mass_node_1_on      | The thermal mass that represents the winding node -- node 1 (J * kg / deg C) when the motor is on (used to over-estimate how quickly heating occurs while running motor) |
+| thermal_mass_node_1_off      | The thermal mass that represents the winding node -- node 1 (J * kg / deg C) when the motor is off (used to under-estimate how quickly cooling occurs) |
 | thermal_mass_node_2      | The thermal mass that represents the stator node  -- node 2 (J * kg / deg C) |
 | thermal_res_nodes_1_to_2      | The effective thermal resistance between nodes 1 and 2 (deg C/W) |
 | thermal_res_nodes_2_to_3      | The effective thermal resistance between nodes 2 and 3 (deg C/W) |
@@ -1281,7 +1282,8 @@ Where $C_{temp}$ represents the thermal coefficient of resistance, and $CM_{n}$ 
 ``` yaml
 - device_class: ThreeNodeThermalModel
   name:         three_node_thermal_model_1 
-  thermal_mass_node_1: 1.0
+  thermal_mass_node_1_on: 0.8
+  thermal_mass_node_1_off: 1.0 
   thermal_mass_node_2: 2.0
   thermal_res_nodes_1_to_2: 3.0
   thermal_res_nodes_2_to_3: 4.0
@@ -1298,4 +1300,6 @@ Where $C_{temp}$ represents the thermal coefficient of resistance, and $CM_{n}$ 
     request_signal_name:  output
   - observed_device_name: egd_1
     request_signal_name:  actual_current
+  - observed_device_name: egd_1
+    request_signal_name:  motor_on
 ```
