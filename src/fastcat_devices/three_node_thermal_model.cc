@@ -17,7 +17,11 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
   }
   state_->name = name_;
 
-  if (!ParseVal(node, "thermal_mass_node_1", thermal_mass_node_1_)) {
+  if (!ParseVal(node, "thermal_mass_node_1_on", thermal_mass_node_1_on_)) {
+    return false;
+  }
+
+  if (!ParseVal(node, "thermal_mass_node_1_off", thermal_mass_node_1_off_)) {
     return false;
   }
 
@@ -123,6 +127,7 @@ bool ThreeNodeThermalModel::Read()
   node_temps_[2] = exp_smoothing_alpha_ * node_3_temp_sample + (1.0 - exp_smoothing_alpha_) * node_temps_[2];
 
   motor_current_ = signals_[MOTOR_CURRENT_IDX].value;
+  motor_on_status_ = signals_[MOTOR_ON_STATUS_IDX].value;
   return true;
 }
 
@@ -139,8 +144,10 @@ FaultType ThreeNodeThermalModel::Process()
   double q_node_2_to_3 =
       (node_temps_[1] - node_temps_[2]) / thermal_res_nodes_2_to_3_;
   // calculate temperatures
+  double thermal_mass_node_1 = motor_on_status_ ? thermal_mass_node_1_on_ : thermal_mass_node_1_off_;
+
   node_temps_[0] += (q_in - q_node_1_to_2) *
-                    ((state_->time - last_time_) / thermal_mass_node_1_);
+                    ((state_->time - last_time_) / thermal_mass_node_1);
   node_temps_[1] += (q_node_1_to_2 - q_node_2_to_3) *
                     ((state_->time - last_time_) / thermal_mass_node_2_);
   node_temps_[3] =

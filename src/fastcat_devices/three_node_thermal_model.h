@@ -59,7 +59,8 @@ class ThreeNodeThermalModel : public DeviceBase
 
  protected:
   // declare motor parameters
-  double thermal_mass_node_1_{0.0};
+  double thermal_mass_node_1_on_{0.0};
+  double thermal_mass_node_1_off_{0.0};
   double thermal_mass_node_2_{0.0};
   double thermal_res_nodes_1_to_2_{
       0.0};  ///< thermal resistance from node 1 to 2 (deg C / W)
@@ -103,11 +104,13 @@ class ThreeNodeThermalModel : public DeviceBase
 
   // constants
   // the required number of signals for this device
-  static constexpr size_t FC_TNTM_NUM_SIGNALS = 2;
+  static constexpr size_t FC_TNTM_NUM_SIGNALS = 3;
   // signal index for node 3 temperature
   static constexpr size_t NODE_3_TEMP_IDX = 0;
   // signal index for motor current
   static constexpr size_t MOTOR_CURRENT_IDX = 1;
+  // signal index for motor on status (from the actuator state)
+  static constexpr size_t MOTOR_ON_STATUS_IDX = 2;
 };
 }  // namespace fastcat
 
