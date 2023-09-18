@@ -160,7 +160,7 @@ TEST_F(ActuatorTest, RejectMotionCommandsWhenFaulted)
     cmd.type = fastcat::ACTUATOR_SET_OUTPUT_POSITION_CMD;
     cmd.actuator_set_digital_output_cmd.digital_output_index = 1; // Avoid 0-index'ing assert error
     EXPECT_TRUE(device_.Write(cmd));
-    
+
     cmd.type = fastcat::ACTUATOR_SET_DIGITAL_OUTPUT_CMD;
     EXPECT_TRUE(device_.Write(cmd));
 
