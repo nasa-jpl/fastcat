@@ -119,14 +119,15 @@ bool ThreeNodeThermalModel::Read()
 
   if (awaiting_seed_temp_) {
     ERROR("AWAITING SEED TEMP IS TRUE... we should have the correct value!!!!"); 
+    ERROR("Node temps size is: %d", node_temps_.size());
     for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
       node_temps_[idx] = node_3_temp_sample;
     }
     awaiting_seed_temp_ = false;
   }
-
+  ERROR("Value before smoothing alpha is %f", node_3_temp_sample);
   node_temps_[2] = exp_smoothing_alpha_ * node_3_temp_sample + (1.0 - exp_smoothing_alpha_) * node_temps_[2];
-
+  ERROR("Value after smoothing alpha is %f", node_temps_[2]);
   motor_current_ = signals_[MOTOR_CURRENT_IDX].value;
   motor_on_status_ = signals_[MOTOR_ON_STATUS_IDX].value;
   return true;
