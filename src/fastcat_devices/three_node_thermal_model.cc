@@ -58,6 +58,7 @@ bool ThreeNodeThermalModel::ConfigFromYaml(YAML::Node node)
   }
 
   if (!ParseOptVal(node, "ref_temp", ref_temp_)) {
+    ERROR("ref_temp not found! awaiting_seed_temp_ set to true!!!!");
     awaiting_seed_temp_ = true;
   }
   else {
@@ -116,7 +117,8 @@ bool ThreeNodeThermalModel::Read()
 
   double node_3_temp_sample = signals_[NODE_3_TEMP_IDX].value;
 
-  if (awaiting_seed_temp_) { 
+  if (awaiting_seed_temp_) {
+    ERROR("AWAITING SEED TEMP IS TRUE... we should have the correct value!!!!"); 
     for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
       node_temps_[idx] = node_3_temp_sample;
     }
