@@ -122,6 +122,7 @@ bool ThreeNodeThermalModel::Read()
     ERROR("Node temps size is: %d", node_temps_.size());
     for (size_t idx = 0; idx < node_temps_.size(); ++idx) {
       node_temps_[idx] = node_3_temp_sample;
+      ERROR("Value for idx %d set to %f", idx, node_temps_[idx]);
     }
     awaiting_seed_temp_ = false;
   }
