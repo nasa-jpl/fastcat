@@ -26,6 +26,7 @@ typedef enum {
   ACTUATOR_SMS_CSV,
   ACTUATOR_SMS_CST,
   ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP,
+  ACTUATOR_SMS_CAL_UPDATE_POSITION,
   ACTUATOR_SMS_CAL_AT_HARDSTOP,
   ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP,
 } ActuatorStateMachineState;
@@ -165,6 +166,7 @@ class Actuator : public JsdDeviceBase
   FaultType ProcessCS();
   FaultType ProcessCalMoveToHardstop();
   FaultType ProcessCalAtHardstop();
+  FaultType ProcessCalUpdatePosition();
   FaultType ProcessCalMoveToSoftstop();
 
   bool GSModeFromString(std::string                      gs_mode_string,
@@ -215,7 +217,6 @@ class Actuator : public JsdDeviceBase
 
   bool    actuator_absolute_encoder_ = false;
   int32_t elmo_pos_offset_cnts_      = 1;
-
   DeviceCmd last_device_cmd_ = {};
 };
 

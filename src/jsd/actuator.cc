@@ -460,10 +460,14 @@ fastcat::FaultType fastcat::Actuator::Process()
       retval = ProcessCalMoveToHardstop();
       break;
 
+    case ACTUATOR_SMS_CAL_UPDATE_POSITION:
+      retval = ProcessCalUpdatePosition();
+      break;
+
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
       retval = ProcessCalAtHardstop();
       break;
-
+    
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       retval = ProcessCalMoveToSoftstop();
       break;
@@ -504,7 +508,6 @@ bool fastcat::Actuator::SetOutputPosition(double position)
   MSG("Act %s: %s%lf %s%lf", name_.c_str(),
       "Changing Position from: ", GetActualPosition(*state_),
       "to : ", position);
-
   elmo_pos_offset_cnts_ =
       GetElmoActualPosition() - (int32_t)(position * overall_reduction_);
   return true;
@@ -645,6 +648,9 @@ std::string fastcat::Actuator::StateMachineStateToString(
       break;
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
       str = std::string("CAL_MOVE_TO_HARDSTOP");
+      break;
+    case ACTUATOR_SMS_CAL_UPDATE_POSITION:
+      str = std::string("CAL_UPDATE_POSITION");
       break;
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
       str = std::string("CAL_AT_HARDSTOP");

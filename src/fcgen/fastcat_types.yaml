@@ -687,6 +687,8 @@ commands:
       type: double
     - name: velocity_offset
       type: double
+    - name: acceleration_offset
+      type: double
     - name: torque_offset_amps
       type: double
 

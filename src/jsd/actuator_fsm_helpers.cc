@@ -42,6 +42,7 @@ bool fastcat::Actuator::CheckStateMachineMotionCmds()
       break;
 
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
+    case ACTUATOR_SMS_CAL_UPDATE_POSITION:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       // Currently, this faults the cal command
@@ -77,6 +78,7 @@ bool fastcat::Actuator::CheckStateMachineGainSchedulingCmds()
       break;
 
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
+    case ACTUATOR_SMS_CAL_UPDATE_POSITION:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       ERROR("Act %s: %s", name_.c_str(),
@@ -97,7 +99,8 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
   // Validate the command arguments
   if (PosExceedsCmdLimits(cmd.actuator_csp_cmd.target_position +
                           cmd.actuator_csp_cmd.position_offset) ||
-      VelExceedsCmdLimits(cmd.actuator_csp_cmd.velocity_offset)) {
+      VelExceedsCmdLimits(cmd.actuator_csp_cmd.velocity_offset) ||
+      AccExceedsCmdLimits(cmd.actuator_csp_cmd.acceleration_offset)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR("Act %s: %s", name_.c_str(), "Failing CSP Command");
     return false;
@@ -112,7 +115,7 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
 
   last_device_cmd_ = cmd;
 
-  // account for any latency between time when command message was generated
+  // account for any latency between time when CSP message was generated
   // and when it is processed here
   double dt = fmax((state_->time - cmd.actuator_csp_cmd.request_time), 0.0);
   
@@ -294,6 +297,7 @@ bool fastcat::Actuator::HandleNewHaltCmd()
     case ACTUATOR_SMS_CSV:
     case ACTUATOR_SMS_CST:
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
+    case ACTUATOR_SMS_CAL_UPDATE_POSITION:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       break;
@@ -327,6 +331,7 @@ bool fastcat::Actuator::HandleNewSetOutputPositionCmd(const DeviceCmd& cmd)
     case ACTUATOR_SMS_CSV:
     case ACTUATOR_SMS_CST:
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
+    case ACTUATOR_SMS_CAL_UPDATE_POSITION:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       ERROR("Act %s: %s", name_.c_str(),
@@ -364,6 +369,7 @@ bool fastcat::Actuator::HandleNewSetUnitModeCmd(const DeviceCmd& cmd)
     case ACTUATOR_SMS_CSV:
     case ACTUATOR_SMS_CST:
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
+    case ACTUATOR_SMS_CAL_UPDATE_POSITION:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       ERROR("Act %s: %s", name_.c_str(),
@@ -413,6 +419,7 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
       break;
 
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
+    case ACTUATOR_SMS_CAL_UPDATE_POSITION:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       TransitionToState(ACTUATOR_SMS_FAULTED);
@@ -468,10 +475,10 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
   ElmoSetPeakCurrent(cal_cmd_.max_current);
 
   fastcat_trap_generate(&trap_, state_->time,
-                        GetActualPosition(*state_),  // consider cmd position
+                        GetActualPosition(*state_),
                         target_position,
-                        GetActualVelocity(),  // consider cmd velocity
-                        0,  // pt2pt motion always uses terminating traps
+                        GetActualVelocity(),
+                        0,
                         fabs(cmd.actuator_calibrate_cmd.velocity),
                         cmd.actuator_calibrate_cmd.accel);
 
@@ -649,19 +656,18 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
         params_.peak_current_limit_amps);
     ElmoSetPeakCurrent(params_.peak_current_limit_amps);
 
-    TransitionToState(ACTUATOR_SMS_CAL_AT_HARDSTOP);
+    // update position before transitioning to CAL_AT_HARDSTOP state
+    TransitionToState(ACTUATOR_SMS_CAL_UPDATE_POSITION);
   }
 
   jsd_elmo_motion_command_csp_t jsd_cmd;
 
   double pos_eu, vel;
   int    complete = fastcat_trap_update(&trap_, state_->time, &pos_eu, &vel);
-
   jsd_cmd.target_position    = PosEuToCnts(pos_eu);
   jsd_cmd.position_offset    = 0;
   jsd_cmd.velocity_offset    = EuToCnts(vel);
   jsd_cmd.torque_offset_amps = 0;
-
   ElmoCSP(jsd_cmd);
 
   if (complete) {
@@ -680,15 +686,37 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
   return NO_FAULT;
 }
 
-fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
+fastcat::FaultType fastcat::Actuator::ProcessCalUpdatePosition()
+{
+  // spin in this state for one second to allow for any motor dynamics to settle out
+  // from previous tracking error fault
+  if((state_->monotonic_time - last_transition_time_) < 1.0) {
+    return NO_FAULT;
+  } 
+
+  // Update calibration position before sending Reset() to actuators, as sending actuator
+  // Reset() can cause some minor movement in actuators and/or a change in preload
+  // against the hardstop position
+  double cal_position     = 0;
+  if (cal_cmd_.velocity > 0) {
+    cal_position     = params_.high_pos_cal_limit_eu;
+  } else {
+    cal_position     = params_.low_pos_cal_limit_eu;
+  }
+  SetOutputPosition(cal_position);
+  TransitionToState(ACTUATOR_SMS_CAL_AT_HARDSTOP);
+  return NO_FAULT;
+}
+
+fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop() 
 {
   // no need to check faults in this state
   // And clear the Elmo fault that is generated from contacting the hardstop
   // Loop here until the drive is no longer faulted
-
   if (GetElmoStateMachineState() !=
           JSD_ELMO_STATE_MACHINE_STATE_OPERATION_ENABLED &&
       IsJsdFaultCodePresent(*state_)) {
+
     // We have waited too long, fault
     if ((state_->monotonic_time - last_transition_time_) > 5.0) {
       ERROR("Act %s: %s: %lf", name_.c_str(),
@@ -697,8 +725,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
     }
-
-    // still waiting on the drive to reset...
+    
     ElmoReset();
     return NO_FAULT;
   }
@@ -712,14 +739,11 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
     cal_position     = params_.low_pos_cal_limit_eu;
     backoff_position = params_.low_pos_cmd_limit_eu;
   }
-  SetOutputPosition(cal_position);
 
-  fastcat_trap_generate(&trap_, state_->time, cal_position, backoff_position, 0,
-                        0,  // pt2pt motion always uses terminating traps
+  // generate trap to move back to soft-stop position
+  fastcat_trap_generate(&trap_, state_->time, cal_position, backoff_position, 0, 0,
                         fabs(cal_cmd_.velocity), cal_cmd_.accel);
-
   TransitionToState(ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP);
-
   return NO_FAULT;
 }
 
