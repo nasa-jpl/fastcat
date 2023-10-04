@@ -689,6 +689,8 @@ commands:
       type: double
     - name: acceleration_offset
       type: double
+    - name: interpolation_mode
+      type: int16_t
     - name: torque_offset_amps
       type: double
 
