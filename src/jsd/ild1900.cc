@@ -29,7 +29,7 @@ bool fastcat::Ild1900::ConfigFromYamlCommon(YAML::Node node)
   state_->name = name_;
 
   jsd_slave_config_.configuration_active = true;
-  jsd_slave_config_.product_code         = JSD_ILD1900_PRODUCT_CODE;
+  jsd_slave_config_.driver_type          = JSD_DRIVER_TYPE_ILD1900;
   snprintf(jsd_slave_config_.name, JSD_NAME_LEN, "%s", name_.c_str());
 
   std::string model_string;

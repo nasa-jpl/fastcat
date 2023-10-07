@@ -7,7 +7,7 @@
 
 // Include external then project includes
 #include "fastcat/jsd/actuator.h"
-#include "jsd/jsd_epd_pub.h"
+#include "jsd/jsd_epd_nominal_pub.h"
 
 namespace fastcat
 {
@@ -17,7 +17,7 @@ class PlatinumActuator : public Actuator
   PlatinumActuator();
 
  protected:
-  jsd_epd_state_t jsd_epd_state_ = {};
+  jsd_epd_nominal_state_t jsd_epd_state_ = {};
 
  private:
   void PopulateJsdSlaveConfig() override;

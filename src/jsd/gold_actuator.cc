@@ -12,7 +12,7 @@ fastcat::GoldActuator::GoldActuator() { state_->type = GOLD_ACTUATOR_STATE; }
 
 void fastcat::GoldActuator::PopulateJsdSlaveConfig()
 {
-  jsd_slave_config_.product_code = JSD_EGD_PRODUCT_CODE;
+  jsd_slave_config_.driver_type = JSD_DRIVER_TYPE_EGD;
 
   jsd_slave_config_.egd.drive_cmd_mode = JSD_EGD_DRIVE_CMD_MODE_CS;
   jsd_slave_config_.egd.max_motor_speed =
