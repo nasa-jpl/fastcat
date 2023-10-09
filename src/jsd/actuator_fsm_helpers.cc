@@ -113,14 +113,10 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
     return false;
   }
 
-  last_device_cmd_ = cmd;
-
-  // account for any latency between time when CSP message was generated
+  // detect latency between time when CSP message was generated
   // and when it is processed here
   double dt = fmax((state_->time - cmd.actuator_csp_cmd.request_time), 0.0);
   
-  // MSG("Initiating new CSP command with delay: %f", dt);
-
   // reject command if request_time > 10 * loop_period, which indicates request
   // is stale, clocks are out of sync, or request_time was not correctly
   // populated by calling module
@@ -133,23 +129,19 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
           cmd.actuator_csp_cmd.request_time, state_->time, dt);
     return false;
   }
+   
+  // if we were not previously in ACTUATOR_SMS_CSP state, then this request
+  // is the first in a batch of CSP messages, clear the count of received
+  // messages
+  if(actuator_sms_ != ACTUATOR_SMS_CSP) {
+    last_device_cmd_.clear();
+  }
 
-  // We could deploy a CSP command on initial receipt of command per the code
-  // below, but we will cache the incoming command to `last_device_cmd_` and
+  // Cache the incoming command to `last_device_cmd_` and
   // defer its execution to the Process() function, which is always called after
   // new commands are handled for JSD devices
-  //
-  // double offset_target_position = cmd.actuator_csp_cmd.target_position +
-  //   cmd.actuator_csp_cmd.velocity_offset * dt;
-  // jsd_elmo_motion_command_csp_t jsd_cmd;
-  // jsd_cmd.target_position = PosEuToCnts(offset_target_position);
-  // jsd_cmd.position_offset = EuToCnts(cmd.actuator_csp_cmd.position_offset);
-  // jsd_cmd.velocity_offset = EuToCnts(cmd.actuator_csp_cmd.velocity_offset);
-  // jsd_cmd.torque_offset_amps = cmd.actuator_csp_cmd.torque_offset_amps;
-  // ElmoCSP(jsd_cmd);
-
+  last_device_cmd_.store(cmd);
   TransitionToState(ACTUATOR_SMS_CSP);
-
   return true;
 }
 
@@ -588,30 +580,35 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
 
   switch (actuator_sms_) {
     case ACTUATOR_SMS_CSP: {
-      // account for updated position offset
-      double dt = fmax(
-          (state_->time - last_device_cmd_.actuator_csp_cmd.request_time), 0.0);
-      double offset_target_position =
-          last_device_cmd_.actuator_csp_cmd.target_position +
-          last_device_cmd_.actuator_csp_cmd.velocity_offset * dt;
-      
-      // MSG(
-      //   "ProcessCS(): target_position: %f, offset_position: %f, dt: %f, target_velocity: %f",
-      //   last_device_cmd_.actuator_csp_cmd.target_position,
-      //   offset_target_position,
-      //   dt,
-      //   last_device_cmd_.actuator_csp_cmd.velocity_offset
-      // );
-      
-      jsd_elmo_motion_command_csp_t jsd_cmd;
-      jsd_cmd.target_position = PosEuToCnts(offset_target_position);
-      jsd_cmd.position_offset =
-          EuToCnts(last_device_cmd_.actuator_csp_cmd.position_offset);
-      jsd_cmd.velocity_offset =
-          EuToCnts(last_device_cmd_.actuator_csp_cmd.velocity_offset);
-      jsd_cmd.torque_offset_amps =
-          last_device_cmd_.actuator_csp_cmd.torque_offset_amps;
-      ElmoCSP(jsd_cmd);
+      auto last_device_cmd = last_device_cmd_.load();
+      switch(last_device_cmd.actuator_csp_cmd.interpolation_mode) { 
+        case 0: { // "implicit" 2nd order forward interpolation
+          double dt = fmax(
+              (state_->time - last_device_cmd.actuator_csp_cmd.request_time), 0.0);
+          double offset_target_position =
+              last_device_cmd.actuator_csp_cmd.target_position +
+              last_device_cmd.actuator_csp_cmd.velocity_offset * dt +
+              0.5 * last_device_cmd.actuator_csp_cmd.acceleration_offset * dt * dt;
+          double offset_target_velocity = 
+              last_device_cmd.actuator_csp_cmd.velocity_offset +
+              last_device_cmd.actuator_csp_cmd.acceleration_offset * dt;
+          jsd_elmo_motion_command_csp_t jsd_cmd;
+          jsd_cmd.target_position = PosEuToCnts(offset_target_position);
+          jsd_cmd.position_offset =
+              EuToCnts(last_device_cmd.actuator_csp_cmd.position_offset);
+          jsd_cmd.velocity_offset = EuToCnts(offset_target_velocity);
+          jsd_cmd.torque_offset_amps =
+              last_device_cmd.actuator_csp_cmd.torque_offset_amps;
+          ElmoCSP(jsd_cmd);
+        } break;
+        case 1: { // "explicit" 3rd order backwards interpolation 
+
+        } break;
+        default: {
+          ERROR("Invalid CSP interpolation mode specified");
+          return ALL_DEVICE_FAULT;
+        }
+      } 
     } break;
     case ACTUATOR_SMS_CSV:
     case ACTUATOR_SMS_CST:

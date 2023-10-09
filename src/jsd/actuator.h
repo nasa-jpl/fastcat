@@ -8,6 +8,7 @@
 // Include external then project includes
 #include "fastcat/jsd/jsd_device_base.h"
 #include "fastcat/trap.h"
+#include "fastcat/ring_buffer.h"
 #include "jsd/jsd_elmo_common_types.h"
 
 namespace fastcat
@@ -217,7 +218,7 @@ class Actuator : public JsdDeviceBase
 
   bool    actuator_absolute_encoder_ = false;
   int32_t elmo_pos_offset_cnts_      = 1;
-  DeviceCmd last_device_cmd_ = {};
+  RingBuffer<DeviceCmd> last_device_cmd_ = {};
 };
 
 }  // namespace fastcat
