@@ -602,7 +602,70 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
           ElmoCSP(jsd_cmd);
         } break;
         case 1: { // "explicit" 3rd order backwards interpolation 
+          size_t num_received = last_device_cmd_.get_num_received();
+          if(num_received == csp_cycles_delay_) {
+            auto first_device_cmd = last_device_cmd_.load(csp_cycles_delay_ - 1);
+            csp_interpolation_offset_time_ = 
+              state_->time - first_device_cmd.actuator_csp_cmd.request_time;
+          }
+          if(num_received >= csp_cycles_delay_) {
+            double sample_time = 
+              state_->time - csp_interpolation_offset_time_;
+            size_t index = 0;
+            while(index < 10) {
+               auto device_cmd = last_device_cmd_.load(++index);
+               if(device_cmd.actuator_csp_cmd.request_time <= sample_time) {
+                 break;
+               }
+            }
 
+            if(index >= 10) {
+              ERROR("Error in logic for finding knots for CSP interpolation");
+              return ALL_DEVICE_FAULT;
+            }
+            
+            auto knot_0 = last_device_cmd_.load(index);
+            auto knot_1 = last_device_cmd_.load(index - 1);
+            
+            double t0 = knot_0.actuator_csp_cmd.request_time;
+            double t1 = knot_1.actuator_csp_cmd.request_time;
+            double p0 = knot_0.actuator_csp_cmd.target_position;
+            double p1 = knot_1.actuator_csp_cmd.target_position;
+            double v0 = knot_0.actuator_csp_cmd.velocity_offset;
+            double v1 = knot_1.actuator_csp_cmd.velocity_offset;
+            
+            double dt = t1 - t0;
+            
+            double x = (sample_time - t0) / dt;
+             if(x < 0 || x > 1.0) {
+              ERROR("Error in logic for finding knots for CSP interpolation");
+              return ALL_DEVICE_FAULT;
+            }
+
+            v0 *= dt;
+            v1 *= dt;
+
+            double b0 = p0;
+            double b1 = v0;
+            double b2 = 3.0 * p1 - 3.0 * p0 - 2.0 * v0 - v1;
+            double b3 = -2.0 * p1 + 2.0 * p0 + v0 + v1;
+
+            double x2 = x * x;
+            double x3 = x2 * x;
+            double p = b0 + (b1 * x) + (b2 * x2) + (b3 * x3);
+            double v = (b1 + 2.0 * b2 * x + 3.0 * b3 * x2) / dt;
+
+            MSG("%f: position [%f], velocity [%f]", state_->time, p, v); 
+
+            jsd_elmo_motion_command_csp_t jsd_cmd;
+            jsd_cmd.target_position = PosEuToCnts(p);
+            jsd_cmd.position_offset =
+              EuToCnts(knot_1.actuator_csp_cmd.position_offset);
+            jsd_cmd.velocity_offset = EuToCnts(v);
+            jsd_cmd.torque_offset_amps = 
+              knot_1.actuator_csp_cmd.torque_offset_amps;
+            ElmoCSP(jsd_cmd);
+          }
         } break;
         default: {
           ERROR("Invalid CSP interpolation mode specified");
