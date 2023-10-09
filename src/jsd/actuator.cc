@@ -14,7 +14,7 @@
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd.h"
 #include "jsd/jsd_egd_pub.h"
-#include "jsd/jsd_epd_pub.h"
+#include "jsd/jsd_epd_nominal_pub.h"
 
 fastcat::Actuator::Actuator()
 {
@@ -749,7 +749,7 @@ std::string fastcat::Actuator::GetJSDFaultCodeAsString(const DeviceState& state)
   } else if (state.type == PLATINUM_ACTUATOR_STATE) {
     auto fault = static_cast<jsd_epd_fault_code_t>(
         state.platinum_actuator_state.jsd_fault_code);
-    fault_str = std::string(jsd_epd_fault_code_to_string(fault));
+    fault_str = std::string(jsd_epd_nominal_fault_code_to_string(fault));
   } else {
     fault_str = "State is not an Elmo actuator type.";
   }

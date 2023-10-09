@@ -23,7 +23,7 @@ bool fastcat::AtiFts::ConfigFromYamlCommon(YAML::Node node)
   state_->name = name_;
 
   jsd_slave_config_.configuration_active = true;
-  jsd_slave_config_.product_code         = JSD_ATI_FTS_PRODUCT_CODE;
+  jsd_slave_config_.driver_type          = JSD_DRIVER_TYPE_ATI_FTS;
   snprintf(jsd_slave_config_.name, JSD_NAME_LEN, "%s", name_.c_str());
 
   uint32_t cal;

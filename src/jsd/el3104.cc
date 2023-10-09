@@ -33,7 +33,7 @@ bool fastcat::El3104::ConfigFromYamlCommon(YAML::Node node)
   state_->name = name_;
 
   jsd_slave_config_.configuration_active = true;
-  jsd_slave_config_.product_code         = JSD_EL3104_PRODUCT_CODE;
+  jsd_slave_config_.driver_type          = JSD_DRIVER_TYPE_EL3104;
   snprintf(jsd_slave_config_.name, JSD_NAME_LEN, "%s", name_.c_str());
 
   return true;
