@@ -668,10 +668,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             jsd_cmd.torque_offset_amps = 
               knot_1.actuator_csp_cmd.torque_offset_amps;
             ElmoCSP(jsd_cmd);
-            std::cout << "CSP(explicit) pos: " << offset_target_position <<
-              " vel: " << offset_target_velocity << std::endl; 
-
-
+            std::cout << "CSP(explicit) pos: " << p << " vel: " << v << std::endl; 
           }
         } break;
         default: {
