@@ -220,7 +220,7 @@ class Actuator : public JsdDeviceBase
   int32_t elmo_pos_offset_cnts_      = 1;
   RingBuffer<DeviceCmd> last_device_cmd_ = {};
   double csp_interpolation_offset_time_ = 0.0;
-  size_t csp_cycles_delay_ = 3; 
+  size_t csp_cycles_delay_ = 4; 
 };
 
 }  // namespace fastcat
