@@ -204,7 +204,7 @@ bool fastcat::Actuator::HandleNewCSTCmd(const DeviceCmd& cmd)
 
 bool fastcat::Actuator::HandleNewProfPosCmd(const DeviceCmd& cmd)
 {
-  // double target_position = ComputeTargetPosProfPosCmd(cmd);
+  double target_position = ComputeTargetPosProfPosCmd(cmd);
 
   // Validate command arguments
   if (PosExceedsCmdLimits(target_position) ||
