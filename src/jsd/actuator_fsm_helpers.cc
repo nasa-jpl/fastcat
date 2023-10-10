@@ -672,7 +672,9 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
           }
         } break;
         default: {
-          ERROR("Invalid CSP interpolation mode specified");
+          ERROR("Invalid CSP interpolation mode specified: (%d)",
+                last_device_cmd.actuator_csp_cmd.interpolation_mode
+          );
           return ALL_DEVICE_FAULT;
         }
       } 
