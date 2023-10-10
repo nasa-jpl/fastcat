@@ -204,7 +204,7 @@ bool fastcat::Actuator::HandleNewCSTCmd(const DeviceCmd& cmd)
 
 bool fastcat::Actuator::HandleNewProfPosCmd(const DeviceCmd& cmd)
 {
-  double target_position = ComputeTargetPosProfPosCmd(cmd);
+  // double target_position = ComputeTargetPosProfPosCmd(cmd);
 
   // Validate command arguments
   if (PosExceedsCmdLimits(target_position) ||
@@ -642,6 +642,12 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             double x = (sample_time - t0) / dt;
              if(x < 0 || x > 1.0) {
               ERROR("Error in logic for finding knots for CSP interpolation x=%f", x);
+              ERROR("knot0 index: %d, knot1 index: %d", index, index - 1);
+              ERROR("knot0 time: %f, knot1 time: %f", t0, t1);
+              ERROR("knot0 position: %f, knot1 position: %f", p0, p1);
+              ERROR("knot0 velocity: %f, knot1 velocity: %f", v0, v1);
+              ERROR("sample_time: %f, csp_interp_offset_time: %f, time: %f", 
+                    sample_time, csp_interpolation_offset_time_, state_->time);
               return ALL_DEVICE_FAULT;
             }
 
