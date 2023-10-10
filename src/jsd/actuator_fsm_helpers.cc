@@ -600,6 +600,9 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
           jsd_cmd.torque_offset_amps =
               last_device_cmd.actuator_csp_cmd.torque_offset_amps;
           ElmoCSP(jsd_cmd);
+
+          std::cout << "CSP(implicit) pos: " << offset_target_position <<
+            " vel: " << offset_target_velocity << std::endl; 
         } break;
         case 1: { // "explicit" 3rd order backwards interpolation 
           size_t num_received = last_device_cmd_.get_num_received();
@@ -665,6 +668,10 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             jsd_cmd.torque_offset_amps = 
               knot_1.actuator_csp_cmd.torque_offset_amps;
             ElmoCSP(jsd_cmd);
+            std::cout << "CSP(explicit) pos: " << offset_target_position <<
+              " vel: " << offset_target_velocity << std::endl; 
+
+
           }
         } break;
         default: {
