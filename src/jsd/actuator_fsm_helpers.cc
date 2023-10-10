@@ -664,8 +664,6 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             double p = b0 + (b1 * x) + (b2 * x2) + (b3 * x3);
             double v = (b1 + 2.0 * b2 * x + 3.0 * b3 * x2) / dt;
 
-            MSG("%f: position [%f], velocity [%f]", state_->time, p, v); 
-
             jsd_elmo_motion_command_csp_t jsd_cmd;
             jsd_cmd.target_position = PosEuToCnts(p);
             jsd_cmd.position_offset =
