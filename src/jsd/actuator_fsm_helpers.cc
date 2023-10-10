@@ -623,7 +623,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             }
 
             if(index >= 10) {
-              ERROR("Error in logic for finding knots for CSP interpolation");
+              ERROR("Error in logic for finding knots for CSP interpolation: index >=10");
               return ALL_DEVICE_FAULT;
             }
             
@@ -641,7 +641,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             
             double x = (sample_time - t0) / dt;
              if(x < 0 || x > 1.0) {
-              ERROR("Error in logic for finding knots for CSP interpolation");
+              ERROR("Error in logic for finding knots for CSP interpolation x=%f", x);
               return ALL_DEVICE_FAULT;
             }
 
