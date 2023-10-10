@@ -640,7 +640,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             double dt = t1 - t0;
             
             double x = (sample_time - t0) / dt;
-             if(x < 0 || x > 1.0) {
+            if(x < 0 || x > 1.0) {
               ERROR("Error in logic for finding knots for CSP interpolation x=%f", x);
               ERROR("knot0 index: %d, knot1 index: %d", index, index - 1);
               ERROR("knot0 time: %f, knot1 time: %f", t0, t1);
