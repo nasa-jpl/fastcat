@@ -21,7 +21,7 @@ bool fastcat::Actuator::CheckStateMachineMotionCmds()
 
   switch (actuator_sms_) {
     case ACTUATOR_SMS_FAULTED:
-      ERROR("Act %s: %s", name_.c_str(),
+      ERROR("Actuator %s: %s", name_.c_str(),
             "Cannot call a Motion cmd from FAULTED, reset Actuator first");
       return false;
       break;
@@ -47,14 +47,14 @@ bool fastcat::Actuator::CheckStateMachineMotionCmds()
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       // Currently, this faults the cal command
       //   Can be configured to ignore the offending CSP command
-      ERROR("Act %s: %s", name_.c_str(),
+      ERROR("Actuator %s: %s", name_.c_str(),
             "Cannot call a Motion cmd during Calibration");
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_CAL;
       return false;
       break;
 
     default:
-      ERROR("Act %s: %s: %d", name_.c_str(), "Bad Act State ", actuator_sms_);
+      ERROR("Actuator %s: %s: %d", name_.c_str(), "Bad Actuator State ", actuator_sms_);
       return false;
   }
   return true;
@@ -81,14 +81,14 @@ bool fastcat::Actuator::CheckStateMachineGainSchedulingCmds()
     case ACTUATOR_SMS_CAL_UPDATE_POSITION:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
-      ERROR("Act %s: %s", name_.c_str(),
+      ERROR("Actuator %s: %s", name_.c_str(),
             "Cannot execute gain scheduling commands, calibration is in "
             "progress");
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_CAL;
       return false;
 
     default:
-      ERROR("Act %s: %s: %d", name_.c_str(), "Bad Act State ", actuator_sms_);
+      ERROR("Actuator %s: %s: %d", name_.c_str(), "Bad Actuator State ", actuator_sms_);
       return false;
   }
   return true;
@@ -102,14 +102,14 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
       VelExceedsCmdLimits(cmd.actuator_csp_cmd.velocity_offset) ||
       AccExceedsCmdLimits(cmd.actuator_csp_cmd.acceleration_offset)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing CSP Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing CSP Command");
     return false;
   }
 
   // Check that the command can be honored within FSM state
   if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing CSP Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing CSP Command");
     return false;
   }
 
@@ -122,7 +122,7 @@ bool fastcat::Actuator::HandleNewCSPCmd(const DeviceCmd& cmd)
   // populated by calling module
   if (dt > (10.0 * loop_period_)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(),
+    ERROR("Actuator %s: %s", name_.c_str(),
           "Failing CSP Command due to stale request_time; "
           "the request may be stale or the clocks may not be synchronized");
     ERROR("Request time: %f, actual time: %f, dt: %f", 
@@ -151,14 +151,14 @@ bool fastcat::Actuator::HandleNewCSVCmd(const DeviceCmd& cmd)
   if (VelExceedsCmdLimits(cmd.actuator_csv_cmd.target_velocity +
                           cmd.actuator_csv_cmd.velocity_offset)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing CSV Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing CSV Command");
     return false;
   }
 
   // Check that the command can be honored within FSM state
   if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing CSV Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing CSV Command");
     return false;
   }
 
@@ -180,14 +180,14 @@ bool fastcat::Actuator::HandleNewCSTCmd(const DeviceCmd& cmd)
   if (CurrentExceedsCmdLimits(cmd.actuator_cst_cmd.target_torque_amps +
                               cmd.actuator_cst_cmd.torque_offset_amps)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing CST Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing CST Command");
     return false;
   }
 
   // Check that the command can be honored within FSM state
   if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing CST Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing CST Command");
     return false;
   }
 
@@ -212,14 +212,14 @@ bool fastcat::Actuator::HandleNewProfPosCmd(const DeviceCmd& cmd)
       VelExceedsCmdLimits(cmd.actuator_prof_pos_cmd.end_velocity) ||
       AccExceedsCmdLimits(cmd.actuator_prof_pos_cmd.profile_accel)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing Prof Pos Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing Prof Pos Command");
     return false;
   }
 
   // Check that the command can be honored within FSM state
   if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing Prof Pos Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing Prof Pos Command");
     return false;
   }
 
@@ -231,14 +231,14 @@ bool fastcat::Actuator::HandleNewProfVelCmd(const DeviceCmd& cmd)
   if (VelExceedsCmdLimits(cmd.actuator_prof_vel_cmd.target_velocity) ||
       AccExceedsCmdLimits(cmd.actuator_prof_vel_cmd.profile_accel)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing Prof Vel Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing Prof Vel Command");
     return false;
   }
 
   // Check that the command can be honored within FSM state
   if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing Prof Vel Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing Prof Vel Command");
     return false;
   }
 
@@ -250,14 +250,14 @@ bool fastcat::Actuator::HandleNewProfTorqueCmd(const DeviceCmd& cmd)
   if (CurrentExceedsCmdLimits(
           cmd.actuator_prof_torque_cmd.target_torque_amps)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing Prof Torque Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing Prof Torque Command");
     return false;
   }
 
   // Check that the command can be honored within FSM state
   if (!CheckStateMachineMotionCmds()) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing Prof Torque Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing Prof Torque Command");
     return false;
   }
 
@@ -266,10 +266,13 @@ bool fastcat::Actuator::HandleNewProfTorqueCmd(const DeviceCmd& cmd)
 
 bool fastcat::Actuator::HandleNewHaltCmd()
 {
+  // clear device command queue
+  last_device_cmd_.clear();
+
   switch (actuator_sms_) {
     case ACTUATOR_SMS_FAULTED:
       TransitionToState(ACTUATOR_SMS_FAULTED);
-      ERROR("Act %s: %s", name_.c_str(),
+      ERROR("Actuator %s: %s", name_.c_str(),
             "Cannot HALT from FAULTED state, reset actuator first");
       return false;
       break;
@@ -295,7 +298,7 @@ bool fastcat::Actuator::HandleNewHaltCmd()
       break;
 
     default:
-      ERROR("Act %s: %s: %d", name_.c_str(), "Bad Act State ", actuator_sms_);
+      ERROR("Actuator %s: %s: %d", name_.c_str(), "Bad Actuator State ", actuator_sms_);
       return false;
   }
 
@@ -326,13 +329,13 @@ bool fastcat::Actuator::HandleNewSetOutputPositionCmd(const DeviceCmd& cmd)
     case ACTUATOR_SMS_CAL_UPDATE_POSITION:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
-      ERROR("Act %s: %s", name_.c_str(),
+      ERROR("Actuator %s: %s", name_.c_str(),
             "Cannot set output position, motion command is active");
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_MOTION;
       return false;
 
     default:
-      ERROR("Act %s: %s: %d", name_.c_str(), "Bad Act State ", actuator_sms_);
+      ERROR("Actuator %s: %s: %d", name_.c_str(), "Bad Actuator State ", actuator_sms_);
       return false;
   }
 
@@ -364,13 +367,13 @@ bool fastcat::Actuator::HandleNewSetUnitModeCmd(const DeviceCmd& cmd)
     case ACTUATOR_SMS_CAL_UPDATE_POSITION:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
-      ERROR("Act %s: %s", name_.c_str(),
+      ERROR("Actuator %s: %s", name_.c_str(),
             "Cannot set unit mode now, motion command is active");
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_MOTION;
       return false;
 
     default:
-      ERROR("Act %s: %s: %d", name_.c_str(), "Bad Act State ", actuator_sms_);
+      ERROR("Actuator %s: %s: %d", name_.c_str(), "Bad Actuator State ", actuator_sms_);
       return false;
   }
 
@@ -386,7 +389,7 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
     case ACTUATOR_SMS_FAULTED:
       TransitionToState(ACTUATOR_SMS_FAULTED);
       ERROR(
-          "Act %s: %s", name_.c_str(),
+          "Actuator %s: %s", name_.c_str(),
           "Cannot start calibration from FAULTED state, reset actuator first");
       return false;
 
@@ -404,7 +407,7 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
     case ACTUATOR_SMS_CSV:
     case ACTUATOR_SMS_CST:
       TransitionToState(ACTUATOR_SMS_FAULTED);
-      ERROR("Act %s: %s", name_.c_str(),
+      ERROR("Actuator %s: %s", name_.c_str(),
             "Calibration requested during active motion command, faulting");
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_MOTION;
       return false;
@@ -415,21 +418,21 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       TransitionToState(ACTUATOR_SMS_FAULTED);
-      ERROR("Act %s: %s", name_.c_str(),
+      ERROR("Actuator %s: %s", name_.c_str(),
             "Calibration requested but calibration already in progress, "
             "faulting");
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_CAL;
       return false;
 
     default:
-      ERROR("Act %s: %s: %d", name_.c_str(), "Bad Act State ", actuator_sms_);
+      ERROR("Actuator %s: %s: %d", name_.c_str(), "Bad Actuator State ", actuator_sms_);
       return false;
   }
 
   if (VelExceedsCmdLimits(cmd.actuator_calibrate_cmd.velocity) ||
       AccExceedsCmdLimits(cmd.actuator_calibrate_cmd.accel)) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(), "Failing Calibration Command");
+    ERROR("Actuator %s: %s", name_.c_str(), "Failing Calibration Command");
     return false;
   }
 
@@ -446,7 +449,7 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
   if (rom < params_.pos_tracking_error_eu) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
     ERROR(
-        "Act %s: Calibration cannot succeed when Range-of-motion (%lf) "
+        "Actuator %s: Calibration cannot succeed when Range-of-motion (%lf) "
         "< Pos tracking error (%lf). "
         "Check Drive parameters for excessive pos tracking fault",
         name_.c_str(), rom, params_.pos_tracking_error_eu);
@@ -524,7 +527,7 @@ fastcat::FaultType fastcat::Actuator::ProcessFaulted() { return NO_FAULT; }
 fastcat::FaultType fastcat::Actuator::ProcessHalted()
 {
   if (IsIdleFaultConditionMet()) {
-    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    ERROR("Actuator %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
   return NO_FAULT;
@@ -533,7 +536,7 @@ fastcat::FaultType fastcat::Actuator::ProcessHalted()
 fastcat::FaultType fastcat::Actuator::ProcessHolding()
 {
   if (IsIdleFaultConditionMet()) {
-    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    ERROR("Actuator %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
 
@@ -548,7 +551,7 @@ fastcat::FaultType fastcat::Actuator::ProcessHolding()
 fastcat::FaultType fastcat::Actuator::ProcessProfPosTrapImpl()
 {
   if (IsMotionFaultConditionMet()) {
-    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    ERROR("Actuator %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
 
@@ -574,7 +577,7 @@ fastcat::FaultType fastcat::Actuator::ProcessProfPosTrapImpl()
 fastcat::FaultType fastcat::Actuator::ProcessCS()
 {
   if (IsMotionFaultConditionMet()) {
-    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    ERROR("Actuator %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
 
@@ -582,7 +585,15 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
     case ACTUATOR_SMS_CSP: {
       auto last_device_cmd = last_device_cmd_.load();
       switch(last_device_cmd.actuator_csp_cmd.interpolation_mode) { 
-        case 0: { // "implicit" 2nd order forward interpolation
+        case 0: { 
+          // interpolation mode 0 is "implicit" 2nd order forward interpolation:
+          // This method uses the last setpoint and an "implicit" next setpoint to
+          // perform 2nd order interpolation. The implicit next setpoint is determined
+          // using the provided feed-forward velocity and acceleration
+          // * if a zero acceleration is provided, the method reduces to linear 
+          //   extrapolation
+          // * if a zero acceleration and velocity are provided, the method reduces
+          //   to a zero-order hold
           double dt = fmax(
               (state_->time - last_device_cmd.actuator_csp_cmd.request_time), 0.0);
           double offset_target_position =
@@ -600,11 +611,18 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
           jsd_cmd.torque_offset_amps =
               last_device_cmd.actuator_csp_cmd.torque_offset_amps;
           ElmoCSP(jsd_cmd);
-
-          std::cout << "CSP(implicit) pos: " << offset_target_position <<
-            " vel: " << offset_target_velocity << std::endl; 
         } break;
-        case 1: { // "explicit" 3rd order backwards interpolation 
+        case 1: { 
+          // "explicit" 3rd order backwards interpolation:
+          // This method delays execution of the motion profile until a number of
+          // CSP setpoints equal to the member variable `csp_cycles_delay_` have
+          // accumulated in the `last_device_cmd_` buffer. Once sufficient
+          // commands have been received, the time offset is recorded. The
+          // time offset is used to look up two knot-points in the CSP command history.
+          // Cubic interpolation is used to obtain the position and velocity for the
+          // current timestamp. The method is explicit in the sense that it intepolates
+          // between two CSP setpoints that have been explicitly received from the
+          // calling module
           size_t num_received = last_device_cmd_.get_num_received();
           if(num_received == csp_cycles_delay_) {
             auto first_device_cmd = last_device_cmd_.load(csp_cycles_delay_ - 1);
@@ -623,7 +641,8 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             }
 
             if(index >= 10) {
-              ERROR("Error in logic for finding knots for CSP interpolation: index >=10");
+              ERROR(
+                "Error in logic for finding knots for CSP interpolation: index >=10");
               return ALL_DEVICE_FAULT;
             }
             
@@ -642,10 +661,10 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             double x = (sample_time - t0) / dt;
             if(x < 0 || x > 1.0) {
               ERROR("Error in logic for finding knots for CSP interpolation x=%f", x);
-              ERROR("knot0 index: %d, knot1 index: %d", index, index - 1);
-              ERROR("knot0 time: %f, knot1 time: %f", t0, t1);
-              ERROR("knot0 position: %f, knot1 position: %f", p0, p1);
-              ERROR("knot0 velocity: %f, knot1 velocity: %f", v0, v1);
+              ERROR("knot 0 index: %ld, knot 1 index: %ld", index, index - 1);
+              ERROR("knot 0 time: %f, knot 1 time: %f", t0, t1);
+              ERROR("knot 0 position: %f, knot 1 position: %f", p0, p1);
+              ERROR("knot 0 velocity: %f, knot 1 velocity: %f", v0, v1);
               ERROR("sample_time: %f, csp_interp_offset_time: %f, time: %f", 
                     sample_time, csp_interpolation_offset_time_, state_->time);
               return ALL_DEVICE_FAULT;
@@ -672,7 +691,6 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             jsd_cmd.torque_offset_amps = 
               knot_1.actuator_csp_cmd.torque_offset_amps;
             ElmoCSP(jsd_cmd);
-            std::cout << "CSP(explicit) pos: " << p << " vel: " << v << std::endl; 
           }
         } break;
         default: {
@@ -705,7 +723,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
 {
   // add other reasons as needed...
   if (IsStoEngaged()) {
-    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    ERROR("Actuator %s: %s", name_.c_str(), "Fault Condition present, faulting");
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_STO_ENGAGED;
 
     MSG("Restoring Current after calibration: %lf",
@@ -718,7 +736,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
   // assume pos/vel tracking fault
   if (IsJsdFaultCodePresent(*state_)) {
     ElmoHalt();
-    MSG("Act %s: %s: %s", name_.c_str(),
+    MSG("Actuator %s: %s: %s", name_.c_str(),
         "Detected Hardstop, Elmo jsd_fault_code",
         GetJSDFaultCodeAsString(*state_).c_str());
 
@@ -742,7 +760,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
 
   if (complete) {
     TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Act %s: %s", name_.c_str(),
+    ERROR("Actuator %s: %s", name_.c_str(),
           "Moved Full Range and did not encounter hard stop");
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_NO_HARDSTOP_DURING_CAL;
 
@@ -789,7 +807,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
 
     // We have waited too long, fault
     if ((state_->monotonic_time - last_transition_time_) > 5.0) {
-      ERROR("Act %s: %s: %lf", name_.c_str(),
+      ERROR("Actuator %s: %s: %lf", name_.c_str(),
             "Waited too long for drive to reset in CAL_AT_HARDSTOP state",
             (state_->monotonic_time - last_transition_time_));
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED;
