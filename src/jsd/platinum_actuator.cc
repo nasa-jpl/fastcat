@@ -199,12 +199,12 @@ fastcat::FaultType fastcat::PlatinumActuator::ProcessProfPosDisengaging()
   // Transition to ACTUATOR_SMS_PROF_POS once the drive acknowledges reception
   // of the command. Otherwise, the state variables used to check for the
   // completion of the command (i.e. target_reached) might refer to a previous
-  // command. If the drive does not acknowledge the command within 1 second,
-  // fault.
+  // command. If the drive does not acknowledge the command within the
+  // configured timeout, fault.
   if (state_->platinum_actuator_state.setpoint_ack_rise) {
     TransitionToState(ACTUATOR_SMS_PROF_POS);
   } else if ((cycle_mono_time_ - last_transition_time_) >
-             (1.0 + 2.0 * loop_period_)) {
+             (prof_disengaging_timeout_ + 2.0 * loop_period_)) {
     ERROR(
         "Act %s: Profiled Position command was not acknowledged by drive "
         "before timeout, faulting",
