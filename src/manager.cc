@@ -61,6 +61,7 @@
 #include "fastcat/jsd/jed0200_offline.h"
 #include "fastcat/jsd/platinum_actuator.h"
 #include "fastcat/jsd/platinum_actuator_offline.h"
+#include "fastcat/jsd/platinum_sil_actuator.h"
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd_print.h"
@@ -466,6 +467,9 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
 
     } else if (0 == device_class.compare("PlatinumActuator")) {
       device = std::make_shared<PlatinumActuator>();
+
+    } else if (0 == device_class.compare("PlatinumSilActuator")) {
+      device = std::make_shared<PlatinumSilActuator>();
 
     } else if (0 == device_class.compare("Jed0101")) {
       device = std::make_shared<Jed0101>();
@@ -948,8 +952,10 @@ bool fastcat::Manager::LoadActuatorPosFile()
   bool actuators_in_topo = false;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
        ++device) {
-    if ((*device)->GetState()->type == GOLD_ACTUATOR_STATE ||
-        (*device)->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+    std::shared_ptr<ActuatorManagerInterface> actuator =
+        std::dynamic_pointer_cast<ActuatorManagerInterface>(*device);
+    // If device is an ActuatorManagerInterface, actuator will not be NULL.
+    if (actuator) {
       actuators_in_topo = true;
       break;
     }
@@ -1038,21 +1044,16 @@ bool fastcat::Manager::ValidateActuatorPosFile()
   }
 
   // Err if actuator is created by topology but no pos file entry exists
-  std::shared_ptr<Actuator>    actuator;
-  std::shared_ptr<DeviceState> dev_state;
+  std::shared_ptr<ActuatorManagerInterface> actuator;
   std::string                  dev_name;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
        ++device) {
-    dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
-
-    if (dev_state->type != GOLD_ACTUATOR_STATE &&
-        dev_state->type != PLATINUM_ACTUATOR_STATE) {
+    actuator  = std::dynamic_pointer_cast<ActuatorManagerInterface>(*device);
+    // If the JSD device is not an actuator, skip it.
+    if (actuator == NULL) {
       continue;
     }
-
-    actuator = std::dynamic_pointer_cast<Actuator>(*device);
-
     auto find_pos_data = actuator_pos_map_.find(dev_name);
 
     if (actuator->HasAbsoluteEncoder()) {
@@ -1082,21 +1083,17 @@ bool fastcat::Manager::ValidateActuatorPosFile()
 
 bool fastcat::Manager::SetActuatorPositions()
 {
-  std::shared_ptr<DeviceState> dev_state;
-  std::shared_ptr<Actuator>    actuator;
+  std::shared_ptr<ActuatorManagerInterface> actuator;
   std::string                  dev_name;
 
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
        ++device) {
-    dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
-
-    if (dev_state->type != GOLD_ACTUATOR_STATE &&
-        dev_state->type != PLATINUM_ACTUATOR_STATE) {
+    actuator  = std::dynamic_pointer_cast<ActuatorManagerInterface>(*device);
+    // If the JSD device is not an actuator, skip it.
+    if (actuator == NULL) {
       continue;
     }
-
-    actuator = std::dynamic_pointer_cast<Actuator>(*device);
 
     if (actuator->HasAbsoluteEncoder()) {
       MSG_DEBUG("Actuator (%s) has absolute encoder, ignoring saved positions",
@@ -1120,27 +1117,24 @@ bool fastcat::Manager::SetActuatorPositions()
 
 void fastcat::Manager::GetActuatorPositions()
 {
-  std::shared_ptr<DeviceState> dev_state;
-  std::shared_ptr<Actuator>    actuator;
+  std::shared_ptr<ActuatorManagerInterface> actuator;
   std::string                  dev_name;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
        ++device) {
-    dev_state = (*device)->GetState();
     dev_name  = (*device)->GetName();
 
-    if (dev_state->type != GOLD_ACTUATOR_STATE &&
-        dev_state->type != PLATINUM_ACTUATOR_STATE) {
+    actuator = std::dynamic_pointer_cast<ActuatorManagerInterface>(*device);
+    // If the JSD device is not an actuator, skip it.
+    if (actuator == NULL) {
       continue;
     }
-
-    actuator = std::dynamic_pointer_cast<Actuator>(*device);
 
     if (actuator->HasAbsoluteEncoder()) {
       continue;
     }
 
     ActuatorPosData apd         = {0};
-    apd.position                = Actuator::GetActualPosition(*dev_state);
+    apd.position                = actuator->GetActualPosition();
     actuator_pos_map_[dev_name] = apd;
 
     MSG("Actuator: %s position is %lf", dev_name.c_str(), apd.position);

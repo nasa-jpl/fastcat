@@ -195,6 +195,50 @@ states:
     - name: power
       type: double
 
+  - name: platinum_sil_actuator
+    fields:
+    - name: actual_position
+      type: double
+    - name: actual_velocity
+      type: double
+    - name: actual_current
+      type: double
+    - name: faulted
+      type: bool
+    - name: cmd_max_current
+      type: double
+    - name: elmo_state_machine_state
+      type: uint32_t
+      comment: "From jsd_elmo_state_machine_state_t"
+    - name: elmo_mode_of_operation
+      type: uint32_t
+      comment: "From jsd_epd_mode_of_operation_t"
+    - name: sto_engaged
+      type: uint8_t
+    - name: hall_state
+      type: uint8_t
+    - name: target_reached
+      type: uint8_t
+    - name: motor_on
+      type: uint8_t
+    - name: servo_enabled
+      type: uint8_t
+    - name: jsd_fault_code
+      type: uint32_t
+      comment: "From jsd_epd_fault_code_t"
+    - name: fastcat_fault_code
+      type: uint32_t
+    - name: emcy_error_code
+      type: uint16_t
+    - name: sil_initialized
+      type: bool
+    - name: sil_running
+      type: bool
+    - name: sil_faulted
+      type: bool
+    - name: elmo_actual_position
+      type: int32_t
+
   - name: faulter
     fields:
     - name: enable

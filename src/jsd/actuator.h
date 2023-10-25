@@ -6,6 +6,7 @@
 // Include c then c++ libraries
 
 // Include external then project includes
+#include "fastcat/jsd/actuator_manager_interface.h"
 #include "fastcat/jsd/jsd_device_base.h"
 #include "fastcat/trap.h"
 #include "jsd/jsd_elmo_common_types.h"
@@ -49,7 +50,7 @@ typedef enum {
   ACTUATOR_FASTCAT_FAULT_PROF_POS_CMD_ACK_TIMEOUT_EXCEEDED,
 } ActuatorFastcatFault;
 
-class Actuator : public JsdDeviceBase
+class Actuator : public JsdDeviceBase, public ActuatorManagerInterface
 {
  public:
   Actuator();
@@ -60,13 +61,10 @@ class Actuator : public JsdDeviceBase
   bool      Write(DeviceCmd& cmd) override;
   void      Fault() override;
   void      Reset() override;
-  bool      SetOutputPosition(double position);
-  bool      HasAbsoluteEncoder();
+  bool      SetOutputPosition(double position) override;
+  bool      HasAbsoluteEncoder() override;
 
-  static std::string GetFastcatFaultCodeAsString(const DeviceState& state);
-  static std::string GetJSDFaultCodeAsString(const DeviceState& state);
-  static bool        IsJsdFaultCodePresent(const DeviceState& state);
-  static double      GetActualPosition(const DeviceState& state);
+  static std::string FastcatFaultToString(ActuatorFastcatFault fault);
 
   struct ActuatorParams {
     std::string actuator_type_str;

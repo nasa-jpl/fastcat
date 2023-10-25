@@ -11,10 +11,9 @@
 #include <iostream>
 
 // Include external then project includes
+#include "fastcat/jsd/actuator_utils.h"
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd.h"
-#include "jsd/jsd_egd_pub.h"
-#include "jsd/jsd_epd_nominal_pub.h"
 
 fastcat::Actuator::Actuator()
 {
@@ -420,6 +419,7 @@ fastcat::FaultType fastcat::Actuator::Process()
 
   switch (actuator_sms_) {
     case ACTUATOR_SMS_FAULTED:
+      retval = ProcessFaulted();
       break;
 
     case ACTUATOR_SMS_HALTED:
@@ -501,8 +501,7 @@ void fastcat::Actuator::Reset()
 bool fastcat::Actuator::SetOutputPosition(double position)
 {
   MSG("Act %s: %s%lf %s%lf", name_.c_str(),
-      "Changing Position from: ", GetActualPosition(*state_),
-      "to : ", position);
+      "Changing Position from: ", GetActualPosition(), "to : ", position);
 
   elmo_pos_offset_cnts_ =
       GetElmoActualPosition() - (int32_t)(position * overall_reduction_);
@@ -678,121 +677,49 @@ bool fastcat::Actuator::GSModeFromString(
   return true;
 }
 
-std::string fastcat::Actuator::GetFastcatFaultCodeAsString(
-    const DeviceState& state)
+std::string fastcat::Actuator::FastcatFaultToString(ActuatorFastcatFault fault)
 {
   std::string fault_str;
 
-  if (state.type == GOLD_ACTUATOR_STATE ||
-      state.type == PLATINUM_ACTUATOR_STATE) {
-    ActuatorFastcatFault fault;
-    if (state.type == GOLD_ACTUATOR_STATE) {
-      fault = static_cast<ActuatorFastcatFault>(
-          state.gold_actuator_state.fastcat_fault_code);
-    } else {
-      fault = static_cast<ActuatorFastcatFault>(
-          state.platinum_actuator_state.fastcat_fault_code);
-    }
-
-    switch (fault) {
-      case ACTUATOR_FASTCAT_FAULT_OKAY:
-        fault_str = "FASTCAT_FAULT_OKAY";
-        break;
-      case ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED:
-        fault_str = "FASTCAT_FAULT_CMD_LIMIT_EXCEEDED";
-        break;
-      case ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_MOTION:
-        fault_str = "FASTCAT_FAULT_INVALID_CMD_DURING_MOTION";
-        break;
-      case ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_CAL:
-        fault_str = "FASTCAT_FAULT_INVALID_CMD_DURING_CAL";
-        break;
-      case ACTUATOR_FASTCAT_FAULT_INVALID_CAL_MOTION_RANGE:
-        fault_str = "FASTCAT_FAULT_INVALID_CAL_MOTION_RANGE";
-        break;
-      case ACTUATOR_FASTCAT_FAULT_STO_ENGAGED:
-        fault_str = "FASTCAT_FAULT_STO_ENGAGED";
-        break;
-      case ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION:
-        fault_str = "FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION";
-        break;
-      case ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED:
-        fault_str = "FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED";
-        break;
-      case ACTUATOR_FASTCAT_FAULT_NO_HARDSTOP_DURING_CAL:
-        fault_str = "FASTCAT_FAULT_NO_HARDSTOP_DURING_CAL";
-        break;
-      case ACTUATOR_FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED:
-        fault_str = "FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED";
-        break;
-      case ACTUATOR_FASTCAT_FAULT_PROF_POS_CMD_ACK_TIMEOUT_EXCEEDED:
-        fault_str = "ACTUATOR_FASTCAT_FAULT_PROF_POS_CMD_ACK_TIMEOUT_EXCEEDED";
-        break;
-      default:
-        fault_str = "Bad Fastcat fault code";
-    }
-  } else {
-    fault_str = "State is not an Elmo actuator type.";
+  switch (fault) {
+    case ACTUATOR_FASTCAT_FAULT_OKAY:
+      fault_str = "FASTCAT_FAULT_OKAY";
+      break;
+    case ACTUATOR_FASTCAT_FAULT_CMD_LIMIT_EXCEEDED:
+      fault_str = "FASTCAT_FAULT_CMD_LIMIT_EXCEEDED";
+      break;
+    case ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_MOTION:
+      fault_str = "FASTCAT_FAULT_INVALID_CMD_DURING_MOTION";
+      break;
+    case ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_CAL:
+      fault_str = "FASTCAT_FAULT_INVALID_CMD_DURING_CAL";
+      break;
+    case ACTUATOR_FASTCAT_FAULT_INVALID_CAL_MOTION_RANGE:
+      fault_str = "FASTCAT_FAULT_INVALID_CAL_MOTION_RANGE";
+      break;
+    case ACTUATOR_FASTCAT_FAULT_STO_ENGAGED:
+      fault_str = "FASTCAT_FAULT_STO_ENGAGED";
+      break;
+    case ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION:
+      fault_str = "FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION";
+      break;
+    case ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED:
+      fault_str = "FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED";
+      break;
+    case ACTUATOR_FASTCAT_FAULT_NO_HARDSTOP_DURING_CAL:
+      fault_str = "FASTCAT_FAULT_NO_HARDSTOP_DURING_CAL";
+      break;
+    case ACTUATOR_FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED:
+      fault_str = "FASTCAT_FAULT_CAL_RESET_TIMEOUT_EXCEEDED";
+      break;
+    case ACTUATOR_FASTCAT_FAULT_PROF_POS_CMD_ACK_TIMEOUT_EXCEEDED:
+      fault_str = "FASTCAT_FAULT_PROF_POS_CMD_ACK_TIMEOUT_EXCEEDED";
+      break;
+    default:
+      fault_str = "Bad Fastcat fault code";
   }
 
   return fault_str;
-}
-
-std::string fastcat::Actuator::GetJSDFaultCodeAsString(const DeviceState& state)
-{
-  std::string fault_str;
-
-  if (state.type == GOLD_ACTUATOR_STATE) {
-    auto fault = static_cast<jsd_egd_fault_code_t>(
-        state.gold_actuator_state.jsd_fault_code);
-    fault_str = std::string(jsd_egd_fault_code_to_string(fault));
-  } else if (state.type == PLATINUM_ACTUATOR_STATE) {
-    auto fault = static_cast<jsd_epd_fault_code_t>(
-        state.platinum_actuator_state.jsd_fault_code);
-    fault_str = std::string(jsd_epd_nominal_fault_code_to_string(fault));
-  } else {
-    fault_str = "State is not an Elmo actuator type.";
-  }
-
-  return fault_str;
-}
-
-bool fastcat::Actuator::IsJsdFaultCodePresent(const DeviceState& state)
-{
-  bool fault_present = false;
-
-  if (state.type == GOLD_ACTUATOR_STATE) {
-    if (state.gold_actuator_state.jsd_fault_code != JSD_EGD_FAULT_OKAY) {
-      fault_present = true;
-    }
-  } else if (state.type == PLATINUM_ACTUATOR_STATE) {
-    if (state.platinum_actuator_state.jsd_fault_code != JSD_EPD_FAULT_OKAY) {
-      fault_present = true;
-    }
-  } else {
-    ERROR(
-        "IsJsdFaultCodePresent must be called on states of Elmo actuator "
-        "type.");
-    assert(false);
-  }
-
-  return fault_present;
-}
-
-double fastcat::Actuator::GetActualPosition(const DeviceState& state)
-{
-  double actual_position;
-  if (state.type == GOLD_ACTUATOR_STATE) {
-    actual_position = state.gold_actuator_state.actual_position;
-  } else if (state.type == PLATINUM_ACTUATOR_STATE) {
-    actual_position = state.platinum_actuator_state.actual_position;
-  } else {
-    ERROR(
-        "GetActualPosition must be called on states of Elmo actuator "
-        "type.");
-    assert(false);
-  }
-  return actual_position;
 }
 
 double fastcat::Actuator::ComputeTargetPosProfPosCmd(const DeviceCmd& cmd)
@@ -800,7 +727,7 @@ double fastcat::Actuator::ComputeTargetPosProfPosCmd(const DeviceCmd& cmd)
   double target_position = 0;
   if (cmd.actuator_prof_pos_cmd.relative) {
     target_position =
-        cmd.actuator_prof_pos_cmd.target_position + GetActualPosition(*state_);
+        cmd.actuator_prof_pos_cmd.target_position + GetActualPosition();
   } else {
     target_position = cmd.actuator_prof_pos_cmd.target_position;
   }

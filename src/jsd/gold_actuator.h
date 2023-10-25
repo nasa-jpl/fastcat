@@ -17,6 +17,7 @@ class GoldActuator : public Actuator
 
  public:
   GoldActuator();
+  double GetActualPosition() override;
 
  protected:
   jsd_egd_state_t jsd_egd_state_ = {};

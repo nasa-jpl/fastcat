@@ -15,6 +15,7 @@ class PlatinumActuator : public Actuator
 {
  public:
   PlatinumActuator();
+  double GetActualPosition() override;
 
  protected:
   jsd_epd_nominal_state_t jsd_epd_state_ = {};

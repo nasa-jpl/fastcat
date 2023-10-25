@@ -12,6 +12,11 @@ fastcat::PlatinumActuator::PlatinumActuator()
   state_->type = PLATINUM_ACTUATOR_STATE;
 }
 
+double fastcat::PlatinumActuator::GetActualPosition()
+{
+  return state_->platinum_actuator_state.actual_position;
+}
+
 void fastcat::PlatinumActuator::PopulateJsdSlaveConfig()
 {
   jsd_slave_config_.driver_type = JSD_DRIVER_TYPE_EPD_NOMINAL;

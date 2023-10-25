@@ -10,6 +10,11 @@
 
 fastcat::GoldActuator::GoldActuator() { state_->type = GOLD_ACTUATOR_STATE; }
 
+double fastcat::GoldActuator::GetActualPosition()
+{
+  return state_->gold_actuator_state.actual_position;
+}
+
 void fastcat::GoldActuator::PopulateJsdSlaveConfig()
 {
   jsd_slave_config_.driver_type = JSD_DRIVER_TYPE_EGD;

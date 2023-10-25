@@ -67,6 +67,7 @@ add_library(fastcat STATIC
     transform_utils.cc
 
     jsd/jsd_device_base.cc
+    jsd/actuator_utils.cc
     jsd/actuator.cc
     jsd/actuator_fsm_helpers.cc
 
@@ -87,6 +88,7 @@ add_library(fastcat STATIC
     jsd/jed0101.cc
     jsd/jed0200.cc
     jsd/platinum_actuator.cc
+    jsd/platinum_sil_actuator.cc
 
     jsd/ati_fts_offline.cc
     jsd/egd_offline.cc

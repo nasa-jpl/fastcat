@@ -7,6 +7,7 @@
 #include <cmath>
 
 // Include external then project includes
+#include "fastcat/jsd/actuator_utils.h"
 #include "jsd/jsd.h"
 #include "jsd/jsd_time.h"
 
@@ -420,16 +421,16 @@ bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
 
   double target_position;
   if (cmd.actuator_calibrate_cmd.velocity > 0) {
-    target_position = GetActualPosition(*state_) + cal_range;
+    target_position = GetActualPosition() + cal_range;
   } else {
-    target_position = GetActualPosition(*state_) - cal_range;
+    target_position = GetActualPosition() - cal_range;
   }
 
   MSG("Setting Peak Current to calibration level: %lf", cal_cmd_.max_current);
   ElmoSetPeakCurrent(cal_cmd_.max_current);
 
   fastcat_trap_generate(&trap_, state_->time,
-                        GetActualPosition(*state_),  // consider cmd position
+                        GetActualPosition(),  // consider cmd position
                         target_position,
                         GetActualVelocity(),  // consider cmd velocity
                         0,  // pt2pt motion always uses terminating traps
@@ -449,7 +450,7 @@ bool fastcat::Actuator::IsIdleFaultConditionMet()
     return true;
   }
 
-  if (IsJsdFaultCodePresent(*state_)) {
+  if (actuator_utils::IsJsdFaultCodePresent(*state_)) {
     ERROR("%s: jsd_fault_code indicates active fault", name_.c_str());
     return true;
   }
@@ -464,7 +465,7 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
     return true;
   }
 
-  if (IsJsdFaultCodePresent(*state_)) {
+  if (actuator_utils::IsJsdFaultCodePresent(*state_)) {
     ERROR("%s: jsd_fault_code indicates active fault", name_.c_str());
     return true;
   }
@@ -562,11 +563,11 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
   }
 
   // assume pos/vel tracking fault
-  if (IsJsdFaultCodePresent(*state_)) {
+  if (actuator_utils::IsJsdFaultCodePresent(*state_)) {
     ElmoHalt();
     MSG("Act %s: %s: %s", name_.c_str(),
         "Detected Hardstop, Elmo jsd_fault_code",
-        GetJSDFaultCodeAsString(*state_).c_str());
+        actuator_utils::GetJSDFaultCodeAsString(*state_).c_str());
 
     MSG("Restoring Current after calibration: %lf",
         params_.peak_current_limit_amps);
@@ -611,7 +612,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCalAtHardstop()
 
   if (GetElmoStateMachineState() !=
           JSD_ELMO_STATE_MACHINE_STATE_OPERATION_ENABLED &&
-      IsJsdFaultCodePresent(*state_)) {
+      actuator_utils::IsJsdFaultCodePresent(*state_)) {
     // We have waited too long, fault
     if ((cycle_mono_time_ - last_transition_time_) > 5.0) {
       ERROR("Act %s: %s: %lf", name_.c_str(),
