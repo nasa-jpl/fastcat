@@ -620,8 +620,8 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
           // commands have been received, the time offset is recorded. The
           // time offset is used to look up two knot-points in the CSP command history.
           // Cubic interpolation is used to obtain the position and velocity for the
-          // current timestamp. The method is explicit in the sense that it intepolates
-          // between two CSP setpoints that have been explicitly received from the
+          // current timestamp. The method is explicit in the sense that it interpolates
+          // between two CSP setpoints that have been received from the
           // calling module
           size_t num_received = last_device_cmd_.get_num_received();
           if(num_received == csp_cycles_delay_) {
@@ -633,7 +633,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             double sample_time = 
               state_->time - csp_interpolation_offset_time_;
             size_t index = 0;
-            while(index < 10) {
+            while(index < last_device_cmd_.size()) {
                auto device_cmd = last_device_cmd_.load(++index);
                if(device_cmd.actuator_csp_cmd.request_time <= sample_time) {
                  break;
@@ -642,7 +642,9 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
 
             if(index >= last_device_cmd_.size()) {
               ERROR(
-                "Error in logic for finding knots for CSP interpolation: index >=10");
+                "Error in logic for finding knots for CSP interpolation: index >= %zu",
+                last_device_cmd_.size()
+              );
               return ALL_DEVICE_FAULT;
             }
             
@@ -667,6 +669,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
               ERROR("knot 0 velocity: %f, knot 1 velocity: %f", v0, v1);
               ERROR("sample_time: %f, csp_interp_offset_time: %f, time: %f", 
                     sample_time, csp_interpolation_offset_time_, state_->time);
+              ERROR("csp_interpolation_offset_time: %f", csp_interpolation_offset_time_);
               return ALL_DEVICE_FAULT;
             }
 
