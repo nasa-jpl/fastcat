@@ -626,9 +626,10 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
           size_t num_received = last_device_cmd_.get_num_received();
           if(num_received == csp_cycles_delay_) {
             MSG("num_received: %zu", num_received);
-            auto first_device_cmd = last_device_cmd_.load(csp_cycles_delay_);
+            auto first_device_cmd = last_device_cmd_.load(csp_cycles_delay_ - 1);
             csp_interpolation_offset_time_ = 
               state_->time - first_device_cmd.actuator_csp_cmd.request_time;
+            MSG("csp_interpolation_offset_time_: %f", cs_interpolation_offset_time_);
           }
           if(num_received >= csp_cycles_delay_) {
             double sample_time = 
