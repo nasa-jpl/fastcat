@@ -640,7 +640,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
                }
             }
 
-            if(index >= 10) {
+            if(index >= last_device_cmd_.size()) {
               ERROR(
                 "Error in logic for finding knots for CSP interpolation: index >=10");
               return ALL_DEVICE_FAULT;

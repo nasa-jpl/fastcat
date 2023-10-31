@@ -39,6 +39,10 @@ class RingBuffer
   size_t get_num_received() {
     return num_received_;
   }
+
+  size_t size() {
+    return buffer_.size();
+  }
 };
 }
 
