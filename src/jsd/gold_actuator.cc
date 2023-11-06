@@ -344,11 +344,10 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfPosDisengaging()
 
     ElmoCSP(jsd_cmd);
 
-    // Check runout timer here, brake engage/disengage time cannot exceed 1
-    // second per MAN-G-CR Section BP - Brake Parameters
-    if ((cycle_mono_time_ - last_transition_time_) > (1.0 + 2 * loop_period_)) {
-      ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting",
-            name_.c_str());
+    if ((cycle_mono_time_ - last_transition_time_) >
+        (prof_disengaging_timeout_ + 2 * loop_period_)) {
+      ERROR("Act %s: Brake Disengage %lf sec timeout expired, faulting",
+            name_.c_str(), prof_disengaging_timeout_);
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
     }
@@ -387,11 +386,10 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfVelDisengaging()
 
     ElmoCSV(jsd_cmd);
 
-    // Check runout timer here, brake engage/disengage time cannot exceed 1
-    // second per MAN-G-CR Section BP - Brake Parameters
-    if ((cycle_mono_time_ - last_transition_time_) > (1.0 + 2 * loop_period_)) {
-      ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting",
-            name_.c_str());
+    if ((cycle_mono_time_ - last_transition_time_) >
+        (prof_disengaging_timeout_ + 2 * loop_period_)) {
+      ERROR("Act %s: Brake Disengage %lf sec timeout expired, faulting",
+            name_.c_str(), prof_disengaging_timeout_);
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
     }
@@ -428,11 +426,10 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfTorqueDisengaging()
 
     ElmoCST(jsd_cmd);
 
-    // Check runout timer here, brake engage/disengage time cannot exceed 1
-    // second per MAN-G-CR Section BP - Brake Parameters
-    if ((cycle_mono_time_ - last_transition_time_) > (1.0 + 2 * loop_period_)) {
-      ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting",
-            name_.c_str());
+    if ((cycle_mono_time_ - last_transition_time_) >
+        (prof_disengaging_timeout_ + 2 * loop_period_)) {
+      ERROR("Act %s: Brake Disengage %lf sec timeout expired, faulting",
+            name_.c_str(), prof_disengaging_timeout_);
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
     }

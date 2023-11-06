@@ -851,6 +851,11 @@ commands:
     - name: position
       type: double
 
+  - name: actuator_set_prof_disengaging_timeout
+    fields:
+    - name: timeout
+      type: double
+
   - name: actuator_calibrate
     fields:
     - name: velocity

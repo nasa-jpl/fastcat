@@ -255,6 +255,14 @@ bool fastcat::Actuator::Write(DeviceCmd& cmd)
       return true;
       break;
 
+    case ACTUATOR_SET_PROF_DISENGAGING_TIMEOUT_CMD:
+      if (!HandleNewSetProfDisengagingTimeoutCmd(cmd)) {
+        ERROR("Failed to handle Set Profile Disengaging Timeout Command");
+        return false;
+      }
+      return true;
+      break;
+
     case ACTUATOR_SET_DIGITAL_OUTPUT_CMD:
       ElmoSetDigitalOutput(
           cmd.actuator_set_digital_output_cmd.digital_output_index,

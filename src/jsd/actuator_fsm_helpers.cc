@@ -345,6 +345,41 @@ bool fastcat::Actuator::HandleNewSetUnitModeCmd(const DeviceCmd& cmd)
   return true;
 }
 
+bool fastcat::Actuator::HandleNewSetProfDisengagingTimeoutCmd(
+    const DeviceCmd& cmd)
+{
+  switch (actuator_sms_) {
+    case ACTUATOR_SMS_FAULTED:
+    case ACTUATOR_SMS_HALTED:
+    case ACTUATOR_SMS_HOLDING:
+      break;
+
+    case ACTUATOR_SMS_PROF_POS:
+    case ACTUATOR_SMS_PROF_POS_DISENGAGING:
+    case ACTUATOR_SMS_PROF_VEL:
+    case ACTUATOR_SMS_PROF_VEL_DISENGAGING:
+    case ACTUATOR_SMS_PROF_TORQUE:
+    case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
+    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
+    case ACTUATOR_SMS_CAL_AT_HARDSTOP:
+    case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
+      ERROR("Act %s: %s", name_.c_str(),
+            "Cannot set profile disengaging timeout, motion command is active");
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_CMD_DURING_MOTION;
+      return false;
+
+    default:
+      ERROR("Act %s: %s: %d", name_.c_str(), "Bad Act State ", actuator_sms_);
+      return false;
+  }
+
+  prof_disengaging_timeout_ =
+      cmd.actuator_set_prof_disengaging_timeout_cmd.timeout;
+
+  return true;
+}
+
 bool fastcat::Actuator::HandleNewCalibrationCmd(const DeviceCmd& cmd)
 {
   switch (actuator_sms_) {
