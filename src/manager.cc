@@ -64,7 +64,7 @@
 
 fastcat::Manager::Manager()
 {
-  cmd_queue_          = std::make_shared<std::queue<DeviceCmd>>();
+  cmd_queue_          = std::make_shared<ThreadSafeQueue<DeviceCmd>>();
   sdo_response_queue_ = std::make_shared<std::queue<SdoResponse>>();
 }
 

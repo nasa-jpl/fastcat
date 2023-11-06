@@ -9,7 +9,7 @@
 fastcat::DeviceBase::~DeviceBase() {}
 
 void fastcat::DeviceBase::RegisterCmdQueue(
-    std::shared_ptr<std::queue<DeviceCmd>> cmd_queue)
+    std::shared_ptr<fastcat::ThreadSafeQueue<DeviceCmd>> cmd_queue)
 {
   cmd_queue_ = cmd_queue;
 }

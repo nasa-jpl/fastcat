@@ -12,6 +12,7 @@
 // Include external then project includes
 #include <yaml-cpp/yaml.h>
 
+#include "fastcat/thread_safe_queue.h"
 #include "fastcat/device_base.h"
 #include "fastcat/jsd/actuator.h"
 #include "fastcat/jsd/jsd_device_base.h"
@@ -206,7 +207,7 @@ class Manager
   std::map<std::string, std::shared_ptr<DeviceBase>> device_map_;
   std::vector<std::shared_ptr<DeviceBase>>           fastcat_device_list_;
   std::vector<std::shared_ptr<JsdDeviceBase>>        jsd_device_list_;
-  std::shared_ptr<std::queue<DeviceCmd>>             cmd_queue_;
+  std::shared_ptr<ThreadSafeQueue<DeviceCmd>>             cmd_queue_;
   std::vector<DeviceState>                           states_;
   std::map<std::string, ActuatorPosData>             actuator_pos_map_;
   std::unordered_map<std::string, bool>              unique_device_map_;

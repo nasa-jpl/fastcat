@@ -12,6 +12,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "fastcat/types.h"
+#include "fastcat/thread_safe_queue.h"
 
 namespace fastcat
 {
@@ -35,7 +36,7 @@ class DeviceBase
   }
 
   // non-virtual methods
-  void RegisterCmdQueue(std::shared_ptr<std::queue<DeviceCmd>> cmd_queue);
+  void RegisterCmdQueue(std::shared_ptr<ThreadSafeQueue<DeviceCmd>> cmd_queue);
   std::string                  GetName();
   std::shared_ptr<DeviceState> GetState();
 
@@ -57,7 +58,7 @@ class DeviceBase
   std::shared_ptr<DeviceState> state_;  ///< Fastcat state data
 
   /// for intra-device commands
-  std::shared_ptr<std::queue<DeviceCmd>> cmd_queue_;
+  std::shared_ptr<ThreadSafeQueue<DeviceCmd>> cmd_queue_;
 };
 
 }  // namespace fastcat
