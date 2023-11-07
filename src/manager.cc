@@ -297,7 +297,7 @@ bool fastcat::Manager::Process(double external_time)
   SdoResponse entry;
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     while (jsd_sdo_pop_response_queue(it->second, &entry.response)) {
-      if (entry.response.slave_id < *(it->second->ecx_context.slavecount)) {
+      if (entry.response.slave_id <= *(it->second->ecx_context.slavecount)) {
         entry.device_name =
             it->second->slave_configs[entry.response.slave_id].name;
       } else {
