@@ -695,6 +695,8 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             jsd_cmd.velocity_offset = EuToCnts(v);
             jsd_cmd.torque_offset_amps = 
               knot_1.actuator_csp_cmd.torque_offset_amps;
+            MSG("interpolated csp position: %f, velocity: %f", p, v);
+
             ElmoCSP(jsd_cmd);
           }
         } break;
