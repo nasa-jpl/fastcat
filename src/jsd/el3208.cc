@@ -43,7 +43,7 @@ bool fastcat::El3208::ConfigFromYamlCommon(const YAML::Node& node)
   state_->name = name_;
 
   jsd_slave_config_.configuration_active = true;
-  jsd_slave_config_.product_code         = JSD_EL3208_PRODUCT_CODE;
+  jsd_slave_config_.driver_type          = JSD_DRIVER_TYPE_EL3208;
   snprintf(jsd_slave_config_.name, JSD_NAME_LEN, "%s", name_.c_str());
 
   // Parse element array

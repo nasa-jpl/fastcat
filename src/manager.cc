@@ -25,13 +25,18 @@
 #include "fastcat/fastcat_devices/saturation.h"
 #include "fastcat/fastcat_devices/schmitt_trigger.h"
 #include "fastcat/fastcat_devices/signal_generator.h"
+#include "fastcat/fastcat_devices/three_node_thermal_model.h"
 #include "fastcat/fastcat_devices/virtual_fts.h"
 #include "fastcat/jsd/ati_fts.h"
 #include "fastcat/jsd/ati_fts_offline.h"
 #include "fastcat/jsd/egd.h"
 #include "fastcat/jsd/egd_offline.h"
+#include "fastcat/jsd/el1008.h"
+#include "fastcat/jsd/el1008_offline.h"
 #include "fastcat/jsd/el2124.h"
 #include "fastcat/jsd/el2124_offline.h"
+#include "fastcat/jsd/el2809.h"
+#include "fastcat/jsd/el2809_offline.h"
 #include "fastcat/jsd/el3104.h"
 #include "fastcat/jsd/el3104_offline.h"
 #include "fastcat/jsd/el3162.h"
@@ -296,7 +301,7 @@ bool fastcat::Manager::Process(double external_time)
   SdoResponse entry;
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     while (jsd_sdo_pop_response_queue(it->second, &entry.response)) {
-      if (entry.response.slave_id < *(it->second->ecx_context.slavecount)) {
+      if (entry.response.slave_id <= *(it->second->ecx_context.slavecount)) {
         entry.device_name =
             it->second->slave_configs[entry.response.slave_id].name;
       } else {
@@ -446,13 +451,19 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
     } else if (0 == device_class.compare("El2124")) {
       device = std::make_shared<El2124>();
 
+    } else if (0 == device_class.compare("El2809")) {
+      device = std::make_shared<El2809>();
+
     } else if (0 == device_class.compare("El4102")) {
       device = std::make_shared<El4102>();
 
     } else if (0 == device_class.compare("El3162")) {
       device = std::make_shared<El3162>();
 
-    } else if (0 == device_class.compare("El3104")) {
+    } else if (0 == device_class.compare("El1008")) {
+      device = std::make_shared<El1008>();
+
+    }else if (0 == device_class.compare("El3104")) {
       device = std::make_shared<El3104>();
 
     } else if (0 == device_class.compare("El3202")) {
@@ -594,6 +605,9 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
     } else if (0 == device_class.compare("LinearInterpolation")) {
       device = std::make_shared<LinearInterpolation>();
 
+    } else if (0 == device_class.compare("ThreeNodeThermalModel")) {
+      device = std::make_shared<ThreeNodeThermalModel>();
+
     } else {
       ERROR("Unknown device_class: %s", device_class.c_str());
       return false;
@@ -667,6 +681,9 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
     } else if (0 == device_class.compare("El2124")) {
       device = std::make_shared<El2124Offline>();
 
+    } else if (0 == device_class.compare("El2809")) {
+      device = std::make_shared<El2809Offline>();
+
     } else if (0 == device_class.compare("El3208")) {
       device = std::make_shared<El3208Offline>();
 
@@ -688,7 +705,10 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
     } else if (0 == device_class.compare("El3162")) {
       device = std::make_shared<El3162Offline>();
 
-    } else if (0 == device_class.compare("Ild1900")) {
+    } else if (0 == device_class.compare("El1008")) {
+      device = std::make_shared<El1008Offline>();
+
+    }else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900Offline>();
 
     } else if (0 == device_class.compare("GoldActuator")) {

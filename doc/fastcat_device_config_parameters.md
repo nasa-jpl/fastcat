@@ -9,10 +9,12 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | PlatinumActuator | Elmo          | Elmo Platinum derived Actuator controller |
 | GoldActuator     | Elmo          | Elmo Gold derived Actuator controller     |
 | Egd              | Elmo          | Elmo Gold Drive                           |
+| El1008           | Beckhoff      | 8-channel 24v Digital Input               |
 | El3208           | Beckhoff      | 8-channel RTD Input                       |
 | El3162           | Beckhoff      | 2-channel 0-10v SE Analog Input           |
 | El3602           | Beckhoff      | 2-channel +/-10v Diff. Analog Input       |
 | El2124           | Beckhoff      | 4-channel 5v Digital Output               |
+| El2809           | Beckhoff      | 16-channel 24v Digital Output             |
 | El4102           | Beckhoff      | 2-channel 0-10v Analog Output             |
 | Ild1900          | Micro-Epsilon | Distance Laser Sensor                     |
 | AtiFts           | ATI           | Force-Torque Sensor                       |
@@ -366,6 +368,17 @@ Allowable `element` values (See the EL3208 Beckhoff Manual `0x80n0:19` Data Obje
   name: el3162_1
 ```
 
+## El1008 (8-channel 24v Digital Input)
+
+**The El1008 device has no configuration parameters**
+
+#### Example
+
+``` yaml
+- device_class: El1008
+  name: el1008_1
+```
+
 ## El3602 (2-channel +/-10v Diff. Analog Input)
 
 | Parameter   | Description                 |
@@ -399,6 +412,17 @@ The permitted range values are:
 ``` yaml
 - device_class: El2124
   name: el2124_1
+```
+
+## El2809 (16-channel 28v Digital Output)
+
+**The El2809 device has no configuration parameters**
+
+#### Example
+
+``` yaml
+- device_class: El2809
+  name: el2809_1
 ```
 
 ## El4102 (2-channel 0-10v Analog Output)
@@ -1217,7 +1241,8 @@ This example implements an absolute value function over the range of [-9, 9]
 
 | Parameter   | Description |
 | ----------- | ----------- |
-| thermal_mass_node_1      | The thermal mass that represents the winding node -- node 1 (J * kg / deg C) |
+| thermal_mass_node_1_on      | The thermal mass that represents the winding node -- node 1 (J * kg / deg C) when the motor is on (used to over-estimate how quickly heating occurs while running motor) |
+| thermal_mass_node_1_off      | The thermal mass that represents the winding node -- node 1 (J * kg / deg C) when the motor is off (used to under-estimate how quickly cooling occurs) |
 | thermal_mass_node_2      | The thermal mass that represents the stator node  -- node 2 (J * kg / deg C) |
 | thermal_res_nodes_1_to_2      | The effective thermal resistance between nodes 1 and 2 (deg C/W) |
 | thermal_res_nodes_2_to_3      | The effective thermal resistance between nodes 2 and 3 (deg C/W) |
@@ -1257,7 +1282,8 @@ Where $C_{temp}$ represents the thermal coefficient of resistance, and $CM_{n}$ 
 ``` yaml
 - device_class: ThreeNodeThermalModel
   name:         three_node_thermal_model_1 
-  thermal_mass_node_1: 1.0
+  thermal_mass_node_1_on: 0.8
+  thermal_mass_node_1_off: 1.0 
   thermal_mass_node_2: 2.0
   thermal_res_nodes_1_to_2: 3.0
   thermal_res_nodes_2_to_3: 4.0
@@ -1274,4 +1300,6 @@ Where $C_{temp}$ represents the thermal coefficient of resistance, and $CM_{n}$ 
     request_signal_name:  output
   - observed_device_name: egd_1
     request_signal_name:  actual_current
+  - observed_device_name: egd_1
+    request_signal_name:  motor_on
 ```

@@ -141,6 +141,14 @@ class Actuator : public JsdDeviceBase
 
   DeviceCmd last_cmd_ = {};
 
+  // Timeout in seconds after which a fault should occur if a transition out of
+  // PROF_*_DISENGAGING does not take place. Default value corresponds to the
+  // maximum value the drive's brake disengage parameter (BP[2]) can take.
+  // prof_disengaging_timeout_ can be temporarily increased to allow for an
+  // initial commutation search in actuators that do not have hall sensors, for
+  // example.
+  double prof_disengaging_timeout_ = 1.0;
+
  private:
   bool PosExceedsCmdLimits(double pos_eu);
   bool VelExceedsCmdLimits(double vel_eu);
@@ -152,6 +160,7 @@ class Actuator : public JsdDeviceBase
   bool HandleNewResetCmd();
   bool HandleNewSetOutputPositionCmd(const DeviceCmd& cmd);
   bool HandleNewSetUnitModeCmd(const DeviceCmd& cmd);
+  bool HandleNewSetProfDisengagingTimeoutCmd(const DeviceCmd& cmd);
   bool HandleNewCalibrationCmd(const DeviceCmd& cmd);
   bool HandleNewCSPCmd(const DeviceCmd& cmd);
   bool HandleNewCSVCmd(const DeviceCmd& cmd);

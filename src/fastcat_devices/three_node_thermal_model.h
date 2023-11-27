@@ -11,6 +11,7 @@
 #include "fastcat/signal_handling.h"
 #include "fastcat/yaml_parser.h"
 #include "jsd/jsd_print.h"
+#include "jsd/jsd_time.h"
 
 namespace fastcat
 {
@@ -58,7 +59,8 @@ class ThreeNodeThermalModel : public DeviceBase
 
  protected:
   // declare motor parameters
-  double thermal_mass_node_1_{0.0};
+  double thermal_mass_node_1_on_{0.0};
+  double thermal_mass_node_1_off_{0.0};
   double thermal_mass_node_2_{0.0};
   double thermal_res_nodes_1_to_2_{
       0.0};  ///< thermal resistance from node 1 to 2 (deg C / W)
@@ -76,10 +78,19 @@ class ThreeNodeThermalModel : public DeviceBase
   double ref_temp_{0.0};  ///< the reference temperature for the winding
                           ///< resistance parameter, along with being used for
                           ///< calculating the dynamically varying resistance
+  double exp_smoothing_alpha_{1.0}; ///< this parameter specifies the extent
+                                    ///< to which smoothing is applied to the
+                                    ///< temperature sensor value      
+  bool awaiting_seed_temp_{false};  ///< this variable is used to delay setting 
+                                    ///< initial temperatures until we read the
+                                    ///< first temperature for node 3 and sets
+                                    ///< all nodes to that starting temperature
 
   // declare variables for storing signal data and estimates
   double motor_current_{
       0.0};  ///< this value is retrieved from a motor controller measurement
+  bool motor_on_status_{
+      false};  ///< this value is retrieved from the motor controller status
   double motor_res_{0.0};  ///< this value is estimated based on the temp 1
                            ///< estimate and represents the resistance of the
                            ///< motor, which is used for calculated power
@@ -95,11 +106,13 @@ class ThreeNodeThermalModel : public DeviceBase
 
   // constants
   // the required number of signals for this device
-  static constexpr size_t FC_TNTM_NUM_SIGNALS = 2;
+  static constexpr size_t FC_TNTM_NUM_SIGNALS = 3;
   // signal index for node 3 temperature
   static constexpr size_t NODE_3_TEMP_IDX = 0;
   // signal index for motor current
   static constexpr size_t MOTOR_CURRENT_IDX = 1;
+  // signal index for motor on status (from the actuator state)
+  static constexpr size_t MOTOR_ON_STATUS_IDX = 2;
 };
 }  // namespace fastcat
 
