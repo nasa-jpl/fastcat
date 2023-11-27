@@ -615,7 +615,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
         case 1: { 
           // "explicit" 3rd order backwards interpolation:
           // This method delays execution of the motion profile until a number of
-          // CSP setpoints equal to the member variable `csp_cycles_delay_` have
+          // CSP setpoints equal to the member variable `csp_cycles_delay_` has
           // accumulated in the `last_device_cmd_` buffer. Once sufficient
           // commands have been received, the time offset is recorded. The
           // time offset is used to look up two knot-points in the CSP command history.
@@ -625,11 +625,9 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
           // calling module
           size_t num_received = last_device_cmd_.get_num_received();
           if(num_received == csp_cycles_delay_) {
-            MSG("num_received: %zu", num_received);
             auto first_device_cmd = last_device_cmd_.load(csp_cycles_delay_ - 1);
             csp_interpolation_offset_time_ = 
               state_->time - first_device_cmd.actuator_csp_cmd.request_time;
-            MSG("csp_interpolation_offset_time_: %f", csp_interpolation_offset_time_);
           }
           if(num_received >= csp_cycles_delay_) {
             double sample_time = 
@@ -695,7 +693,6 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             jsd_cmd.velocity_offset = EuToCnts(v);
             jsd_cmd.torque_offset_amps = 
               knot_1.actuator_csp_cmd.torque_offset_amps;
-            MSG("interpolated csp position: %f, velocity: %f", p, v);
 
             ElmoCSP(jsd_cmd);
           }
