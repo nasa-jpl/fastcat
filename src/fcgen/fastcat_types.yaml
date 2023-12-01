@@ -777,6 +777,8 @@ commands:
     fields: 
     - name: request_time
       type: double
+    - name: receipt_stamp_time
+      type: double
     - name: target_position
       type: double
     - name: position_offset

@@ -53,6 +53,16 @@ typedef enum {
   ACTUATOR_FASTCAT_FAULT_PROF_POS_CMD_ACK_TIMEOUT_EXCEEDED,
 } ActuatorFastcatFault;
 
+typedef enum {
+  ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_CUBIC = 0,
+  ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_LINEAR,
+} ActuatorExplicitInterpolationAlgorithm;
+
+typedef enum {
+  ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_CSP_MESSAGE = 0,
+  ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_FASTCAT_CLOCK,
+} ActuatorExplicitInterpolationTimestamp;
+
 class Actuator : public JsdDeviceBase
 {
  public:
@@ -66,6 +76,26 @@ class Actuator : public JsdDeviceBase
   void      Reset() override;
   bool      SetOutputPosition(double position);
   bool      HasAbsoluteEncoder();
+
+  void SetExplicitInterpolationAlgorithm(
+      ActuatorExplicitInterpolationAlgorithm algorithm) {
+    explicit_interpolation_algorithm_ = algorithm;
+  }
+
+  void SetExplicitInterpolationTimestampSource(
+      ActuatorExplicitInterpolationTimestamp source) {
+    explicit_interpolation_timestamp_source_ = source;
+  }
+
+  void SetExplicitInterpolationCyclesDelay(size_t cycles_delay) {
+    if(cycles_delay > 10) {
+      WARNING(
+        "cycles_delay must be <= 10 cycles, ignoring request to set cycles_delay to %zu",
+        cycles_delay
+      );
+    }
+    csp_cycles_delay_ = cycles_delay + 1;
+  }
 
   static std::string GetFastcatFaultCodeAsString(const DeviceState& state);
   static std::string GetJSDFaultCodeAsString(const DeviceState& state);
@@ -150,6 +180,7 @@ class Actuator : public JsdDeviceBase
   double prof_disengaging_timeout_ = 1.0;
 
  private:
+
   bool PosExceedsCmdLimits(double pos_eu);
   bool VelExceedsCmdLimits(double vel_eu);
   bool AccExceedsCmdLimits(double vel_eu);
@@ -229,7 +260,14 @@ class Actuator : public JsdDeviceBase
   int32_t elmo_pos_offset_cnts_      = 1;
   RingBuffer<DeviceCmd> last_device_cmd_ = RingBuffer<DeviceCmd>(15);
   double csp_interpolation_offset_time_ = 0.0;
-  size_t csp_cycles_delay_ = 5; 
+  size_t csp_cycles_delay_ = 4; 
+
+  ActuatorExplicitInterpolationAlgorithm explicit_interpolation_algorithm_ = 
+    ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_CUBIC;
+
+  ActuatorExplicitInterpolationTimestamp explicit_interpolation_timestamp_source_ = 
+    ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_CSP_MESSAGE;
+  
 };
 
 }  // namespace fastcat

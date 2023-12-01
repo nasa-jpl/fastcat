@@ -661,16 +661,35 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
           size_t num_received = last_device_cmd_.get_num_received();
           if(num_received == csp_cycles_delay_) {
             auto first_device_cmd = last_device_cmd_.load(csp_cycles_delay_ - 1);
-            csp_interpolation_offset_time_ = 
-              state_->time - first_device_cmd.actuator_csp_cmd.request_time;
+            double t = 0.0;
+            switch(explicit_interpolation_timestamp_source_) {
+              case ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_CSP_MESSAGE: {
+                t = first_device_cmd.actuator_csp_cmd.request_time;
+              } break;
+              case ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_FASTCAT_CLOCK: {
+                t = first_device_cmd.actuator_csp_cmd.receipt_stamp_time;
+              } break;
+            }
+            csp_interpolation_offset_time_ = state_->time - t;
           }
+
           if(num_received >= csp_cycles_delay_) {
+
             double sample_time = 
               state_->time - csp_interpolation_offset_time_;
             size_t index = 0;
             while(index < last_device_cmd_.size()) {
                auto device_cmd = last_device_cmd_.load(++index);
-               if(device_cmd.actuator_csp_cmd.request_time <= sample_time) {
+               double t = 0.0;
+               switch(explicit_interpolation_timestamp_source_) {
+                 case ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_CSP_MESSAGE: {
+                   t = device_cmd.actuator_csp_cmd.request_time;
+                 } break;
+                 case ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_FASTCAT_CLOCK: {
+                   t = device_cmd.actuator_csp_cmd.receipt_stamp_time;
+                 } break;
+               }
+               if(t <= sample_time) {
                  break;
                }
             }
@@ -685,9 +704,20 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             
             auto knot_0 = last_device_cmd_.load(index);
             auto knot_1 = last_device_cmd_.load(index - 1);
-            
-            double t0 = knot_0.actuator_csp_cmd.request_time;
-            double t1 = knot_1.actuator_csp_cmd.request_time;
+
+            double t0 = 0.0;
+            double t1 = 0.0;
+            switch(explicit_interpolation_timestamp_source_) {
+              case ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_CSP_MESSAGE: {
+                t0 = knot_0.actuator_csp_cmd.request_time;
+                t1 = knot_1.actuator_csp_cmd.request_time;
+              } break;
+              case ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_FASTCAT_CLOCK: {
+                t0 = knot_0.actuator_csp_cmd.receipt_stamp_time;
+                t1 = knot_1.actuator_csp_cmd.receipt_stamp_time;
+              } break;
+            }
+
             double p0 = knot_0.actuator_csp_cmd.target_position;
             double p1 = knot_1.actuator_csp_cmd.target_position;
             double v0 = knot_0.actuator_csp_cmd.velocity_offset;
@@ -696,7 +726,7 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
             double dt = t1 - t0;
             
             double x = (sample_time - t0) / dt;
-            if(x < 0 || x > 1.0) {
+            if(x < 0) {
               ERROR("Error in logic for finding knots for CSP interpolation x=%f", x);
               ERROR("knot 0 index: %ld, knot 1 index: %ld", index, index - 1);
               ERROR("knot 0 time: %f, knot 1 time: %f", t0, t1);
@@ -708,18 +738,34 @@ fastcat::FaultType fastcat::Actuator::ProcessCS()
               return ALL_DEVICE_FAULT;
             }
 
-            v0 *= dt;
-            v1 *= dt;
+            if(x > 1) {
+              WARNING(
+                "explicit interpolation could not find a set of bounding knots; "
+                "performing extrapolation"
+              );
+            }
 
-            double b0 = p0;
-            double b1 = v0;
-            double b2 = 3.0 * p1 - 3.0 * p0 - 2.0 * v0 - v1;
-            double b3 = -2.0 * p1 + 2.0 * p0 + v0 + v1;
-
-            double x2 = x * x;
-            double x3 = x2 * x;
-            double p = b0 + (b1 * x) + (b2 * x2) + (b3 * x3);
-            double v = (b1 + 2.0 * b2 * x + 3.0 * b3 * x2) / dt;
+            double p = 0.0;
+            double v = 0.0;
+            switch(explicit_interpolation_algorithm_) {
+              case ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_CUBIC: {
+                v0 *= dt;
+                v1 *= dt;
+                double b0 = p0;
+                double b1 = v0;
+                double b2 = 3.0 * p1 - 3.0 * p0 - 2.0 * v0 - v1;
+                double b3 = -2.0 * p1 + 2.0 * p0 + v0 + v1;
+                double x2 = x * x;
+                double x3 = x2 * x;
+                p = b0 + (b1 * x) + (b2 * x2) + (b3 * x3);
+                v = (b1 + 2.0 * b2 * x + 3.0 * b3 * x2) / dt;
+              } break;
+              case ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_LINEAR: {
+                double one_minus_x = 1.0 - x;
+                p = one_minus_x * p0 + x * p1;
+                v = one_minus_x * v0 + x * v1;
+              } break;
+            }
 
             jsd_elmo_motion_command_csp_t jsd_cmd;
             jsd_cmd.target_position = PosEuToCnts(p);
