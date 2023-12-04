@@ -1244,6 +1244,30 @@ void fastcat::Manager::SetExplicitInterpolationAlgorithmLinear() {
   }
 }
 
+void fastcat::Manager::SetExplicitInterpolationTimestampSourceCspMessage() {
+  for (auto device : jsd_device_list_) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
+      actuator->SetExplicitInterpolationTimestampSource(
+          ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_CSP_MESSAGE
+      );
+    }
+  }
+}
+
+void fastcat::Manager::SetExplicitInterpolationTimestampSourceClock() {
+  for (auto device : jsd_device_list_) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
+      actuator->SetExplicitInterpolationTimestampSource(
+          ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_FASTCAT_CLOCK
+      );
+    }
+  }
+}
+
 bool fastcat::Manager::SetExplicitInterpolationCyclesDelay(size_t delay) {
   if(delay > 10) {
     ERROR("Cannot set cycles delay > 10 for explicit interpolation");
