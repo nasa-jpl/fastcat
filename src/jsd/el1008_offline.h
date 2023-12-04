@@ -13,7 +13,7 @@ namespace fastcat
 class El1008Offline : public El1008
 {
  public:
-  bool ConfigFromYaml(YAML::Node node) override;
+  bool ConfigFromYaml(const YAML::Node& node) override;
   bool Read() override;
 };
 

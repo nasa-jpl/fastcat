@@ -367,7 +367,7 @@ bool fastcat::Manager::GetActuatorParams(
 {
   if (device_map_.count(name)) {
     auto& device = device_map_[name];
-    if (device->GetState()->type == GOLD_ACTUATOR_STATE or
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
       auto actuator = std::dynamic_pointer_cast<Actuator>(device);
       params        = actuator->GetParams();
@@ -1219,3 +1219,43 @@ bool fastcat::Manager::CheckDeviceNameIsUnique(std::string name)
   unique_device_map_[name] = true;
   return true;
 }
+
+void fastcat::Manager::SetExplicitInterpolationAlgorithmCubic() {
+  for (auto device : jsd_device_list_) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
+      actuator->SetExplicitInterpolationAlgorithm(
+          ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_CUBIC
+      );
+    }
+  }
+}
+
+void fastcat::Manager::SetExplicitInterpolationAlgorithmLinear() {
+   for (auto device : jsd_device_list_) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
+      actuator->SetExplicitInterpolationAlgorithm(
+          ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_LINEAR
+      );
+    }
+  }
+}
+
+bool fastcat::Manager::SetExplicitInterpolationCyclesDelay(size_t delay) {
+  if(delay > 10) {
+    ERROR("Cannot set cycles delay > 10 for explicit interpolation");
+    return false;
+  }
+  for (auto device : jsd_device_list_) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
+      actuator->SetExplicitInterpolationCyclesDelay(delay);
+    }
+  }
+  return true;
+}
+

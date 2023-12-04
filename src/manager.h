@@ -178,6 +178,22 @@ class Manager
   void GetDeviceNamesByType(std::vector<std::string>&,
                             fastcat::DeviceStateType);
 
+  /** @brief Set interpolation algorithm to use 3rd order cubic interpolation between
+   * knot points for all actuators */
+  void SetExplicitInterpolationAlgorithmCubic();
+
+  /** @brief Set interpolation algorithm to use 1st order linear interpolation between
+   * knot points for both position and velocity for all actuators */
+  void SetExplicitInterpolationAlgorithmLinear();
+
+  /** @brief Set number of cycles of the calling module to delay the onset of explicit
+   * interpolation, e.g. if delay is set to 3, fastcast will wait until 4 messages 
+   * accumulate in the buffer before beginning motion profile. A larger buffer provides 
+   * a greater margin against motion setpoints not being received fast enough as motion
+   * profile is executing, which may happen due to process jitter or message passing
+   * latency */
+  bool SetExplicitInterpolationCyclesDelay(size_t delay);
+
  private:
   bool ConfigJSDBusFromYaml(const YAML::Node& node, double external_time);
   bool ConfigFastcatBusFromYaml(const YAML::Node& node, double external_time);
