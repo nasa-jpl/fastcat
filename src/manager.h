@@ -5,6 +5,7 @@
 
 // Include c then c++ libraries
 #include <memory>
+#include <mutex>
 #include <queue>
 #include <unordered_map>
 #include <vector>
@@ -238,6 +239,9 @@ class Manager
   std::map<std::string, ActuatorPosData>             actuator_pos_map_;
   std::unordered_map<std::string, bool>              unique_device_map_;
   std::shared_ptr<std::queue<SdoResponse>>           sdo_response_queue_;
+
+  std::mutex parameter_mutex_;
+
 };
 }  // namespace fastcat
 

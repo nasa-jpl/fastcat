@@ -222,6 +222,7 @@ bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
 
 bool fastcat::Manager::Process(double external_time)
 {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     jsd_read(it->second, 1e6 / target_loop_rate_hz_);
   }
@@ -1221,6 +1222,7 @@ bool fastcat::Manager::CheckDeviceNameIsUnique(std::string name)
 }
 
 void fastcat::Manager::SetExplicitInterpolationAlgorithmCubic() {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
@@ -1233,7 +1235,8 @@ void fastcat::Manager::SetExplicitInterpolationAlgorithmCubic() {
 }
 
 void fastcat::Manager::SetExplicitInterpolationAlgorithmLinear() {
-   for (auto device : jsd_device_list_) {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
       auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
@@ -1245,6 +1248,7 @@ void fastcat::Manager::SetExplicitInterpolationAlgorithmLinear() {
 }
 
 void fastcat::Manager::SetExplicitInterpolationTimestampSourceCspMessage() {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
@@ -1257,6 +1261,7 @@ void fastcat::Manager::SetExplicitInterpolationTimestampSourceCspMessage() {
 }
 
 void fastcat::Manager::SetExplicitInterpolationTimestampSourceClock() {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
@@ -1273,6 +1278,7 @@ bool fastcat::Manager::SetExplicitInterpolationCyclesDelay(size_t delay) {
     ERROR("Cannot set cycles delay > 10 for explicit interpolation");
     return false;
   }
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
