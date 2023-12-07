@@ -97,6 +97,10 @@ class Actuator : public JsdDeviceBase
     csp_cycles_delay_ = cycles_delay + 1;
   }
 
+  void SetInterpolationCyclesStale(size_t cycles) {
+    csp_cycles_stale_ = cycles;
+  }
+
   static std::string GetFastcatFaultCodeAsString(const DeviceState& state);
   static std::string GetJSDFaultCodeAsString(const DeviceState& state);
   static bool        IsJsdFaultCodePresent(const DeviceState& state);
@@ -261,13 +265,15 @@ class Actuator : public JsdDeviceBase
   RingBuffer<DeviceCmd> last_device_cmd_ = RingBuffer<DeviceCmd>(15);
   double csp_interpolation_offset_time_ = 0.0;
   size_t csp_cycles_delay_ = 4; 
+  size_t csp_cycles_stale_ = 10;
 
   ActuatorExplicitInterpolationAlgorithm explicit_interpolation_algorithm_ = 
     ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_CUBIC;
 
   ActuatorExplicitInterpolationTimestamp explicit_interpolation_timestamp_source_ = 
     ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_CSP_MESSAGE;
-  
+ 
+
 };
 
 }  // namespace fastcat

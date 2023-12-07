@@ -205,6 +205,11 @@ class Manager
    * latency */
   bool SetExplicitInterpolationCyclesDelay(size_t delay);
 
+  /** @brief CSP interpolation will transition to a holding state if it has not received
+   * a CSP message within the provided number of fastcat process cycles */
+  bool SetInterpolationCyclesStale(size_t cycles);
+
+
  private:
   bool ConfigJSDBusFromYaml(const YAML::Node& node, double external_time);
   bool ConfigFastcatBusFromYaml(const YAML::Node& node, double external_time);

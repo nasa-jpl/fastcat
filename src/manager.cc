@@ -1289,3 +1289,15 @@ bool fastcat::Manager::SetExplicitInterpolationCyclesDelay(size_t delay) {
   return true;
 }
 
+bool fastcat::Manager::SetInterpolationCyclesStale(size_t cycles) {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  for (auto device : jsd_device_list_) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
+      actuator->SetInterpolationCyclesStale(cycles);
+    }
+  }
+  return true;
+}
+
