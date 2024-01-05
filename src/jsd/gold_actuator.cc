@@ -344,7 +344,8 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfPosDisengaging()
 
     ElmoCSP(jsd_cmd);
 
-    if ((cycle_mono_time_ - last_transition_time_) >
+
+    if ((state_->monotonic_time - last_transition_time_) >
         (prof_disengaging_timeout_ + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage %lf sec timeout expired, faulting",
             name_.c_str(), prof_disengaging_timeout_);
@@ -386,7 +387,8 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfVelDisengaging()
 
     ElmoCSV(jsd_cmd);
 
-    if ((cycle_mono_time_ - last_transition_time_) >
+
+    if ((state_->monotonic_time - last_transition_time_) >
         (prof_disengaging_timeout_ + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage %lf sec timeout expired, faulting",
             name_.c_str(), prof_disengaging_timeout_);
@@ -426,10 +428,11 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfTorqueDisengaging()
 
     ElmoCST(jsd_cmd);
 
-    if ((cycle_mono_time_ - last_transition_time_) >
+    if ((state_->monotonic_time - last_transition_time_) >
         (prof_disengaging_timeout_ + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage %lf sec timeout expired, faulting",
             name_.c_str(), prof_disengaging_timeout_);
+
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
     }

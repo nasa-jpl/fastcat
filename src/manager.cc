@@ -69,7 +69,7 @@
 
 fastcat::Manager::Manager()
 {
-  cmd_queue_          = std::make_shared<std::queue<DeviceCmd>>();
+  cmd_queue_          = std::make_shared<ThreadSafeQueue<DeviceCmd>>();
   sdo_response_queue_ = std::make_shared<std::queue<SdoResponse>>();
 }
 
@@ -89,7 +89,8 @@ void fastcat::Manager::Shutdown()
   SaveActuatorPosFile();
 }
 
-bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
+bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
+                                      double            external_time)
 {
   // Configure Fastcat Parameters
   YAML::Node fastcat_node;
@@ -122,26 +123,26 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
     return false;
   }
 
-  for (auto bus = buses_node.begin(); bus != buses_node.end(); ++bus) {
+  for (const auto& bus : buses_node) {
     std::string type;
-    if (!ParseVal(*bus, "type", type)) {
+    if (!ParseVal(bus, "type", type)) {
       return false;
     }
 
     if (0 == type.compare("jsd_bus")) {
-      if (!ConfigJSDBusFromYaml(*bus)) {
+      if (!ConfigJSDBusFromYaml(bus, external_time)) {
         ERROR("Failed to configure JSD bus");
         return false;
       }
 
     } else if (0 == type.compare("fastcat_bus")) {
-      if (!ConfigFastcatBusFromYaml(*bus)) {
+      if (!ConfigFastcatBusFromYaml(bus, external_time)) {
         ERROR("Failed to configure Fastcat bus");
         return false;
       }
 
     } else if (0 == type.compare("offline_bus")) {
-      if (!ConfigOfflineBusFromYaml(*bus)) {
+      if (!ConfigOfflineBusFromYaml(bus, external_time)) {
         ERROR("Failed to configure Offline bus");
         return false;
       }
@@ -221,27 +222,31 @@ bool fastcat::Manager::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Manager::Process(double external_time)
 {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     jsd_read(it->second, 1e6 / target_loop_rate_hz_);
   }
 
   // Pass the PDO read time for consistent timestamping before the device Read()
-  //   method is invoked
+  // method is invoked
   double read_time;
-  if (external_time > 0) {
+  double monotonic_time;
+  if (external_time < 0.0) {
+    read_time      = jsd_time_get_time_sec();
+    monotonic_time = jsd_time_get_mono_time_sec();
+  } else {
     if (online_devices_exist_) {
       ERROR(
           "Applications cannot use online devices and supply external time, "
           "refusing to run");
       return false;
     }
-    read_time = external_time;
-  } else {
-    read_time = jsd_time_get_time_sec();
+    read_time      = external_time;
+    monotonic_time = external_time;
   }
 
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
-    (*it)->SetTime(read_time);
+    (*it)->SetTime(read_time, monotonic_time);
 
     if (!(*it)->Read()) {
       WARNING("Bad Process on %s", (*it)->GetName().c_str());
@@ -250,7 +255,7 @@ bool fastcat::Manager::Process(double external_time)
 
   for (auto it = fastcat_device_list_.begin(); it != fastcat_device_list_.end();
        ++it) {
-    (*it)->SetTime(read_time);
+    (*it)->SetTime(read_time, monotonic_time);
 
     if (!(*it)->Read()) {
       WARNING("Bad Process on %s", (*it)->GetName().c_str());
@@ -363,7 +368,7 @@ bool fastcat::Manager::GetActuatorParams(
 {
   if (device_map_.count(name)) {
     auto& device = device_map_[name];
-    if (device->GetState()->type == GOLD_ACTUATOR_STATE or
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
       auto actuator = std::dynamic_pointer_cast<Actuator>(device);
       params        = actuator->GetParams();
@@ -388,7 +393,8 @@ bool fastcat::Manager::RecoverBus(std::string ifname)
   return true;
 }
 
-bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
+bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
+                                            double            external_time)
 {
   std::string ifname;
   if (!ParseVal(node, "ifname", ifname)) {
@@ -412,11 +418,20 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
   std::shared_ptr<DeviceBase> device;
   uint16_t                    slave_id = 0;
 
-  for (auto device_node = devices_node.begin();
-       device_node != devices_node.end(); ++device_node) {
+  double monotonic_time_sec = 0.0;
+  double time_sec           = 0.0;
+  if (external_time < 0) {
+    monotonic_time_sec = jsd_time_get_mono_time_sec();
+    time_sec           = jsd_time_get_time_sec();
+  } else {
+    monotonic_time_sec = external_time;
+    time_sec           = external_time;
+  }
+
+  for (const auto& device_node : devices_node) {
     slave_id++;
     std::string device_class;
-    if (!ParseVal(*device_node, "device_class", device_class)) {
+    if (!ParseVal(device_node, "device_class", device_class)) {
       return false;
     }
 
@@ -497,8 +512,9 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
     jsdDevice->SetSlaveId(slave_id);
     jsdDevice->SetLoopPeriod(1.0 / target_loop_rate_hz_);
     jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
+    jsdDevice->SetInitializationTime(time_sec, monotonic_time_sec);
 
-    if (!device->ConfigFromYaml(*device_node)) {
+    if (!device->ConfigFromYaml(device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
       return false;
@@ -519,7 +535,8 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(YAML::Node node)
   return jsd_init(jsd, ifname.c_str(), enable_ar);
 }
 
-bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
+bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
+                                                double            external_time)
 {
   std::string ifname;
   if (!ParseVal(node, "ifname", ifname)) {
@@ -531,11 +548,20 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
     return false;
   }
 
+  double monotonic_time_sec = 0.0;
+  double time_sec           = 0.0;
+  if (external_time < 0.0) {
+    monotonic_time_sec = jsd_time_get_mono_time_sec();
+    time_sec           = jsd_time_get_time_sec();
+  } else {
+    monotonic_time_sec = external_time;
+    time_sec           = external_time;
+  }
+
   std::shared_ptr<DeviceBase> device;
-  for (auto device_node = devices_node.begin();
-       device_node != devices_node.end(); ++device_node) {
+  for (const auto& device_node : devices_node) {
     std::string device_class;
-    if (!ParseVal(*device_node, "device_class", device_class)) {
+    if (!ParseVal(device_node, "device_class", device_class)) {
       return false;
     }
 
@@ -588,7 +614,8 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
       return false;
     }
 
-    if (!device->ConfigFromYaml(*device_node)) {
+    device->SetInitializationTime(time_sec, monotonic_time_sec);
+    if (!device->ConfigFromYaml(device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
       return false;
@@ -606,10 +633,10 @@ bool fastcat::Manager::ConfigFastcatBusFromYaml(YAML::Node node)
   return true;
 }
 
-bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
+bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
+                                                double            external_time)
 {
-  // Here include any relevant bus level offline EGD parameters that may be
-  // neccesary, e.g.
+  // @TODO add other relevant bus level offline EGD parameters such as:
   // uint8_t plant_model;
   // if (!ParseVal(node, "plant_model", plant_model)) {
   //  return false;
@@ -624,14 +651,23 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
     return false;
   }
 
+  double monotonic_time_sec = 0.0;
+  double time_sec           = 0.0;
+  if (external_time < 0) {
+    monotonic_time_sec = jsd_time_get_mono_time_sec();
+    time_sec           = jsd_time_get_time_sec();
+  } else {
+    monotonic_time_sec = external_time;
+    time_sec           = external_time;
+  }
+
   std::shared_ptr<DeviceBase> device;
   uint16_t                    slave_id = 0;
 
-  for (auto device_node = devices_node.begin();
-       device_node != devices_node.end(); ++device_node) {
+  for (const auto& device_node : devices_node) {
     slave_id++;
     std::string device_class;
-    if (!ParseVal(*device_node, "device_class", device_class)) {
+    if (!ParseVal(device_node, "device_class", device_class)) {
       return false;
     }
 
@@ -713,8 +749,8 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(YAML::Node node)
     jsdDevice->SetSlaveId(slave_id);
     jsdDevice->SetOffline(true);
     jsdDevice->RegisterSdoResponseQueue(sdo_response_queue_);
-
-    if (!device->ConfigFromYaml(*device_node)) {
+    jsdDevice->SetInitializationTime(time_sec, monotonic_time_sec);
+    if (!device->ConfigFromYaml(device_node)) {
       ERROR("Failed to configure after the first %lu devices",
             device_map_.size());
       return false;
@@ -762,16 +798,15 @@ bool fastcat::Manager::ConfigSignals()
 
     device->RegisterCmdQueue(cmd_queue_);
 
-    for (auto signal = device->signals_.begin();
-         signal != device->signals_.end(); ++signal) {
+    for (auto& signal : device->signals_) {
       // we cannot use the [] operator as it will create a new entry
       // we cannot use the at() method as it will raise an exception
       // so find() it is
 
-      auto find_pair = device_map_.find(signal->observed_device_name);
+      auto find_pair = device_map_.find(signal.observed_device_name);
 
       if (find_pair == device_map_.end()) {
-        if (signal->observed_device_name.compare("FIXED_VALUE") != 0) {
+        if (signal.observed_device_name.compare("FIXED_VALUE") != 0) {
           ERROR("Did not find an Observed device name for %s",
                 device->GetName().c_str());
         }
@@ -780,7 +815,7 @@ bool fastcat::Manager::ConfigSignals()
 
       auto observed_state = find_pair->second->GetState();
 
-      if (!ConfigSignalByteIndexing(observed_state.get(), *signal)) {
+      if (!ConfigSignalByteIndexing(observed_state.get(), signal)) {
         ERROR("Could not configure the Signal Byte Indexing");
         return false;
       }
@@ -810,13 +845,13 @@ bool fastcat::Manager::SortFastcatDevice(
           if (zero_latency_required_) {
             ERROR(
                 "Cyclical signal loop detected. Devices %s and %s are mutually "
-                "reliant. Zero latency cannot be enforced.",
+                "dependent. Zero latency cannot be enforced.",
                 dev_name.c_str(), child.c_str());
             return false;
           } else {
             WARNING(
                 "Cyclical signal loop detected. Devices %s and %s are mutually "
-                "reliant. Zero latency cannot be enforced.",
+                "dependent. Zero latency cannot be enforced.",
                 dev_name.c_str(), child.c_str());
           }
         } else {
@@ -1185,3 +1220,84 @@ bool fastcat::Manager::CheckDeviceNameIsUnique(std::string name)
   unique_device_map_[name] = true;
   return true;
 }
+
+void fastcat::Manager::SetExplicitInterpolationAlgorithmCubic() {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  for (auto device : jsd_device_list_) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
+      actuator->SetExplicitInterpolationAlgorithm(
+          ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_CUBIC
+      );
+    }
+  }
+}
+
+void fastcat::Manager::SetExplicitInterpolationAlgorithmLinear() {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  for (auto device : jsd_device_list_) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
+      actuator->SetExplicitInterpolationAlgorithm(
+          ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_LINEAR
+      );
+    }
+  }
+}
+
+void fastcat::Manager::SetExplicitInterpolationTimestampSourceCspMessage() {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  for (auto device : jsd_device_list_) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
+      actuator->SetExplicitInterpolationTimestampSource(
+          ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_CSP_MESSAGE
+      );
+    }
+  }
+}
+
+void fastcat::Manager::SetExplicitInterpolationTimestampSourceClock() {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  for (auto device : jsd_device_list_) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
+      actuator->SetExplicitInterpolationTimestampSource(
+          ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_FASTCAT_CLOCK
+      );
+    }
+  }
+}
+
+bool fastcat::Manager::SetExplicitInterpolationCyclesDelay(size_t delay) {
+  if(delay > 10) {
+    ERROR("Cannot set cycles delay > 10 for explicit interpolation");
+    return false;
+  }
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  for (auto device : jsd_device_list_) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
+      actuator->SetExplicitInterpolationCyclesDelay(delay);
+    }
+  }
+  return true;
+}
+
+bool fastcat::Manager::SetInterpolationCyclesStale(size_t cycles) {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  for (auto device : jsd_device_list_) {
+    if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
+        device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
+      actuator->SetInterpolationCyclesStale(cycles);
+    }
+  }
+  return true;
+}
+

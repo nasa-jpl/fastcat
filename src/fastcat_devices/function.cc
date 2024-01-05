@@ -35,7 +35,7 @@ fastcat::FunctionType fastcat::FunctionTypeFromString(
   }
 }
 
-bool fastcat::Function::ConfigFromYaml(YAML::Node node)
+bool fastcat::Function::ConfigFromYaml(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

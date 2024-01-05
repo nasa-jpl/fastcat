@@ -13,7 +13,7 @@ namespace fastcat
 class El3202Offline : public El3202
 {
  public:
-  bool ConfigFromYaml(YAML::Node node) override;
+  bool ConfigFromYaml(const YAML::Node& node) override;
   bool Read() override;
 };
 

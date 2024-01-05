@@ -28,14 +28,14 @@ fastcat::El3208::El3208()
   outputs_[7] = &state_->el3208_state.output_ch8;
 }
 
-bool fastcat::El3208::ConfigFromYaml(YAML::Node node)
+bool fastcat::El3208::ConfigFromYaml(const YAML::Node& node)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
   return retval;
 }
 
-bool fastcat::El3208::ConfigFromYamlCommon(YAML::Node node)
+bool fastcat::El3208::ConfigFromYamlCommon(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

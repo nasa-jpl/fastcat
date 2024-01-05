@@ -13,9 +13,13 @@
 fastcat::GoldActuatorOffline::GoldActuatorOffline()
 {
   MSG_DEBUG("Constructed GoldActuatorOffline");
-
   memset(&jsd_egd_state_, 0, sizeof(jsd_egd_state_t));
-  motor_on_start_time_ = jsd_time_get_time_sec();
+}
+
+bool fastcat::GoldActuatorOffline::ConfigFromYaml(const YAML::Node& node)
+{
+  motor_on_start_time_ = initialization_time_sec_;
+  return fastcat::GoldActuator::ConfigFromYaml(node);
 }
 
 void fastcat::GoldActuatorOffline::ElmoSetConfig()
@@ -41,7 +45,9 @@ void fastcat::GoldActuatorOffline::ElmoProcess()
     case ACTUATOR_SMS_PROF_POS:
     case ACTUATOR_SMS_PROF_VEL:
     case ACTUATOR_SMS_PROF_TORQUE:
-    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CSP:
+    case ACTUATOR_SMS_CSV:
+    case ACTUATOR_SMS_CST:
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
@@ -52,13 +58,13 @@ void fastcat::GoldActuatorOffline::ElmoProcess()
 
   // reset motor_on timer on rising edge
   if (!last_motor_on_state_ && jsd_egd_state_.motor_on) {
-    motor_on_start_time_ = jsd_time_get_time_sec();
+    motor_on_start_time_ = state_->time;
   }
   last_motor_on_state_ = jsd_egd_state_.motor_on;
 
   //
   if (!jsd_egd_state_.servo_enabled && jsd_egd_state_.motor_on) {
-    double brake_on_dur = jsd_time_get_time_sec() - motor_on_start_time_;
+    double brake_on_dur = state_->time - motor_on_start_time_;
     if (brake_on_dur > params_.elmo_brake_disengage_msec / 1000.0) {
       jsd_egd_state_.servo_enabled = 1;
     }
@@ -69,9 +75,9 @@ void fastcat::GoldActuatorOffline::ElmoFault()
 {
   MSG("Faulting EGD through JSD: %s", name_.c_str());
 
-  // TODO review with david
+  // TODO review with David Kim
   // need to clear so that old commands are not left over
-  //  for new commands
+  // for new commands
   jsd_egd_state_.cmd_position = 0;
   jsd_egd_state_.cmd_velocity = 0;
   jsd_egd_state_.cmd_current  = 0;
@@ -127,18 +133,17 @@ void fastcat::GoldActuatorOffline::ElmoCSP(
   jsd_egd_state_.cmd_ff_velocity = jsd_csp_cmd.velocity_offset;
   jsd_egd_state_.cmd_ff_current  = jsd_csp_cmd.torque_offset_amps;
 
-  // Differentiate position to get actual_velocity
+  // Perform numerical differencing of position to get actual_velocity
   double vel = (jsd_egd_state_.cmd_position + jsd_egd_state_.cmd_ff_position -
                 jsd_egd_state_.actual_position) /
                loop_period_;
 
-  // simulate actuals
+  // simulate actual position, current and velocity
   jsd_egd_state_.actual_position =
       jsd_egd_state_.cmd_position + jsd_egd_state_.cmd_ff_position;
   jsd_egd_state_.actual_current =
       jsd_egd_state_.cmd_current + jsd_egd_state_.cmd_ff_current;
-
-  jsd_egd_state_.actual_velocity = vel;  // "sure, why not"
+  jsd_egd_state_.actual_velocity = vel;
 }
 
 void fastcat::GoldActuatorOffline::ElmoCSV(

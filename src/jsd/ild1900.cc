@@ -14,14 +14,14 @@ fastcat::Ild1900::Ild1900()
   state_->type = ILD1900_STATE;
 }
 
-bool fastcat::Ild1900::ConfigFromYaml(YAML::Node node)
+bool fastcat::Ild1900::ConfigFromYaml(const YAML::Node& node)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
   return retval;
 }
 
-bool fastcat::Ild1900::ConfigFromYamlCommon(YAML::Node node)
+bool fastcat::Ild1900::ConfigFromYamlCommon(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

@@ -27,7 +27,7 @@ class VirtualFts : public Fts
    * device.
    * @return True if configuration completes without error; false otherwise.
    */
-  bool ConfigFromYaml(YAML::Node node);
+  bool ConfigFromYaml(const YAML::Node& node);
   /**
    * @brief Calculates wrench (forces and torques) from input signals.
    * @return True if device state is read without error; false otherwise.

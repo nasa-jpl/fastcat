@@ -15,13 +15,13 @@ class AtiFts : public JsdDeviceBase
 {
  public:
   AtiFts();
-  bool      ConfigFromYaml(YAML::Node node) override;
+  bool      ConfigFromYaml(const YAML::Node& node) override;
   bool      Read() override;
   FaultType Process() override;
   bool      Write(DeviceCmd& cmd) override;
 
  protected:
-  bool ConfigFromYamlCommon(YAML::Node node);
+  bool ConfigFromYamlCommon(const YAML::Node& node);
 
  private:
   jsd_slave_config_t jsd_slave_config_{0};

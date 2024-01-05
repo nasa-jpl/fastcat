@@ -593,7 +593,7 @@ commands:
       type: double
 
   - name: egd_csv
-    fields: 
+    fields:
     - name: target_velocity
       type: int32_t
     - name: velocity_offset
@@ -775,12 +775,20 @@ commands:
 
   - name: actuator_csp
     fields: 
+    - name: request_time
+      type: double
+    - name: receipt_stamp_time
+      type: double
     - name: target_position
       type: double
     - name: position_offset
       type: double
     - name: velocity_offset
       type: double
+    - name: acceleration_offset
+      type: double
+    - name: interpolation_mode
+      type: int16_t
     - name: torque_offset_amps
       type: double
 

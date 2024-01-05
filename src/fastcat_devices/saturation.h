@@ -14,7 +14,7 @@ class Saturation : public DeviceBase
 {
  public:
   Saturation();
-  bool ConfigFromYaml(YAML::Node node) override;
+  bool ConfigFromYaml(const YAML::Node& node) override;
   bool Read() override;
 
  protected:

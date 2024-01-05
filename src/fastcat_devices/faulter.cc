@@ -15,7 +15,7 @@ fastcat::Faulter::Faulter()
   state_->type = FAULTER_STATE;
 }
 
-bool fastcat::Faulter::ConfigFromYaml(YAML::Node node)
+bool fastcat::Faulter::ConfigFromYaml(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

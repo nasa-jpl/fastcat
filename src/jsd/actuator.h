@@ -8,6 +8,7 @@
 // Include external then project includes
 #include "fastcat/jsd/jsd_device_base.h"
 #include "fastcat/trap.h"
+#include "fastcat/ring_buffer.h"
 #include "jsd/jsd_elmo_common_types.h"
 
 namespace fastcat
@@ -22,8 +23,11 @@ typedef enum {
   ACTUATOR_SMS_PROF_VEL_DISENGAGING,
   ACTUATOR_SMS_PROF_TORQUE,
   ACTUATOR_SMS_PROF_TORQUE_DISENGAGING,
-  ACTUATOR_SMS_CS,
+  ACTUATOR_SMS_CSP,
+  ACTUATOR_SMS_CSV,
+  ACTUATOR_SMS_CST,
   ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP,
+  ACTUATOR_SMS_CAL_UPDATE_POSITION,
   ACTUATOR_SMS_CAL_AT_HARDSTOP,
   ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP,
 } ActuatorStateMachineState;
@@ -49,12 +53,22 @@ typedef enum {
   ACTUATOR_FASTCAT_FAULT_PROF_POS_CMD_ACK_TIMEOUT_EXCEEDED,
 } ActuatorFastcatFault;
 
+typedef enum {
+  ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_CUBIC = 0,
+  ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_LINEAR,
+} ActuatorExplicitInterpolationAlgorithm;
+
+typedef enum {
+  ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_CSP_MESSAGE = 0,
+  ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_FASTCAT_CLOCK,
+} ActuatorExplicitInterpolationTimestamp;
+
 class Actuator : public JsdDeviceBase
 {
  public:
   Actuator();
 
-  bool      ConfigFromYaml(YAML::Node node) override;
+  bool      ConfigFromYaml(const YAML::Node& node) override;
   bool      Read() override;
   FaultType Process() override;
   bool      Write(DeviceCmd& cmd) override;
@@ -62,6 +76,30 @@ class Actuator : public JsdDeviceBase
   void      Reset() override;
   bool      SetOutputPosition(double position);
   bool      HasAbsoluteEncoder();
+
+  void SetExplicitInterpolationAlgorithm(
+      ActuatorExplicitInterpolationAlgorithm algorithm) {
+    explicit_interpolation_algorithm_ = algorithm;
+  }
+
+  void SetExplicitInterpolationTimestampSource(
+      ActuatorExplicitInterpolationTimestamp source) {
+    explicit_interpolation_timestamp_source_ = source;
+  }
+
+  void SetExplicitInterpolationCyclesDelay(size_t cycles_delay) {
+    if(cycles_delay > 10) {
+      WARNING(
+        "cycles_delay must be <= 10 cycles, ignoring request to set cycles_delay to %zu",
+        cycles_delay
+      );
+    }
+    csp_cycles_delay_ = cycles_delay + 1;
+  }
+
+  void SetInterpolationCyclesStale(size_t cycles) {
+    csp_cycles_stale_ = cycles;
+  }
 
   static std::string GetFastcatFaultCodeAsString(const DeviceState& state);
   static std::string GetJSDFaultCodeAsString(const DeviceState& state);
@@ -128,9 +166,8 @@ class Actuator : public JsdDeviceBase
 
   jsd_slave_config_t jsd_slave_config_ = {};
 
-  ActuatorStateMachineState actuator_sms_;
+  ActuatorStateMachineState actuator_sms_         = ACTUATOR_SMS_HALTED;
   double                    last_transition_time_ = 0.0;
-  double                    cycle_mono_time_      = 0.0;
   fastcat_trap_t            trap_                 = {};
   ActuatorParams            params_               = {};
 
@@ -147,6 +184,7 @@ class Actuator : public JsdDeviceBase
   double prof_disengaging_timeout_ = 1.0;
 
  private:
+
   bool PosExceedsCmdLimits(double pos_eu);
   bool VelExceedsCmdLimits(double vel_eu);
   bool AccExceedsCmdLimits(double vel_eu);
@@ -173,6 +211,7 @@ class Actuator : public JsdDeviceBase
   FaultType ProcessCS();
   FaultType ProcessCalMoveToHardstop();
   FaultType ProcessCalAtHardstop();
+  FaultType ProcessCalUpdatePosition();
   FaultType ProcessCalMoveToSoftstop();
 
   bool GSModeFromString(std::string                      gs_mode_string,
@@ -223,6 +262,18 @@ class Actuator : public JsdDeviceBase
 
   bool    actuator_absolute_encoder_ = false;
   int32_t elmo_pos_offset_cnts_      = 1;
+  RingBuffer<DeviceCmd> last_device_cmd_ = RingBuffer<DeviceCmd>(50);
+  double csp_interpolation_offset_time_ = 0.0;
+  size_t csp_cycles_delay_ = 4;
+  size_t csp_cycles_stale_ = 10;
+
+  ActuatorExplicitInterpolationAlgorithm explicit_interpolation_algorithm_ = 
+    ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_CUBIC;
+
+  ActuatorExplicitInterpolationTimestamp explicit_interpolation_timestamp_source_ = 
+    ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_CSP_MESSAGE;
+ 
+
 };
 
 }  // namespace fastcat

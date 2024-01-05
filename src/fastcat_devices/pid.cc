@@ -15,7 +15,7 @@ fastcat::Pid::Pid()
   state_->type = PID_STATE;
 }
 
-bool fastcat::Pid::ConfigFromYaml(YAML::Node node)
+bool fastcat::Pid::ConfigFromYaml(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

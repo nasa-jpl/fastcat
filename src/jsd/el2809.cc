@@ -18,14 +18,14 @@ fastcat::El2809::El2809()
   state_->type = EL2809_STATE;
 }
 
-bool fastcat::El2809::ConfigFromYaml(YAML::Node node)
+bool fastcat::El2809::ConfigFromYaml(const YAML::Node& node)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
   return retval;
 }
 
-bool fastcat::El2809::ConfigFromYamlCommon(YAML::Node node)
+bool fastcat::El2809::ConfigFromYamlCommon(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

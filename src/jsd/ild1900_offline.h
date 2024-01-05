@@ -13,7 +13,7 @@ namespace fastcat
 class Ild1900Offline : public Ild1900
 {
  public:
-  bool ConfigFromYaml(YAML::Node node) override;
+  bool ConfigFromYaml(const YAML::Node& node) override;
   bool Read() override;
 };
 

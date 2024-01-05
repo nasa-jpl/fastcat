@@ -9,7 +9,7 @@
 
 // Include external then project includes
 
-bool fastcat::El3202Offline::ConfigFromYaml(YAML::Node node)
+bool fastcat::El3202Offline::ConfigFromYaml(const YAML::Node& node)
 {
   return ConfigFromYamlCommon(node);
 }

@@ -30,7 +30,7 @@ class ThreeNodeThermalModel : public DeviceBase
    * @param node The portion of the yaml file corresponding to this device.
    * @return True if configuration completes without error; false otherwise.
    */
-  bool ConfigFromYaml(YAML::Node node) override;
+  bool ConfigFromYaml(const YAML::Node& node) override;
 
   /**
    * @brief Reads in most recent temperature and current signal values, and

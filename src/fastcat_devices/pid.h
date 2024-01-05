@@ -14,7 +14,7 @@ class Pid : public DeviceBase
 {
  public:
   Pid();
-  bool ConfigFromYaml(YAML::Node node) override;
+  bool ConfigFromYaml(const YAML::Node& node) override;
   bool Read() override;
   bool Write(DeviceCmd& cmd) override;
   void Fault() override;

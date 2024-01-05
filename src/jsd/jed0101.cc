@@ -16,13 +16,13 @@ fastcat::Jed0101::Jed0101()
   state_->type = JED0101_STATE;
 }
 
-bool fastcat::Jed0101::ConfigFromYaml(YAML::Node node)
+bool fastcat::Jed0101::ConfigFromYaml(const YAML::Node& node)
 {
   bool retval = ConfigFromYamlCommon(node);
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
   return retval;
 }
-bool fastcat::Jed0101::ConfigFromYamlCommon(YAML::Node node)
+bool fastcat::Jed0101::ConfigFromYamlCommon(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

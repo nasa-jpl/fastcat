@@ -15,7 +15,7 @@ class LinearInterpolation : public DeviceBase
 {
  public:
   LinearInterpolation();
-  bool ConfigFromYaml(YAML::Node node) override;
+  bool ConfigFromYaml(const YAML::Node& node) override;
   bool Read() override;
 
  protected:

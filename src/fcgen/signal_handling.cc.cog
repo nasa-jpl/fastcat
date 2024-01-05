@@ -65,7 +65,7 @@ for (native, enum) in dtype_native_enum:
   return true;
 }
 
-bool fastcat::ConfigSignalsFromYaml(YAML::Node node,
+bool fastcat::ConfigSignalsFromYaml(const YAML::Node& node,
                                     std::vector<fastcat::Signal> &signals, 
                                     bool is_commander) {
   YAML::Node signals_node;

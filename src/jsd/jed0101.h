@@ -15,13 +15,13 @@ class Jed0101 : public JsdDeviceBase
 {
  public:
   Jed0101();
-  bool      ConfigFromYaml(YAML::Node node) override;
+  bool      ConfigFromYaml(const YAML::Node& node) override;
   bool      Read() override;
   FaultType Process() override;
   bool      Write(DeviceCmd& cmd) override;
 
  protected:
-  bool ConfigFromYamlCommon(YAML::Node node);
+  bool ConfigFromYamlCommon(const YAML::Node& node);
 
   uint16_t initial_cmd_ = 0;
 

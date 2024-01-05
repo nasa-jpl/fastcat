@@ -55,7 +55,7 @@ class SignalGenerator : public DeviceBase
 {
  public:
   SignalGenerator();
-  bool ConfigFromYaml(YAML::Node node) override;
+  bool ConfigFromYaml(const YAML::Node& node) override;
   bool Read() override;
 
  protected:

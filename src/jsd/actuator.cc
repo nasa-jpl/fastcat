@@ -19,14 +19,17 @@
 fastcat::Actuator::Actuator()
 {
   MSG_DEBUG("Constructed Actuator");
-
-  state_                = std::make_shared<DeviceState>();
-  actuator_sms_         = ACTUATOR_SMS_HALTED;
-  last_transition_time_ = jsd_time_get_mono_time_sec();
+  state_ = std::make_shared<DeviceState>();
 }
 
-bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
+bool fastcat::Actuator::ConfigFromYaml(const YAML::Node& node)
 {
+  actuator_sms_ = ACTUATOR_SMS_HALTED;
+
+  // monotonic_initialization_time_sec_ set by base class method
+  // SetInitializationTime, which must be called prior to ConfigFromYaml
+  last_transition_time_ = monotonic_initialization_time_sec_;
+
   if (!ParseVal(node, "name", name_)) {
     return false;
   }
@@ -223,12 +226,8 @@ bool fastcat::Actuator::ConfigFromYaml(YAML::Node node)
 
 bool fastcat::Actuator::Read()
 {
-  cycle_mono_time_ = jsd_time_get_mono_time_sec();
-
   ElmoRead();
-
   PopulateState();
-
   return true;
 }
 
@@ -459,7 +458,9 @@ fastcat::FaultType fastcat::Actuator::Process()
       retval = ProcessProfTorqueDisengaging();
       break;
 
-    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CSP:
+    case ACTUATOR_SMS_CSV:
+    case ACTUATOR_SMS_CST:
       retval = ProcessCS();
       break;
 
@@ -467,10 +468,14 @@ fastcat::FaultType fastcat::Actuator::Process()
       retval = ProcessCalMoveToHardstop();
       break;
 
+    case ACTUATOR_SMS_CAL_UPDATE_POSITION:
+      retval = ProcessCalUpdatePosition();
+      break;
+
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
       retval = ProcessCalAtHardstop();
       break;
-
+    
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
       retval = ProcessCalMoveToSoftstop();
       break;
@@ -511,7 +516,6 @@ bool fastcat::Actuator::SetOutputPosition(double position)
   MSG("Act %s: %s%lf %s%lf", name_.c_str(),
       "Changing Position from: ", GetActualPosition(*state_),
       "to : ", position);
-
   elmo_pos_offset_cnts_ =
       GetElmoActualPosition() - (int32_t)(position * overall_reduction_);
   return true;
@@ -600,7 +604,7 @@ bool fastcat::Actuator::CurrentExceedsCmdLimits(double current)
 
 void fastcat::Actuator::TransitionToState(ActuatorStateMachineState sms)
 {
-  last_transition_time_ = cycle_mono_time_;
+  last_transition_time_ = state_->monotonic_time;
   if (actuator_sms_ != sms) {
     MSG("Requested Actuator %s state transition from %s to %s", name_.c_str(),
         StateMachineStateToString(actuator_sms_).c_str(),
@@ -641,11 +645,20 @@ std::string fastcat::Actuator::StateMachineStateToString(
     case ACTUATOR_SMS_PROF_TORQUE_DISENGAGING:
       str = std::string("PROF_TORQUE_DISENGAGING");
       break;
-    case ACTUATOR_SMS_CS:
-      str = std::string("CS");
+    case ACTUATOR_SMS_CSP:
+      str = std::string("CSP");
+      break;
+    case ACTUATOR_SMS_CSV:
+      str = std::string("CSV");
+      break;
+    case ACTUATOR_SMS_CST:
+      str = std::string("CST");
       break;
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
       str = std::string("CAL_MOVE_TO_HARDSTOP");
+      break;
+    case ACTUATOR_SMS_CAL_UPDATE_POSITION:
+      str = std::string("CAL_UPDATE_POSITION");
       break;
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
       str = std::string("CAL_AT_HARDSTOP");

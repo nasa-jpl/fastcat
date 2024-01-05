@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "fastcat/config.h"
+#include "fastcat/thread_safe_queue.h"
 #include "fastcat/fastcat_devices/commander.h"
 
 namespace
@@ -16,7 +17,7 @@ class CommanderTest : public ::testing::Test
     c2_.ConfigFromYaml(YAML::LoadFile(unit_test_dir + "c2_config.yaml"));
     c3_.ConfigFromYaml(YAML::LoadFile(unit_test_dir + "c3_config.yaml"));
 
-    cmd_queue_ = std::make_shared<std::queue<fastcat::DeviceCmd>>();
+    cmd_queue_ = std::make_shared<fastcat::ThreadSafeQueue<fastcat::DeviceCmd>>();
     c2_.RegisterCmdQueue(cmd_queue_);
     c3_.RegisterCmdQueue(cmd_queue_);
   }
@@ -25,7 +26,7 @@ class CommanderTest : public ::testing::Test
   fastcat::Commander                              c1_;
   fastcat::Commander                              c2_;
   fastcat::Commander                              c3_;
-  std::shared_ptr<std::queue<fastcat::DeviceCmd>> cmd_queue_;
+  std::shared_ptr<fastcat::ThreadSafeQueue<fastcat::DeviceCmd>> cmd_queue_;
 };
 
 TEST_F(CommanderTest, ConfigFromYamlSuccess)

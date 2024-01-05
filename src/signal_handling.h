@@ -15,7 +15,7 @@ namespace fastcat
 {
 bool UpdateSignal(Signal& signal);
 
-bool ConfigSignalsFromYaml(YAML::Node node, std::vector<Signal>& signals,
+bool ConfigSignalsFromYaml(const YAML::Node& node, std::vector<Signal>& signals,
                            bool is_commander);
 
 bool ConfigSignalByteIndexing(DeviceState* state, Signal& signal);

@@ -17,7 +17,7 @@ fastcat::LinearInterpolation::LinearInterpolation()
   state_->type = LINEAR_INTERPOLATION_STATE;
 }
 
-bool fastcat::LinearInterpolation::ConfigFromYaml(YAML::Node node)
+bool fastcat::LinearInterpolation::ConfigFromYaml(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

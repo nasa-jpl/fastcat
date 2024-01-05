@@ -15,7 +15,7 @@ fastcat::VirtualFts::VirtualFts()
   state_->type = FTS_STATE;
 }
 
-bool fastcat::VirtualFts::ConfigFromYaml(YAML::Node node)
+bool fastcat::VirtualFts::ConfigFromYaml(const YAML::Node& node)
 {
   if (!ParseVal(node, "name", name_)) {
     return false;

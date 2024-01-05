@@ -1,4 +1,4 @@
-// Include related header (for cc files)
+// Include related headers
 #include "fastcat/jsd/platinum_actuator_offline.h"
 
 // Include c then c++ libraries
@@ -13,9 +13,13 @@
 fastcat::PlatinumActuatorOffline::PlatinumActuatorOffline()
 {
   MSG_DEBUG("Constructed PlatinumActuatorOffline");
-
   memset(&jsd_epd_state_, 0, sizeof(jsd_epd_nominal_state_t));
-  motor_on_start_time_ = jsd_time_get_time_sec();
+}
+
+bool fastcat::PlatinumActuatorOffline::ConfigFromYaml(const YAML::Node& node)
+{
+  motor_on_start_time_ = initialization_time_sec_;
+  return fastcat::PlatinumActuator::ConfigFromYaml(node);
 }
 
 bool fastcat::PlatinumActuatorOffline::HandleNewProfPosCmdImpl(
@@ -177,7 +181,8 @@ fastcat::FaultType fastcat::PlatinumActuatorOffline::ProcessProfPosDisengaging()
 
     // Check runout timer here, brake engage/disengage time cannot exceed 1
     // second per MAN-G-CR Section BP - Brake Parameters
-    if ((cycle_mono_time_ - last_transition_time_) > (1.0 + 2 * loop_period_)) {
+    if ((state_->monotonic_time - last_transition_time_) >
+        (1.0 + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting",
             name_.c_str());
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
@@ -220,7 +225,8 @@ fastcat::FaultType fastcat::PlatinumActuatorOffline::ProcessProfVelDisengaging()
 
     // Check runout timer here, brake engage/disengage time cannot exceed 1
     // second per MAN-G-CR Section BP - Brake Parameters
-    if ((cycle_mono_time_ - last_transition_time_) > (1.0 + 2 * loop_period_)) {
+    if ((state_->monotonic_time - last_transition_time_) >
+        (1.0 + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting",
             name_.c_str());
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
@@ -262,7 +268,8 @@ fastcat::PlatinumActuatorOffline::ProcessProfTorqueDisengaging()
 
     // Check runout timer here, brake engage/disengage time cannot exceed 1
     // second per MAN-G-CR Section BP - Brake Parameters
-    if ((cycle_mono_time_ - last_transition_time_) > (1.0 + 2 * loop_period_)) {
+    if ((state_->monotonic_time - last_transition_time_) >
+        (1.0 + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage 1.0 sec runout timer expired, faulting",
             name_.c_str());
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
@@ -296,7 +303,9 @@ void fastcat::PlatinumActuatorOffline::ElmoProcess()
     case ACTUATOR_SMS_PROF_POS:
     case ACTUATOR_SMS_PROF_VEL:
     case ACTUATOR_SMS_PROF_TORQUE:
-    case ACTUATOR_SMS_CS:
+    case ACTUATOR_SMS_CSP:
+    case ACTUATOR_SMS_CSV:
+    case ACTUATOR_SMS_CST:
     case ACTUATOR_SMS_CAL_MOVE_TO_HARDSTOP:
     case ACTUATOR_SMS_CAL_AT_HARDSTOP:
     case ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP:
@@ -307,13 +316,12 @@ void fastcat::PlatinumActuatorOffline::ElmoProcess()
 
   // reset motor_on timer on rising edge
   if (!last_motor_on_state_ && jsd_epd_state_.motor_on) {
-    motor_on_start_time_ = jsd_time_get_time_sec();
+    motor_on_start_time_ = state_->time;
   }
   last_motor_on_state_ = jsd_epd_state_.motor_on;
 
-  //
   if (!jsd_epd_state_.servo_enabled && jsd_epd_state_.motor_on) {
-    double brake_on_dur = jsd_time_get_time_sec() - motor_on_start_time_;
+    double brake_on_dur = state_->time - motor_on_start_time_;
     if (brake_on_dur > params_.elmo_brake_disengage_msec / 1000.0) {
       jsd_epd_state_.servo_enabled = 1;
     }

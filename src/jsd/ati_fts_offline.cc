@@ -5,7 +5,7 @@
 
 // Include external then project includes
 
-bool fastcat::AtiFtsOffline::ConfigFromYaml(YAML::Node node)
+bool fastcat::AtiFtsOffline::ConfigFromYaml(const YAML::Node& node)
 {
   return ConfigFromYamlCommon(node);
 }
