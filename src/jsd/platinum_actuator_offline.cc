@@ -14,6 +14,7 @@ fastcat::PlatinumActuatorOffline::PlatinumActuatorOffline()
 {
   MSG_DEBUG("Constructed PlatinumActuatorOffline");
   memset(&jsd_epd_state_, 0, sizeof(jsd_epd_nominal_state_t));
+  jsd_epd_state_.fault_code = JSD_EPD_FAULT_OKAY;
 }
 
 bool fastcat::PlatinumActuatorOffline::ConfigFromYaml(const YAML::Node& node)
