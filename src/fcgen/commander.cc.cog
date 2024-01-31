@@ -184,9 +184,11 @@ bool fastcat::Commander::Write(DeviceCmd& cmd)
     ERROR("Commander (%s) cannot be commanded with an active fault, reset first", name_.c_str());
     return false;
   }
+  ERROR("Entering commander thingamabobber");
 
   if (cmd.type == COMMANDER_ENABLE_CMD) {
     state_->commander_state.enable = true;
+    ERROR("Setting enable duration to %f", cmd.commander_enable_cmd.duration);
     enable_duration_ = cmd.commander_enable_cmd.duration;
     enable_time_ = state_->time;
   }else if (cmd.type == COMMANDER_DISABLE_CMD) {
