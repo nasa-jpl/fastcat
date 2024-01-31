@@ -116,6 +116,7 @@ bool fastcat::Commander::ConfigFromYaml(const YAML::Node& node)
 
 bool fastcat::Commander::Read()
 {
+  MSG("Commander Read is being performed");
 
   if(state_->commander_state.enable && enable_duration_ > 0){
     double on_time = state_->time - enable_time_;
@@ -179,6 +180,7 @@ bool fastcat::Commander::Read()
 
 bool fastcat::Commander::Write(DeviceCmd& cmd)
 {
+  MSG("Commander Write is being performed. This is where enable duration is set");
 
   if(device_fault_active_){
     ERROR("Commander (%s) cannot be commanded with an active fault, reset first", name_.c_str());
