@@ -862,7 +862,7 @@ void fastcat::Actuator::ElmoSetConfig()
 
 void fastcat::Actuator::CheckWorkingCounter()
 {
-  if (context_->bad_wkc) {
+  if (context_->bad_wkc && actuator_sms_ != ACTUATOR_SMS_FAULTED) {
     TransitionToState(ACTUATOR_SMS_BAD_WKC);
   }
 }
