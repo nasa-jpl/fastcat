@@ -228,6 +228,7 @@ bool fastcat::Actuator::Read()
 {
   ElmoRead();
   PopulateState();
+  CheckWorkingCounter();
   return true;
 }
 
@@ -428,6 +429,10 @@ fastcat::FaultType fastcat::Actuator::Process()
   switch (actuator_sms_) {
     case ACTUATOR_SMS_FAULTED:
       break;
+    
+    case ACTUATOR_SMS_BAD_WKC:
+      retval = ProcessBadWkc();
+      break;
 
     case ACTUATOR_SMS_HALTED:
       retval = ProcessHalted();
@@ -609,6 +614,7 @@ void fastcat::Actuator::TransitionToState(ActuatorStateMachineState sms)
     MSG("Requested Actuator %s state transition from %s to %s", name_.c_str(),
         StateMachineStateToString(actuator_sms_).c_str(),
         StateMachineStateToString(sms).c_str());
+    prev_actuator_sms_ = actuator_sms_;
     actuator_sms_ = sms;
   }
 }
@@ -852,4 +858,11 @@ void fastcat::Actuator::ElmoSetConfig()
 {
   MSG_DEBUG("Setting JSD slave config");
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
+}
+
+void fastcat::Actuator::CheckWorkingCounter()
+{
+  if (context_->bad_wkc) {
+    TransitionToState(ACTUATOR_SMS_BAD_WKC);
+  }
 }

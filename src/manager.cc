@@ -247,8 +247,7 @@ bool fastcat::Manager::Process(double external_time)
 
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
     (*it)->SetTime(read_time, monotonic_time);
-
-    if (!(*it)->Read()) {
+    if (!(*it)->SetBadWkc() && !(*it)->Read()) {
       WARNING("Bad Process on %s", (*it)->GetName().c_str());
     }
   }

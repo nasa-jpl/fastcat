@@ -44,6 +44,12 @@ void fastcat::JsdDeviceBase::SetOffline(bool is_offline)
   }
 }
 
+bool fastcat::JsdDeviceBase::SetBadWkc() 
+{ 
+  bad_wkc_ = context_->bad_wkc;
+  return bad_wkc_;
+}
+
 fastcat::JsdDeviceBase::AsyncSdoRetVal
 fastcat::JsdDeviceBase::WriteAsyncSdoRequest(DeviceCmd& cmd)
 {
