@@ -547,9 +547,8 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
     return true;
   }
   auto elmo_state_machine_state = GetElmoStateMachineState();
+  
   if (elmo_state_machine_state ==
-          JSD_ELMO_STATE_MACHINE_STATE_QUICK_STOP_ACTIVE ||
-      elmo_state_machine_state ==
           JSD_ELMO_STATE_MACHINE_STATE_FAULT_REACTION_ACTIVE ||
       elmo_state_machine_state == JSD_ELMO_STATE_MACHINE_STATE_FAULT) {
     ERROR("%s: Elmo drive state machine state is off nominal", name_.c_str());

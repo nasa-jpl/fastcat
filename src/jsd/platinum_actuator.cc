@@ -129,10 +129,8 @@ bool fastcat::PlatinumActuator::HandleNewProfPosCmdImpl(const DeviceCmd& cmd)
 {
   // Save the command so that it can be sent continuously until the drive
   // acknowledges its reception.
-  last_cmd_ = cmd;
-
   TransitionToState(ACTUATOR_SMS_PROF_POS_DISENGAGING);
-
+  last_cmd_ = cmd;
   return true;
 }
 
