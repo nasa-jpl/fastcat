@@ -128,6 +128,7 @@ class Actuator : public JsdDeviceBase
     double      high_pos_cmd_limit_eu         = 0.0;
     double      high_pos_cal_limit_eu         = 0.0;
     double      holding_duration_sec          = 0.0;
+    double      wkc_recovery_timeout_sec      = 0.0;
     double      elmo_brake_engage_msec        = 0.0;
     double      elmo_brake_disengage_msec     = 0.0;
     int64_t     elmo_crc                      = 0;
