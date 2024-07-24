@@ -203,7 +203,7 @@ fastcat::FaultType fastcat::PlatinumActuator::ProcessProfPosDisengaging()
     TransitionToState(ACTUATOR_SMS_PROF_POS);
 
   } else if ((state_->monotonic_time - last_transition_time_) >
-             (prof_disengaging_timeout_ + 2.0 * loop_period_)) {
+             (params_.prof_disengaging_timeout_sec + 2.0 * loop_period_)) {
     ERROR(
         "Act %s: Profiled Position command was not acknowledged by drive "
         "before timeout, faulting",

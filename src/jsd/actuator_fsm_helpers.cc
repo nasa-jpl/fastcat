@@ -414,7 +414,7 @@ bool fastcat::Actuator::HandleNewSetProfDisengagingTimeoutCmd(
       return false;
   }
 
-  prof_disengaging_timeout_ =
+  params_.prof_disengaging_timeout_sec =
       cmd.actuator_set_prof_disengaging_timeout_cmd.timeout;
 
   return true;
