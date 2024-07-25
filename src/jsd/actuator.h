@@ -30,7 +30,6 @@ typedef enum {
   ACTUATOR_SMS_CAL_UPDATE_POSITION,
   ACTUATOR_SMS_CAL_AT_HARDSTOP,
   ACTUATOR_SMS_CAL_MOVE_TO_SOFTSTOP,
-  ACTUATOR_SMS_BAD_WKC,
 } ActuatorStateMachineState;
 
 typedef enum {
@@ -239,7 +238,6 @@ class Actuator : public JsdDeviceBase
 
   virtual void ElmoSetConfig();
   virtual void ElmoRead()                                                = 0;
-  virtual void CheckWorkingCounter()                                     = 0;
   virtual void ElmoClearErrors()                                         = 0;
   virtual void ElmoFault()                                               = 0;
   virtual void ElmoReset()                                               = 0;

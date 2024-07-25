@@ -561,27 +561,6 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
 
 fastcat::FaultType fastcat::Actuator::ProcessFaulted() { return NO_FAULT; }
 
-fastcat::FaultType fastcat::Actuator::ProcessBadWkc() 
-{
-  if (IsIdleFaultConditionMet()) {
-    ERROR("Actuator %s: %s", name_.c_str(), "Fault Condition present, faulting");
-    return ALL_DEVICE_FAULT;
-  }
-
-  if ((state_->monotonic_time - last_transition_time_) >
-      params_.wkc_recovery_timeout_sec) {
-    TransitionToState(ACTUATOR_SMS_FAULTED);
-    ERROR("Actuator %s: %s (recovery timeout: %f)", name_.c_str(), "Reached timeout for trying to recover from bad working counter", params_.wkc_recovery_timeout_sec);
-    return ALL_DEVICE_FAULT;
-  }
-
-  if (!bad_wkc_) {
-    MSG("Actuator %s: %s", name_.c_str(), "Recovered from bad working counter")
-    TransitionToState(prev_actuator_sms_);
-  }
-  return NO_FAULT;
-}
-
 fastcat::FaultType fastcat::Actuator::ProcessHalted()
 {
   if (IsIdleFaultConditionMet()) {

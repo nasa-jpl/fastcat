@@ -42,7 +42,6 @@ class JsdDeviceBase : public DeviceBase
   bool   is_offline_ = false;  ///< If is an offline version
   jsd_t* context_    = NULL;   ///< JSD context
   int    slave_id_   = 0;      ///< EtherCAT Slave Index
-  bool   bad_wkc_    = false;  ///< Keeps track of JSD-level bad wkc
 
   /// provided so that offline devices can push to this queue with
   /// SDO response stubs

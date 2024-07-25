@@ -224,7 +224,13 @@ bool fastcat::Manager::Process(double external_time)
 {
   std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
-    jsd_read(it->second, 1e6 / target_loop_rate_hz_);
+    auto ifname = it->first;
+    auto jsd = it->second;
+    jsd_read(jsd, 1e6 / target_loop_rate_hz_);
+    if (jsd->wkc != jsd->expected_wkc && jsd->last_wkc != jsd->wkc) {
+      ERROR("Bad working counter experienced on jsd bus %s", ifname.c_str());
+      ExecuteAllDeviceFaults();
+    }
   }
 
   // Pass the PDO read time for consistent timestamping before the device Read()
@@ -247,7 +253,7 @@ bool fastcat::Manager::Process(double external_time)
 
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
     (*it)->SetTime(read_time, monotonic_time);
-    if (!(*it)->SetBadWkc() && !(*it)->Read()) {
+    if (!(*it)->Read()) {
       WARNING("Bad Process on %s", (*it)->GetName().c_str());
     }
   }

@@ -228,7 +228,6 @@ bool fastcat::Actuator::Read()
 {
   ElmoRead();
   PopulateState();
-  CheckWorkingCounter();
   return true;
 }
 
@@ -430,10 +429,6 @@ fastcat::FaultType fastcat::Actuator::Process()
     case ACTUATOR_SMS_FAULTED:
       break;
     
-    case ACTUATOR_SMS_BAD_WKC:
-      retval = ProcessBadWkc();
-      break;
-
     case ACTUATOR_SMS_HALTED:
       retval = ProcessHalted();
       break;
@@ -858,11 +853,4 @@ void fastcat::Actuator::ElmoSetConfig()
 {
   MSG_DEBUG("Setting JSD slave config");
   jsd_set_slave_config((jsd_t*)context_, slave_id_, jsd_slave_config_);
-}
-
-void fastcat::Actuator::CheckWorkingCounter()
-{
-  if (context_->bad_wkc && actuator_sms_ != ACTUATOR_SMS_FAULTED) {
-    TransitionToState(ACTUATOR_SMS_BAD_WKC);
-  }
 }
