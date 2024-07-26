@@ -228,7 +228,7 @@ bool fastcat::Manager::Process(double external_time)
     auto jsd = it->second;
     jsd_read(jsd, 1e6 / target_loop_rate_hz_);
     if (jsd->wkc != jsd->expected_wkc) {
-      ERROR("Work counter: %f, Expected work counter: %f, last work counter: %f", jsd->wkc, jsd->expected_wkc, jsd->last_wkc);
+      ERROR("Work counter: %d, Expected work counter: %d, last work counter: %d", jsd->wkc, jsd->expected_wkc, jsd->last_wkc);
     }
     if (jsd->wkc != jsd->expected_wkc && jsd->last_wkc != jsd->wkc) {
       ERROR("Bad working counter experienced on jsd bus %s", ifname.c_str());
