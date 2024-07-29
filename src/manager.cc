@@ -226,7 +226,7 @@ bool fastcat::Manager::Process(double external_time)
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     auto ifname = it->first;
     auto jsd = it->second;
-    jsd_read(jsd, 1e6 / target_loop_rate_hz_);
+    jsd_read(jsd,  1e3 / target_loop_rate_hz_);
     if (jsd->wkc != jsd->expected_wkc && !IsFaulted()) {
       ERROR("Bad working counter experienced on jsd bus %s", ifname.c_str());
       ExecuteAllDeviceFaults();
