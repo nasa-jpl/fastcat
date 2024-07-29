@@ -32,7 +32,6 @@ class JsdDeviceBase : public DeviceBase
   void     RegisterSdoResponseQueue(
           std::shared_ptr<std::queue<SdoResponse>> sdo_response_queue);
   void SetOffline(bool is_offline);
-  bool SetBadWkc();
 
  protected:
   AsyncSdoRetVal WriteAsyncSdoRequest(DeviceCmd& cmd);
