@@ -226,10 +226,9 @@ bool fastcat::Manager::Process(double external_time)
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     auto ifname = it->first;
     auto jsd = it->second;
-    (state_->time - last_time_) 
-    pre_jsd_read_time = jsd_time_get_time_sec();
+    auto pre_jsd_read_time = jsd_time_get_time_sec();
     jsd_read(jsd,  1e3 / target_loop_rate_hz_);
-    post_jsd_read_time = jsd_time_get_time_sec();
+    auto post_jsd_read_time = jsd_time_get_time_sec();
     if (post_jsd_read_time-pre_jsd_read_time > ((1/target_loop_rate_hz_)/1000.0)) {
       ERROR("We exceeeded the timeout!");
     }
