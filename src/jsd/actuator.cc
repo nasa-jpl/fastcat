@@ -428,7 +428,7 @@ fastcat::FaultType fastcat::Actuator::Process()
   switch (actuator_sms_) {
     case ACTUATOR_SMS_FAULTED:
       break;
-    
+
     case ACTUATOR_SMS_HALTED:
       retval = ProcessHalted();
       break;
@@ -609,7 +609,6 @@ void fastcat::Actuator::TransitionToState(ActuatorStateMachineState sms)
     MSG("Requested Actuator %s state transition from %s to %s", name_.c_str(),
         StateMachineStateToString(actuator_sms_).c_str(),
         StateMachineStateToString(sms).c_str());
-    prev_actuator_sms_ = actuator_sms_;
     actuator_sms_ = sms;
   }
 }
