@@ -230,7 +230,7 @@ class Manager
 
   double                        target_loop_rate_hz_                = 0.0;
   bool                          zero_latency_required_              = true;
-  bool                          faulted_                            = false;
+  bool                          faulted_                            = true;
   bool                          actuator_fault_on_missing_pos_file_ = true;
   bool                          online_devices_exist_               = false;
   std::string                   actuator_position_directory_;
