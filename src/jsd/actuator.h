@@ -167,7 +167,6 @@ class Actuator : public JsdDeviceBase
   jsd_slave_config_t jsd_slave_config_ = {};
 
   ActuatorStateMachineState actuator_sms_         = ACTUATOR_SMS_HALTED;
-  ActuatorStateMachineState prev_actuator_sms_    = ACTUATOR_SMS_HALTED;
   double                    last_transition_time_ = 0.0;
   fastcat_trap_t            trap_                 = {};
   ActuatorParams            params_               = {};
