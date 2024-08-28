@@ -127,25 +127,42 @@ void fastcat::PlatinumActuator::PopulateState()
 
 bool fastcat::PlatinumActuator::HandleNewProfPosCmdImpl(const DeviceCmd& cmd)
 {
-  // Save the command so that it can be sent continuously until the drive
-  // acknowledges its reception.
-  last_cmd_ = cmd;
+  // Only transition to disengaging if it is needed (i.e. brakes are still
+  // engaged)
+  if (!state_->platinum_actuator_state.servo_enabled) {
+    TransitionToState(ACTUATOR_SMS_PROF_POS_DISENGAGING);
+    last_cmd_ = cmd;
+    return true;
+  }
 
-  TransitionToState(ACTUATOR_SMS_PROF_POS_DISENGAGING);
+  fastcat_trap_generate(
+      &trap_, state_->time, state_->platinum_actuator_state.actual_position,
+      ComputeTargetPosProfPosCmd(cmd), state_->platinum_actuator_state.cmd_velocity,
+      cmd.actuator_prof_pos_cmd.end_velocity,
+      cmd.actuator_prof_pos_cmd.profile_velocity,  // consider abs()
+      cmd.actuator_prof_pos_cmd.profile_accel);
+
+  TransitionToState(ACTUATOR_SMS_PROF_POS);
 
   return true;
 }
 
 bool fastcat::PlatinumActuator::HandleNewProfVelCmdImpl(const DeviceCmd& cmd)
 {
-  // The corresponding JSD command should not be set here because it could be
-  // missed by the JSD driver. This happens if the Fastcat's state machine is
-  // HALTED when Fastcat handles a new Profiled command. In this case, Fastcat
-  // requests a drive reset which indirectly sets the mode of operation to
-  // Profiled Position for that cycle. Hence, the JSD command should be set when
-  // *processing* the corresponding state in Fastcat's state machine so that the
-  // mode of operation requested does not get overwritten in JSD.
-  last_cmd_ = cmd;
+  // Only transition to disengaging if it is needed (i.e. brakes are still
+  // engaged)
+  if (!state_->platinum_actuator_state.servo_enabled) {
+    TransitionToState(ACTUATOR_SMS_PROF_VEL_DISENGAGING);
+    last_cmd_ = cmd;
+    return true;
+  }
+
+  fastcat_trap_generate_vel(&trap_, state_->time,
+                            state_->platinum_actuator_state.actual_position,
+                            state_->platinum_actuator_state.cmd_velocity,
+                            cmd.actuator_prof_vel_cmd.target_velocity,
+                            cmd.actuator_prof_vel_cmd.profile_accel,
+                            cmd.actuator_prof_vel_cmd.max_duration);
 
   TransitionToState(ACTUATOR_SMS_PROF_VEL);
 
@@ -154,14 +171,18 @@ bool fastcat::PlatinumActuator::HandleNewProfVelCmdImpl(const DeviceCmd& cmd)
 
 bool fastcat::PlatinumActuator::HandleNewProfTorqueCmdImpl(const DeviceCmd& cmd)
 {
-  // The corresponding JSD command should not be set here because it could be
-  // missed by the JSD driver. This happens if the Fastcat's state machine is
-  // HALTED when Fastcat handles a new Profiled command. In this case, Fastcat
-  // requests a drive reset which indirectly sets the mode of operation to
-  // Profiled Position for that cycle. Hence, the JSD command should be set when
-  // *processing* the corresponding state in Fastcat's state machine so that the
-  // mode of operation requested does not get overwritten in JSD.
-  last_cmd_ = cmd;
+  // Only transition to disengaging if it is needed (i.e. brakes are still
+  // engaged)
+  if (!state_->platinum_actuator_state.servo_enabled) {
+    TransitionToState(ACTUATOR_SMS_PROF_TORQUE_DISENGAGING);
+    last_cmd_ = cmd;
+    return true;
+  }
+
+  fastcat_trap_generate_vel(&trap_, state_->time, 0, 0,
+                            cmd.actuator_prof_torque_cmd.target_torque_amps,
+                            params_.torque_slope_amps_per_sec,
+                            cmd.actuator_prof_torque_cmd.max_duration);
 
   TransitionToState(ACTUATOR_SMS_PROF_TORQUE);
 
@@ -171,47 +192,129 @@ bool fastcat::PlatinumActuator::HandleNewProfTorqueCmdImpl(const DeviceCmd& cmd)
 fastcat::FaultType fastcat::PlatinumActuator::ProcessProfPosDisengaging()
 {
   if (IsMotionFaultConditionMet()) {
-    ERROR("Act %s: %s", name_.c_str(), "Fault condition present, faulting");
+    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
 
-  jsd_elmo_motion_command_prof_pos_t jsd_cmd;
-  jsd_cmd.relative = last_cmd_.actuator_prof_pos_cmd.relative;
+  if (state_->gold_actuator_state.servo_enabled) {
+    // If brakes are disengaged, setup the traps and transition to the execution
+    // state
+    fastcat_trap_generate(
+        &trap_, state_->time, state_->platinum_actuator_state.actual_position,
+        ComputeTargetPosProfPosCmd(last_cmd_),
+        state_->platinum_actuator_state.cmd_velocity,
+        last_cmd_.actuator_prof_pos_cmd.end_velocity,
+        last_cmd_.actuator_prof_pos_cmd.profile_velocity,  // consider abs()
+        last_cmd_.actuator_prof_pos_cmd.profile_accel);
 
-  if (jsd_cmd.relative) {
-    jsd_cmd.target_position =
-        EuToCnts(last_cmd_.actuator_prof_pos_cmd.target_position);
-  } else {
-    jsd_cmd.target_position =
-        PosEuToCnts(last_cmd_.actuator_prof_pos_cmd.target_position);
-  }
-  jsd_cmd.profile_velocity =
-      EuToCnts(last_cmd_.actuator_prof_pos_cmd.profile_velocity);
-  jsd_cmd.end_velocity = EuToCnts(last_cmd_.actuator_prof_pos_cmd.end_velocity);
-  jsd_cmd.profile_accel =
-      EuToCnts(last_cmd_.actuator_prof_pos_cmd.profile_accel);
-  jsd_cmd.profile_decel =
-      EuToCnts(last_cmd_.actuator_prof_pos_cmd.profile_accel);
-
-  jsd_epd_nominal_set_motion_command_prof_pos((jsd_t*)context_, slave_id_,
-                                              jsd_cmd);
-
-  // Transition to ACTUATOR_SMS_PROF_POS once the drive acknowledges reception
-  // of the command. Otherwise, the state variables used to check for the
-  // completion of the command (i.e. target_reached) might refer to a previous
-  // command. If the drive does not acknowledge the command within the
-  // configured timeout, fault.
-  if (state_->platinum_actuator_state.setpoint_ack_rise) {
     TransitionToState(ACTUATOR_SMS_PROF_POS);
 
-  } else if ((state_->monotonic_time - last_transition_time_) >
-             (prof_disengaging_timeout_ + 2.0 * loop_period_)) {
-    ERROR(
-        "Act %s: Profiled Position command was not acknowledged by drive "
-        "before timeout, faulting",
-        name_.c_str());
-    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_PROF_POS_CMD_ACK_TIMEOUT_EXCEEDED;
+  } else {
+    // Otherwise, command the current position to trigger the transition and
+    // wait
+
+    jsd_elmo_motion_command_csp_t jsd_cmd;
+
+    jsd_cmd.target_position =
+        PosEuToCnts(state_->platinum_actuator_state.actual_position);
+    jsd_cmd.position_offset    = 0;
+    jsd_cmd.velocity_offset    = 0;
+    jsd_cmd.torque_offset_amps = 0;
+
+    ElmoCSP(jsd_cmd);
+
+
+    if ((state_->monotonic_time - last_transition_time_) >
+        (prof_disengaging_timeout_ + 2 * loop_period_)) {
+      ERROR("Act %s: Brake Disengage %lf sec timeout expired, faulting",
+            name_.c_str(), prof_disengaging_timeout_);
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
+      return ALL_DEVICE_FAULT;
+    }
+  }
+
+  return NO_FAULT;
+}
+
+fastcat::FaultType fastcat::PlatinumActuator::ProcessProfVelDisengaging()
+{
+  if (IsMotionFaultConditionMet()) {
+    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
+  }
+
+  if (state_->platinum_actuator_state.servo_enabled) {
+    // If brakes are disengaged, setup the traps and transition to the execution
+    // state
+    fastcat_trap_generate_vel(&trap_, state_->time,
+                              state_->platinum_actuator_state.actual_position,
+                              state_->platinum_actuator_state.cmd_velocity,
+                              last_cmd_.actuator_prof_vel_cmd.target_velocity,
+                              last_cmd_.actuator_prof_vel_cmd.profile_accel,
+                              last_cmd_.actuator_prof_vel_cmd.max_duration);
+
+    TransitionToState(ACTUATOR_SMS_PROF_VEL);
+
+  } else {
+    // Otherwise, command the current position to trigger the transition and
+    // wait
+    jsd_elmo_motion_command_csv_t jsd_cmd;
+
+    jsd_cmd.target_velocity    = 0;
+    jsd_cmd.velocity_offset    = 0;
+    jsd_cmd.torque_offset_amps = 0;
+
+    ElmoCSV(jsd_cmd);
+
+
+    if ((state_->monotonic_time - last_transition_time_) >
+        (prof_disengaging_timeout_ + 2 * loop_period_)) {
+      ERROR("Act %s: Brake Disengage %lf sec timeout expired, faulting",
+            name_.c_str(), prof_disengaging_timeout_);
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
+      return ALL_DEVICE_FAULT;
+    }
+  }
+
+  return NO_FAULT;
+}
+
+fastcat::FaultType fastcat::PlatinumActuator::ProcessProfTorqueDisengaging()
+{
+  if (IsMotionFaultConditionMet()) {
+    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
+    return ALL_DEVICE_FAULT;
+  }
+
+  if (state_->platinum_actuator_state.servo_enabled) {
+    // If brakes are disengaged, setup the traps and transition to the execution
+    // state
+    fastcat_trap_generate_vel(
+        &trap_, state_->time, 0, 0,
+        last_cmd_.actuator_prof_torque_cmd.target_torque_amps,
+        params_.torque_slope_amps_per_sec,
+        last_cmd_.actuator_prof_torque_cmd.max_duration);
+
+    TransitionToState(ACTUATOR_SMS_PROF_TORQUE);
+
+  } else {
+    // Otherwise, command the current position to trigger the transition and
+    // wait
+    jsd_elmo_motion_command_cst_t jsd_cmd;
+
+    jsd_cmd.target_torque_amps = 0;
+    jsd_cmd.torque_offset_amps = 0;
+
+    ElmoCST(jsd_cmd);
+
+    if ((state_->monotonic_time - last_transition_time_) >
+        (prof_disengaging_timeout_ + 2 * loop_period_)) {
+      ERROR("Act %s: Brake Disengage %lf sec timeout expired, faulting",
+            name_.c_str(), prof_disengaging_timeout_);
+
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
+      return ALL_DEVICE_FAULT;
+    }
   }
 
   return NO_FAULT;
@@ -219,80 +322,56 @@ fastcat::FaultType fastcat::PlatinumActuator::ProcessProfPosDisengaging()
 
 fastcat::FaultType fastcat::PlatinumActuator::ProcessProfPos()
 {
-  if (IsMotionFaultConditionMet()) {
-    ERROR("Act %s: %s", name_.c_str(), "Fault condition present, faulting");
-    return ALL_DEVICE_FAULT;
-  }
-
-  // Transition to ACTUATOR_SMS_HOLDING once profile execution is complete if
-  // the option to actively hold position is not on.
-  if (state_->platinum_actuator_state.target_reached &&
-      !params_.prof_pos_hold) {
-    TransitionToState(ACTUATOR_SMS_HOLDING);
-  }
-
-  return NO_FAULT;
+  return ProcessProfPosTrapImpl();
 }
 
 fastcat::FaultType fastcat::PlatinumActuator::ProcessProfVel()
 {
   if (IsMotionFaultConditionMet()) {
-    ERROR("Act %s: %s", name_.c_str(), "Fault condition present, faulting");
+    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
 
-  jsd_elmo_motion_command_prof_vel_t jsd_cmd;
-  // If max_duration is greater than zero, zero out the target after the
-  // commanded duration.
-  if (last_cmd_.actuator_prof_vel_cmd.max_duration > 1e-9 &&
-      (state_->monotonic_time - last_transition_time_) >
-          last_cmd_.actuator_prof_vel_cmd.max_duration) {
-    TransitionToState(ACTUATOR_SMS_HOLDING);
+  jsd_elmo_motion_command_csv_t jsd_cmd;
 
-    jsd_cmd.target_velocity = 0;
-    jsd_cmd.profile_accel =
-        EuToCnts(last_cmd_.actuator_prof_vel_cmd.profile_accel);
-    jsd_cmd.profile_decel =
-        EuToCnts(last_cmd_.actuator_prof_vel_cmd.profile_accel);
+  double pos_eu, vel;
+  int complete = fastcat_trap_update_vel(&trap_, state_->time, &pos_eu, &vel);
+
+  jsd_cmd.target_velocity    = EuToCnts(vel);
+  jsd_cmd.velocity_offset    = 0;
+  jsd_cmd.torque_offset_amps = 0;
+
+  if (!complete) {
+    ElmoCSV(jsd_cmd);
   } else {
-    jsd_cmd.target_velocity =
-        EuToCnts(last_cmd_.actuator_prof_vel_cmd.target_velocity);
-    jsd_cmd.profile_accel =
-        EuToCnts(last_cmd_.actuator_prof_vel_cmd.profile_accel);
-    jsd_cmd.profile_decel =
-        EuToCnts(last_cmd_.actuator_prof_vel_cmd.profile_accel);
+    jsd_cmd.target_velocity = 0;
+    ElmoCSV(jsd_cmd);
+    TransitionToState(ACTUATOR_SMS_HOLDING);
   }
-
-  jsd_epd_nominal_set_motion_command_prof_vel((jsd_t*)context_, slave_id_,
-                                              jsd_cmd);
-
   return NO_FAULT;
 }
 
 fastcat::FaultType fastcat::PlatinumActuator::ProcessProfTorque()
 {
   if (IsMotionFaultConditionMet()) {
-    ERROR("Act %s: %s", name_.c_str(), "Fault condition present, faulting");
+    ERROR("Act %s: %s", name_.c_str(), "Fault Condition present, faulting");
     return ALL_DEVICE_FAULT;
   }
 
-  jsd_elmo_motion_command_prof_torque_t jsd_cmd;
-  // If max_duration is greater than zero, zero out the target after the
-  // commanded duration.
-  if (last_cmd_.actuator_prof_torque_cmd.max_duration > 1e-9 &&
-      (state_->monotonic_time - last_transition_time_) >
-          last_cmd_.actuator_prof_torque_cmd.max_duration) {
+  jsd_elmo_motion_command_cst_t jsd_cmd;
+
+  double dummy_pos_eu, current;
+  int    complete =
+      fastcat_trap_update_vel(&trap_, state_->time, &dummy_pos_eu, &current);
+
+  jsd_cmd.target_torque_amps = current;
+  jsd_cmd.torque_offset_amps = 0;
+
+  ElmoCST(jsd_cmd);
+
+  if (complete) {
     TransitionToState(ACTUATOR_SMS_HOLDING);
-
-    jsd_cmd.target_torque_amps = 0.0;
-  } else {
-    jsd_cmd.target_torque_amps =
-        last_cmd_.actuator_prof_torque_cmd.target_torque_amps;
   }
-
-  jsd_epd_nominal_set_motion_command_prof_torque((jsd_t*)context_, slave_id_,
-                                                 jsd_cmd);
-
   return NO_FAULT;
 }
 
