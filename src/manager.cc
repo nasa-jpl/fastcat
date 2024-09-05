@@ -532,7 +532,7 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
     jsd_device_list_.push_back(jsdDevice);
   }
 
-  return jsd_init(jsd, ifname.c_str(), enable_ar);
+  return jsd_init(jsd, ifname.c_str(), enable_ar, target_loop_rate_hz_);
 }
 
 bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
