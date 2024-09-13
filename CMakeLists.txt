@@ -100,11 +100,11 @@ endif()
 
 ####### Install ########
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    set(CMAKE_INSTALL_PREFIX "/opt/fastcat")
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/fastcat")
     install(DIRECTORY ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME} DESTINATION include)
     install(TARGETS fastcat DESTINATION lib)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFastcat.cmake DESTINATION /opt/cmake)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindYamlCpp.cmake DESTINATION /opt/cmake)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFastcat.cmake DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindYamlCpp.cmake DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake)
 endif()
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
