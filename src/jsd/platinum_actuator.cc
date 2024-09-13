@@ -196,7 +196,7 @@ fastcat::FaultType fastcat::PlatinumActuator::ProcessProfPosDisengaging()
     return ALL_DEVICE_FAULT;
   }
 
-  if (state_->gold_actuator_state.servo_enabled) {
+  if (state_->platinum_actuator_state.servo_enabled) {
     // If brakes are disengaged, setup the traps and transition to the execution
     // state
     fastcat_trap_generate(
