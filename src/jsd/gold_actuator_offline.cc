@@ -136,7 +136,7 @@ void fastcat::GoldActuatorOffline::ElmoCSP(
   // Perform numerical differencing of position to get actual_velocity
   double vel = (jsd_egd_state_.cmd_position + jsd_egd_state_.cmd_ff_position -
                 jsd_egd_state_.actual_position) /
-               loop_period_;
+               (state_->monotonic_time - last_time_);
 
   // simulate actual position, current and velocity
   jsd_egd_state_.actual_position =
@@ -163,7 +163,7 @@ void fastcat::GoldActuatorOffline::ElmoCSV(
   jsd_egd_state_.actual_current =
       jsd_egd_state_.cmd_current + jsd_egd_state_.cmd_ff_current;
   jsd_egd_state_.actual_position +=
-      jsd_egd_state_.actual_velocity * loop_period_;  // integrated
+      jsd_egd_state_.actual_velocity * (state_->monotonic_time - last_time_);  // integrated
 }
 
 void fastcat::GoldActuatorOffline::ElmoCST(
@@ -187,5 +187,5 @@ void fastcat::GoldActuatorOffline::ElmoCST(
       jsd_egd_state_.actual_current / params_.continuous_current_limit_amps;
   jsd_egd_state_.actual_velocity = pct * params_.max_speed_eu_per_sec;
   jsd_egd_state_.actual_position +=
-      jsd_egd_state_.actual_velocity * loop_period_;  // integrated
+      jsd_egd_state_.actual_velocity * (state_->monotonic_time - last_time_);  // integrated
 }
