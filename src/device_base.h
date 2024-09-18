@@ -48,6 +48,7 @@ class DeviceBase
  protected:
   std::string name_;  ///< unique device name
 
+  double last_time_                         = 0.0;
   double loop_period_                       = 0.0;  ///< only some devices need
   double initialization_time_sec_           = -1;   ///< only some devices need
   double monotonic_initialization_time_sec_ = -1;   ///< only some devices need

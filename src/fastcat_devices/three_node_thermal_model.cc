@@ -169,7 +169,6 @@ FaultType ThreeNodeThermalModel::Process()
   state_->three_node_thermal_model_state.node_2_temp = node_temps_[1];
   state_->three_node_thermal_model_state.node_3_temp = node_temps_[2];
   state_->three_node_thermal_model_state.node_4_temp = node_temps_[3];
-  last_time_ = state_->time;  // update loop time
 
   return NO_FAULT;
 }

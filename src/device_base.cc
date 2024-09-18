@@ -27,6 +27,7 @@ void fastcat::DeviceBase::SetLoopPeriod(double loop_period)
 
 void fastcat::DeviceBase::SetTime(double time, double monotonic_time)
 {
+  last_time_             = state_->monotonic_time;
   state_->time           = time;
   state_->monotonic_time = monotonic_time;
 }
