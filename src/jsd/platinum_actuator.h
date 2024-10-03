@@ -30,9 +30,9 @@ class PlatinumActuator : public Actuator
 
   FaultType ProcessProfPosDisengaging() override;
   FaultType ProcessProfPos() override;
-  FaultType ProcessProfVelDisengaging() override { return NO_FAULT; };
+  FaultType ProcessProfVelDisengaging() override;
   FaultType ProcessProfVel() override;
-  FaultType ProcessProfTorqueDisengaging() override { return NO_FAULT; };
+  FaultType ProcessProfTorqueDisengaging() override;
   FaultType ProcessProfTorque() override;
 
   void ElmoRead() override;
