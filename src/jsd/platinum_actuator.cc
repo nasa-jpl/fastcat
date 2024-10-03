@@ -334,7 +334,8 @@ fastcat::FaultType fastcat::PlatinumActuator::ProcessProfVel()
 
   jsd_elmo_motion_command_csv_t jsd_cmd;
 
-  double pos_eu, vel;
+  double pos_eu = 0.0;
+  double vel = 0.0;
   int complete = fastcat_trap_update_vel(&trap_, state_->time, &pos_eu, &vel);
 
   jsd_cmd.target_velocity    = EuToCnts(vel);

@@ -594,7 +594,8 @@ fastcat::FaultType fastcat::Actuator::ProcessProfPosTrapImpl()
 
   jsd_elmo_motion_command_csp_t jsd_cmd;
 
-  double pos_eu, vel;
+  double pos_eu = 0.0;
+  double vel = 0.0;
   int    complete = fastcat_trap_update(&trap_, state_->time, &pos_eu, &vel);
 
   jsd_cmd.target_position    = PosEuToCnts(pos_eu);
@@ -838,7 +839,8 @@ fastcat::FaultType fastcat::Actuator::ProcessCalMoveToHardstop()
 
   jsd_elmo_motion_command_csp_t jsd_cmd;
 
-  double pos_eu, vel;
+  double pos_eu = 0.0;
+  double vel = 0.0;
   int    complete = fastcat_trap_update(&trap_, state_->time, &pos_eu, &vel);
   jsd_cmd.target_position    = PosEuToCnts(pos_eu);
   jsd_cmd.position_offset    = 0;
