@@ -101,9 +101,6 @@ class ThreeNodeThermalModel : public DeviceBase
       0, 0, 0, 0};  ///< this is used as a counter for how many cycles node 1
                     ///< has been over the temperature limit
 
-  // tracked variables
-  double last_time_{0.0};
-
   // constants
   // the required number of signals for this device
   static constexpr size_t FC_TNTM_NUM_SIGNALS = 3;
