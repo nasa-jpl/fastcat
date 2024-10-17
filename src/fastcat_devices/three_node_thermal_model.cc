@@ -7,7 +7,6 @@ ThreeNodeThermalModel::ThreeNodeThermalModel()
 {
   state_       = std::make_shared<DeviceState>();
   state_->type = THREE_NODE_THERMAL_MODEL_STATE;
-  last_time_   = jsd_time_get_time_sec();  // init time
 }
 
 bool ThreeNodeThermalModel::ConfigFromYaml(const YAML::Node& node)
@@ -146,9 +145,9 @@ FaultType ThreeNodeThermalModel::Process()
   double thermal_mass_node_1 = motor_on_status_ ? thermal_mass_node_1_on_ : thermal_mass_node_1_off_;
 
   node_temps_[0] += (q_in - q_node_1_to_2) *
-                    ((state_->time - last_time_) / thermal_mass_node_1);
+                    ((state_->monotonic_time - last_monotonic_time_) / thermal_mass_node_1);
   node_temps_[1] += (q_node_1_to_2 - q_node_2_to_3) *
-                    ((state_->time - last_time_) / thermal_mass_node_2_);
+                    ((state_->monotonic_time - last_monotonic_time_) / thermal_mass_node_2_);
   node_temps_[3] =
       (k1_ * node_temps_[0] + k2_ * node_temps_[1] + k3_ * node_temps_[2]) /
       (k1_ + k2_ + k3_);
@@ -169,7 +168,6 @@ FaultType ThreeNodeThermalModel::Process()
   state_->three_node_thermal_model_state.node_2_temp = node_temps_[1];
   state_->three_node_thermal_model_state.node_3_temp = node_temps_[2];
   state_->three_node_thermal_model_state.node_4_temp = node_temps_[3];
-  last_time_ = state_->time;  // update loop time
 
   return NO_FAULT;
 }
