@@ -15,6 +15,7 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | El3602           | Beckhoff      | 2-channel +/-10v Diff. Analog Input       |
 | El2124           | Beckhoff      | 4-channel 5v Digital Output               |
 | El2809           | Beckhoff      | 16-channel 24v Digital Output             |
+| El2798           | Beckhoff      | 8-channel 30v AC/48v DC 2A Solid State Relay Output |
 | El4102           | Beckhoff      | 2-channel 0-10v Analog Output             |
 | Ild1900          | Micro-Epsilon | Distance Laser Sensor                     |
 | AtiFts           | ATI           | Force-Torque Sensor                       |
@@ -423,6 +424,17 @@ The permitted range values are:
 ``` yaml
 - device_class: El2809
   name: el2809_1
+```
+
+## El2798 (8-channel 30v AC/48v DC 2A Solid State Relay Output)
+
+**The El2798 device has no configuration parameters**
+
+#### Example
+
+``` yaml
+- device_class: El2798
+  name: el2798_1
 ```
 
 ## El4102 (2-channel 0-10v Analog Output)
