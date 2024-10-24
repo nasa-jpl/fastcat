@@ -486,6 +486,25 @@ states:
       - name: adc_value_ch8
         type: int16_t
 
+  - name: el5042
+    fields:
+      - name: position_ch1
+        type: int64_t
+      - name: warning_ch1
+        type: int8_t
+      - name: error_ch1
+        type: int8_t
+      - name: ready_ch1
+        type: int8_t
+      - name: position_ch2
+        type: int64_t
+      - name: warning_ch2
+        type: int8_t
+      - name: error_ch2
+        type: int8_t
+      - name: ready_ch2
+        type: int8_t
+
   - name: ild1900
     fields:
     - name: distance_m
