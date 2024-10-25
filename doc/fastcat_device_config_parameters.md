@@ -15,6 +15,7 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | El3602           | Beckhoff      | 2-channel +/-10v Diff. Analog Input       |
 | El2124           | Beckhoff      | 4-channel 5v Digital Output               |
 | El2809           | Beckhoff      | 16-channel 24v Digital Output             |
+| El5042           | Beckhoff      | 2-channel Encoder             |
 | El4102           | Beckhoff      | 2-channel 0-10v Analog Output             |
 | Ild1900          | Micro-Epsilon | Distance Laser Sensor                     |
 | AtiFts           | ATI           | Force-Torque Sensor                       |
@@ -423,6 +424,51 @@ The permitted range values are:
 ``` yaml
 - device_class: El2809
   name: el2809_1
+```
+
+## El5042 (2-channel BiSS-C Encoder Interface)
+
+| Parameter         | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| `invert_feedback_direction`         | Negates the position value (0 for don't invert and 1 for invert) |
+| `disable_status_bits`      | Tell the slave whether or not to send status bits (0 for don't disable and 1 for disable) |
+| `invert_checksum` | Inverts the checksum bits (CRC) received by the encoder (0 for don't inver and 1 for invert) |
+| `checksum_polynomial`   | Polynomial used for calculating checksum. This is a 32 bit polynomial. |
+| `supply_voltage`  | Set the encoder supply voltage, either 50 for 5V or 90 for 9V |
+| `clock_frequency`  | Clock frequency for the BiSS-C protocol (250 kHz to 10 MHz as specified below) |
+| `gray_code`  | Option to either use dual code or gray code for accurate data (0 for dual code and 1 for gray code) |
+| `multiturn_bits`  | Set the number of multiturn bits (how many complete rotations) |
+| `singleturn_bits`  | Set the number of singleturn bits (resolution of a single rotation) |
+| `offset_bits`  | If there are addition null bits at the end of the packet, we shift by offset bits to get data |
+| `ssi_mode`  | Opt for SSI mode over BiSS-C (0 for BiSS-C and 1 for SSI) |
+
+Clock frequency correspondances
+
+* 0: 10 MHz
+* 1: 5 MHz
+* 2: 3.3 MHz
+* 3: 2.5 MHz
+* 4: 2 MHz
+* 9: 1 MHz
+* 17: 500 kHz
+* 19: 250 kHz
+
+#### Example
+
+```yaml
+- device_class: El5042
+  name: el5042_1
+  invert_feedback_direction: [0,  0]
+  disable_status_bits:       [0,  0]
+  invert_checksum:           [1,  1]
+  checksum_polynomial:       [67, 67]
+  supply_voltage:            [50, 50]
+  clock_frequency:           [1,  1]
+  gray_code:                 [0,  0]
+  multiturn_bits:            [0,  0]
+  singleturn_bits:           [19, 19]
+  offset_bits:               [0,  0]
+  ssi_mode:                  [0,  0]
 ```
 
 ## El4102 (2-channel 0-10v Analog Output)
