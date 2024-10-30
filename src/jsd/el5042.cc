@@ -123,8 +123,10 @@ bool fastcat::El5042::ConfigFromYamlCommon(const YAML::Node& node)
     jsd_slave_config_.el5042.supply_voltage[ii] =
         supply_voltage_node[ii].as<uint8_t>();
 
-    jsd_slave_config_.el5042.clock_frequency[ii] =
-        clock_frequency_node[ii].as<uint8_t>();
+    if (!ClockFrequencyFromString(clock_frequency_strings_[ii],
+                           jsd_slave_config_.el5042.clock_frequency[ii])) {
+      return false;
+    }
 
     jsd_slave_config_.el5042.gray_code[ii] =
         gray_code_node[ii].as<uint8_t>();
