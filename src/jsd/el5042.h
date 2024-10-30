@@ -21,6 +21,11 @@ class El5042 : public JsdDeviceBase
  protected:
   bool ConfigFromYamlCommon(const YAML::Node& node);
 
+  bool ClockFrequencyFromString(std::string           clock_frequency_string,
+                         jsd_el5042_clock_t& clock_frequency);
+
+  std::vector<std::string> clock_frequency_strings_;
+
  private:
   jsd_slave_config_t jsd_slave_config_{0};
 };

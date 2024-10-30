@@ -57,9 +57,13 @@ bool fastcat::El5042::ConfigFromYamlCommon(const YAML::Node& node)
     return false;
   }
 
+  // Parse clock frequency array
   YAML::Node clock_frequency_node;
   if (!ParseList(node, "clock_frequency", clock_frequency_node)) {
     return false;
+  }
+  for (auto cf = clock_frequency_node.begin(); cf != clock_frequency_node.end(); ++cf) {
+    clock_frequency_strings_.push_back((*cf).as<std::string>());
   }
 
   YAML::Node gray_code_node;
@@ -156,6 +160,36 @@ bool fastcat::El5042::Read()
   state_->el5042_state.warning_ch2  = jsd_state->warning[1];
   state_->el5042_state.error_ch2    = jsd_state->error[1];
   state_->el5042_state.ready_ch2    = jsd_state->ready[1];
+
+  return true;
+}
+
+bool fastcat::El5042::ClockFrequencyFromString(std::string           clock_frequency_string,
+                                               jsd_el5042_clock_t&   clock_frequency)
+{
+  MSG_DEBUG("Parsing clock frequency string: %s", clock_frequency_string.c_str());
+
+  if (clock_frequency_string.compare("10MHz") == 0) {
+    clock_frequency = JSD_EL5042_10MHz;
+  } else if (clock_frequency_string.compare("5MHz") == 0) {
+    clock_frequency = JSD_EL5042_5MHz;
+  } else if (clock_frequency_string.compare("3_33MHz") == 0) {
+    clock_frequency = JSD_EL5042_3_33MHz;
+  } else if (clock_frequency_string.compare("2_5MHz") == 0) {
+    clock_frequency = JSD_EL5042_2_5MHz;
+  } else if (clock_frequency_string.compare("2MHz") == 0) {
+    clock_frequency = JSD_EL5042_2MHz;
+  } else if (clock_frequency_string.compare("1MHz") == 0) {
+    clock_frequency = JSD_EL5042_1MHz;
+  } else if (clock_frequency_string.compare("500KHz") == 0) {
+    clock_frequency = JSD_EL5042_500KHz;
+  } else if (clock_frequency_string.compare("250KHz") == 0) {
+    clock_frequency = JSD_EL5042_250KHz;
+  } else {
+    ERROR("%s is not a valid clock frequency type for EL5042 devices.",
+          clock_frequency_string.c_str());
+    return false;
+  }
 
   return true;
 }

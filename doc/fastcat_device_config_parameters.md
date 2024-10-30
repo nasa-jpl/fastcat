@@ -444,14 +444,14 @@ The permitted range values are:
 
 Clock frequency correspondances
 
-* 0: 10 MHz
-* 1: 5 MHz
-* 2: 3.3 MHz
-* 3: 2.5 MHz
-* 4: 2 MHz
-* 9: 1 MHz
-* 17: 500 kHz
-* 19: 250 kHz
+* 10MHz: 10 MHz
+* 5MHz: 5 MHz
+* 3_33MHz: 3.3 MHz
+* 2_5MHz: 2.5 MHz
+* 2MHz: 2 MHz
+* 1MHz: 1 MHz
+* 500KHz: 500 kHz
+* 250KHz: 250 kHz
 
 #### Example
 
