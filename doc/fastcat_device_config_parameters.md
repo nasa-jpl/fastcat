@@ -460,17 +460,17 @@ Clock frequency correspondances
 ```yaml
 - device_class: El5042
   name: el5042_1
-  invert_feedback_direction: [0,  0]
-  disable_status_bits:       [0,  0]
-  invert_checksum:           [1,  1]
-  checksum_polynomial:       [67, 67]
-  supply_voltage:            [50, 50]
-  clock_frequency:           [1,  1]
-  gray_code:                 [0,  0]
-  multiturn_bits:            [0,  0]
-  singleturn_bits:           [19, 19]
-  offset_bits:               [0,  0]
-  ssi_mode:                  [0,  0]
+  invert_feedback_direction: [0,       0]
+  disable_status_bits:       [0,       0]
+  invert_checksum:           [1,       1]
+  checksum_polynomial:       [67,     67]
+  supply_voltage:            [50,     50]
+  clock_frequency:           [5MHz, 5MHz]
+  gray_code:                 [0,       0]
+  multiturn_bits:            [0,       0]
+  singleturn_bits:           [19,     19]
+  offset_bits:               [0,       0]
+  ssi_mode:                  [0,       0]
 ```
 
 ## El2828 (8-channel 24v 2A Digital Output)
