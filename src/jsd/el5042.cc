@@ -87,7 +87,7 @@ bool fastcat::El5042::ConfigFromYamlCommon(const YAML::Node& node)
   }
 
   YAML::Node ssi_mode_node;
-  if (!ParseList(node, "ssi_mode_bits", ssi_mode_node)) {
+  if (!ParseList(node, "ssi_mode", ssi_mode_node)) {
     return false;
   }
 
