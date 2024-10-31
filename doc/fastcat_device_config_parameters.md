@@ -17,6 +17,7 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | El2809           | Beckhoff      | 16-channel 24v Digital Output             |
 | El5042           | Beckhoff      | 2-channel Encoder                         |
 | El2828           | Beckhoff      | 8-channel 24v 2A Digital Output           |
+| El2798           | Beckhoff      | 8-channel 30v AC/48v DC 2A Solid State Relay Output |
 | El4102           | Beckhoff      | 2-channel 0-10v Analog Output             |
 | Ild1900          | Micro-Epsilon | Distance Laser Sensor                     |
 | AtiFts           | ATI           | Force-Torque Sensor                       |
@@ -481,6 +482,17 @@ Clock frequency correspondances
 ``` yaml
 - device_class: El2828
   name: el2828_1
+```
+
+## El2798 (8-channel 30v AC/48v DC 2A Solid State Relay Output)
+
+**The El2798 device has no configuration parameters**
+
+#### Example
+
+``` yaml
+- device_class: El2798
+  name: el2798_1
 ```
 
 ## El4102 (2-channel 0-10v Analog Output)
