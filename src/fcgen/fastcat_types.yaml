@@ -831,7 +831,7 @@ commands:
       type: uint8_t
 
   - name: el2828_write_all_channels
-      fields:
+    fields:
     - name: channel_ch1
       type: uint8_t
     - name: channel_ch2
