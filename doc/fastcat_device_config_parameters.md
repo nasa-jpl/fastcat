@@ -15,7 +15,8 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | El3602           | Beckhoff      | 2-channel +/-10v Diff. Analog Input       |
 | El2124           | Beckhoff      | 4-channel 5v Digital Output               |
 | El2809           | Beckhoff      | 16-channel 24v Digital Output             |
-| El5042           | Beckhoff      | 2-channel Encoder             |
+| El5042           | Beckhoff      | 2-channel Encoder                         |
+| El2828           | Beckhoff      | 8-channel 24v 2A Digital Output           |
 | El4102           | Beckhoff      | 2-channel 0-10v Analog Output             |
 | Ild1900          | Micro-Epsilon | Distance Laser Sensor                     |
 | AtiFts           | ATI           | Force-Torque Sensor                       |
@@ -469,6 +470,17 @@ Clock frequency correspondances
   singleturn_bits:           [19, 19]
   offset_bits:               [0,  0]
   ssi_mode:                  [0,  0]
+```
+
+## El2828 (8-channel 24v 2A Digital Output)
+
+**The El2828 device has no configuration parameters**
+
+#### Example
+
+``` yaml
+- device_class: El2828
+  name: el2828_1
 ```
 
 ## El4102 (2-channel 0-10v Analog Output)
