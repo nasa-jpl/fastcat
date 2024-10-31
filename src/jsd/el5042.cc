@@ -108,40 +108,85 @@ bool fastcat::El5042::ConfigFromYamlCommon(const YAML::Node& node)
 
   int ii;
   for (ii = 0; ii < JSD_EL3208_NUM_CHANNELS; ii++) {
-    jsd_slave_config_.el5042.invert_feedback_direction[ii] =
-        invert_feedback_direction_node[ii].as<uint8_t>();
+      try {
+          jsd_slave_config_.el5042.invert_feedback_direction[ii] = static_cast<uint8_t>(invert_feedback_direction_node[ii].as<int>());
+      } catch (const YAML::BadConversion& e) {
+          ERROR("Conversion error in invert_feedback_direction[%d]: %s", ii, e.what());
+          return false;
+      }
 
-    jsd_slave_config_.el5042.disable_status_bits[ii] =
-        disable_status_bits_node[ii].as<uint8_t>();
+      try {
+          jsd_slave_config_.el5042.disable_status_bits[ii] = static_cast<uint8_t>(disable_status_bits_node[ii].as<int>());
+      } catch (const YAML::BadConversion& e) {
+          ERROR("Conversion error in disable_status_bits[%d]: %s", ii, e.what());
+          return false;
+      }
 
-    jsd_slave_config_.el5042.invert_checksum[ii] =
-        invert_checksum_node[ii].as<uint8_t>();
+      try {
+          jsd_slave_config_.el5042.invert_checksum[ii] = static_cast<uint8_t>(invert_checksum_node[ii].as<int>());
+      } catch (const YAML::BadConversion& e) {
+          ERROR("Conversion error in invert_checksum[%d]: %s", ii, e.what());
+          return false;
+      }
 
-    jsd_slave_config_.el5042.checksum_polynomial[ii] =
-        checksum_polynomial_node[ii].as<uint32_t>();
+      try {
+          jsd_slave_config_.el5042.checksum_polynomial[ii] = checksum_polynomial_node[ii].as<uint32_t>();
+      } catch (const YAML::BadConversion& e) {
+          ERROR("Conversion error in checksum_polynomial[%d]: %s", ii, e.what());
+          return false;
+      }
 
-    jsd_slave_config_.el5042.supply_voltage[ii] =
-        supply_voltage_node[ii].as<uint8_t>();
+      try {
+          jsd_slave_config_.el5042.supply_voltage[ii] = static_cast<uint8_t>(supply_voltage_node[ii].as<int>());
+      } catch (const YAML::BadConversion& e) {
+          ERROR("Conversion error in supply_voltage[%d]: %s", ii, e.what());
+          return false;
+      }
 
-    if (!ClockFrequencyFromString(clock_frequency_strings_[ii],
-                           jsd_slave_config_.el5042.clock_frequency[ii])) {
-      return false;
-    }
+      try {
+          if (!ClockFrequencyFromString(clock_frequency_strings_[ii], jsd_slave_config_.el5042.clock_frequency[ii])) {
+              ERROR("Invalid clock frequency value at index %d: %s", ii, clock_frequency_strings_[ii].c_str());
+              return false;
+          }
+      } catch (const std::exception& e) {
+          ERROR("Exception during clock frequency parsing at index %d: %s", ii, e.what());
+          return false;
+      }
 
-    jsd_slave_config_.el5042.gray_code[ii] =
-        gray_code_node[ii].as<uint8_t>();
+      try {
+          jsd_slave_config_.el5042.gray_code[ii] = static_cast<uint8_t>(gray_code_node[ii].as<int>());
+      } catch (const YAML::BadConversion& e) {
+          ERROR("Conversion error in gray_code[%d]: %s", ii, e.what());
+          return false;
+      }
 
-    jsd_slave_config_.el5042.multiturn_bits[ii] =
-        multiturn_bits_node[ii].as<uint8_t>();
+      try {
+          jsd_slave_config_.el5042.multiturn_bits[ii] = static_cast<uint8_t>(multiturn_bits_node[ii].as<int>());
+      } catch (const YAML::BadConversion& e) {
+          ERROR("Conversion error in multiturn_bits[%d]: %s", ii, e.what());
+          return false;
+      }
 
-    jsd_slave_config_.el5042.singleturn_bits[ii] =
-        singleturn_bits_node[ii].as<uint8_t>();
+      try {
+          jsd_slave_config_.el5042.singleturn_bits[ii] = static_cast<uint8_t>(singleturn_bits_node[ii].as<int>());
+      } catch (const YAML::BadConversion& e) {
+          ERROR("Conversion error in singleturn_bits[%d]: %s", ii, e.what());
+          return false;
+      }
 
-    jsd_slave_config_.el5042.offset_bits[ii] =
-        offset_bits_node[ii].as<uint8_t>();
+      try {
+          jsd_slave_config_.el5042.offset_bits[ii] = static_cast<uint8_t>(offset_bits_node[ii].as<int>());
+      } catch (const YAML::BadConversion& e) {
+          ERROR("Conversion error in offset_bits[%d]: %s", ii, e.what());
+          return false;
+      }
 
-    jsd_slave_config_.el5042.ssi_mode[ii] =
-        ssi_mode_node[ii].as<uint8_t>();
+      try {
+          jsd_slave_config_.el5042.ssi_mode[ii] = static_cast<uint8_t>(ssi_mode_node[ii].as<int>());
+      } catch (const YAML::BadConversion& e) {
+          ERROR("Conversion error in ssi_mode[%d]: %s", ii, e.what());
+          return false;
+      }
   }
 
   return true;
