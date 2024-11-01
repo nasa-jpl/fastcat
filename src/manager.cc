@@ -37,6 +37,10 @@
 #include "fastcat/jsd/el2124_offline.h"
 #include "fastcat/jsd/el2809.h"
 #include "fastcat/jsd/el2809_offline.h"
+#include "fastcat/jsd/el2828.h"
+#include "fastcat/jsd/el2828_offline.h"
+#include "fastcat/jsd/el2798.h"
+#include "fastcat/jsd/el2798_offline.h"
 #include "fastcat/jsd/el3104.h"
 #include "fastcat/jsd/el3104_offline.h"
 #include "fastcat/jsd/el3162.h"
@@ -51,6 +55,8 @@
 #include "fastcat/jsd/el3602_offline.h"
 #include "fastcat/jsd/el4102.h"
 #include "fastcat/jsd/el4102_offline.h"
+#include "fastcat/jsd/el5042.h"
+#include "fastcat/jsd/el5042_offline.h"
 #include "fastcat/jsd/gold_actuator.h"
 #include "fastcat/jsd/gold_actuator_offline.h"
 #include "fastcat/jsd/ild1900.h"
@@ -462,6 +468,12 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
     } else if (0 == device_class.compare("El2809")) {
       device = std::make_shared<El2809>();
 
+    } else if (0 == device_class.compare("El2828")) {
+      device = std::make_shared<El2828>();
+
+    } else if (0 == device_class.compare("El2798")) {
+      device = std::make_shared<El2798>();
+
     } else if (0 == device_class.compare("El4102")) {
       device = std::make_shared<El4102>();
 
@@ -479,6 +491,9 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
 
     } else if (0 == device_class.compare("El3318")) {
       device = std::make_shared<El3318>();
+      
+    } else if (0 == device_class.compare("El5042")) {
+      device = std::make_shared<El5042>();
 
     } else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900>();
@@ -539,7 +554,7 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
     jsd_device_list_.push_back(jsdDevice);
   }
 
-  return jsd_init(jsd, ifname.c_str(), enable_ar);
+  return jsd_init(jsd, ifname.c_str(), enable_ar, 1e6 / target_loop_rate_hz_);
 }
 
 bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
@@ -692,6 +707,12 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
     } else if (0 == device_class.compare("El2809")) {
       device = std::make_shared<El2809Offline>();
 
+    } else if (0 == device_class.compare("El2828")) {
+      device = std::make_shared<El2828Offline>();
+      
+    } else if (0 == device_class.compare("El2798")) {
+      device = std::make_shared<El2798Offline>();
+
     } else if (0 == device_class.compare("El3208")) {
       device = std::make_shared<El3208Offline>();
 
@@ -715,8 +736,11 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
 
     } else if (0 == device_class.compare("El1008")) {
       device = std::make_shared<El1008Offline>();
+    
+    } else if (0 == device_class.compare("El5042")) {
+      device = std::make_shared<El5042Offline>();
 
-    }else if (0 == device_class.compare("Ild1900")) {
+    } else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900Offline>();
 
     } else if (0 == device_class.compare("GoldActuator")) {

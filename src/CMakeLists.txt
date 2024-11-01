@@ -76,12 +76,15 @@ add_library(fastcat STATIC
     jsd/el3602.cc
     jsd/el2124.cc
     jsd/el2809.cc
+    jsd/el2828.cc
+    jsd/el2798.cc
     jsd/el4102.cc
     jsd/el3162.cc
     jsd/el1008.cc
     jsd/el3104.cc
     jsd/el3202.cc
     jsd/el3318.cc
+    jsd/el5042.cc
     jsd/gold_actuator.cc
     jsd/ild1900.cc
     jsd/jed0101.cc
@@ -92,6 +95,8 @@ add_library(fastcat STATIC
     jsd/egd_offline.cc
     jsd/el2124_offline.cc
     jsd/el2809_offline.cc
+    jsd/el2828_offline.cc
+    jsd/el2798_offline.cc
     jsd/el4102_offline.cc
     jsd/el3208_offline.cc
     jsd/el3602_offline.cc
@@ -100,6 +105,7 @@ add_library(fastcat STATIC
     jsd/el3104_offline.cc
     jsd/el3202_offline.cc
     jsd/el3318_offline.cc
+    jsd/el5042_offline.cc
     jsd/ild1900_offline.cc
     jsd/gold_actuator_offline.cc
     jsd/jed0101_offline.cc
