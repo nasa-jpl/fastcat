@@ -127,6 +127,7 @@ class Actuator : public JsdDeviceBase
     double      high_pos_cmd_limit_eu         = 0.0;
     double      high_pos_cal_limit_eu         = 0.0;
     double      holding_duration_sec          = 0.0;
+    double      prof_disengaging_timeout_sec  = 1.0;
     double      elmo_brake_engage_msec        = 0.0;
     double      elmo_brake_disengage_msec     = 0.0;
     int64_t     elmo_crc                      = 0;
@@ -174,14 +175,6 @@ class Actuator : public JsdDeviceBase
   ActuatorFastcatFault fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
 
   DeviceCmd last_cmd_ = {};
-
-  // Timeout in seconds after which a fault should occur if a transition out of
-  // PROF_*_DISENGAGING does not take place. Default value corresponds to the
-  // maximum value the drive's brake disengage parameter (BP[2]) can take.
-  // prof_disengaging_timeout_ can be temporarily increased to allow for an
-  // initial commutation search in actuators that do not have hall sensors, for
-  // example.
-  double prof_disengaging_timeout_ = 1.0;
 
  private:
 

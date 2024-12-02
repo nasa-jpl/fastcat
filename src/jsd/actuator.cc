@@ -127,6 +127,11 @@ bool fastcat::Actuator::ConfigFromYaml(const YAML::Node& node)
     return false;
   }
 
+  if (!ParseValCheckRange(node, "prof_disengaging_timeout_sec",
+                          params_.prof_disengaging_timeout_sec, 0, 5.0)) {
+    return false;
+  }
+
   if (!ParseVal(node, "elmo_brake_engage_msec",
                 params_.elmo_brake_engage_msec)) {
     return false;

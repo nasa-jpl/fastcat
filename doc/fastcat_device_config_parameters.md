@@ -197,6 +197,7 @@ Engineering Units (EU) are radians for revolute actuators and meters for linear 
 | `high_pos_cal_limit_eu`         | Upper Position Limit typically corresponding to a hardstop. Used for Calibration Command |
 | `high_pos_cmd_limit_eu`         | Highest allowable command position value                     |
 | `holding_duration_sec`          | Duration to hold position after reset or after a motion command before re-engaging brakes |
+| `prof_disengaging_timeout`          | Amount of time allowed for waiting for an acknowledgement after sending a profile command |
 | `elmo_brake_engage_msec`        | How long it takes to re-engage the brakes                    |
 | `elmo_brake_disengage_msec`     | How long it takes to disengaged the brakes                   |
 | `elmo_crc`                      | CRC of the flashed Elmo parameter set                        |
