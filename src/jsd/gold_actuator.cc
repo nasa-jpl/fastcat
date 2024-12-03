@@ -347,9 +347,9 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfPosDisengaging()
 
 
     if ((state_->monotonic_time - last_transition_time_) >
-        (params_.prof_disengaging_timeout_ + 2 * loop_period_)) {
+        (params_.prof_disengaging_timeout_sec + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage %lf sec timeout expired, faulting",
-            name_.c_str(), params_.prof_disengaging_timeout_);
+            name_.c_str(), params_.prof_disengaging_timeout_sec);
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
     }
@@ -390,9 +390,9 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfVelDisengaging()
 
 
     if ((state_->monotonic_time - last_transition_time_) >
-        (params_.prof_disengaging_timeout_ + 2 * loop_period_)) {
+        (params_.prof_disengaging_timeout_sec + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage %lf sec timeout expired, faulting",
-            name_.c_str(), params_.prof_disengaging_timeout_);
+            name_.c_str(), params_.prof_disengaging_timeout_sec);
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
     }
@@ -430,9 +430,9 @@ fastcat::FaultType fastcat::GoldActuator::ProcessProfTorqueDisengaging()
     ElmoCST(jsd_cmd);
 
     if ((state_->monotonic_time - last_transition_time_) >
-        (params_.prof_disengaging_timeout_ + 2 * loop_period_)) {
+        (params_.prof_disengaging_timeout_sec + 2 * loop_period_)) {
       ERROR("Act %s: Brake Disengage %lf sec timeout expired, faulting",
-            name_.c_str(), params_.prof_disengaging_timeout_);
+            name_.c_str(), params_.prof_disengaging_timeout_sec);
 
       fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_BRAKE_DISENGAGE_TIMEOUT_EXCEEDED;
       return ALL_DEVICE_FAULT;
