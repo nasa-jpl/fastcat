@@ -709,6 +709,9 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
     } else if (0 == device_class.compare("El3202")) {
       device = std::make_shared<El3202Offline>();
 
+    } else if (0 == device_class.compare("El3314")) {
+      device = std::make_shared<El3314Offline>();
+
     } else if (0 == device_class.compare("El3318")) {
       device = std::make_shared<El3318Offline>();
 
