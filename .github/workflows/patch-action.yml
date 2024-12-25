@@ -13,7 +13,7 @@ jobs:
           ssh-key: ${{ secrets.GHA_DEPLOY_KEY }}
       - name: Patch version information
         id: patching
-        uses: nasa-jpl/patch-version@v3
+        uses: nasa-jpl/patch-version@v4
         with:
           commit_msg: "${{ github.event.head_commit.message }}"
           commit_sha: "${{ github.event.after }}"
