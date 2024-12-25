@@ -1,0 +1,28 @@
+name: build
+
+on:
+  push:
+    paths:
+      - "src/**"
+      - "test/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: egor-tensin/setup-clang@v1
+        with:
+          version: latest
+          platform: x64
+      - uses: ConorMacBride/install-package@v1
+        with:
+          apt: libreadline-dev
+          version: latest
+          platform: x64
+      - run: |
+          mkdir -p build
+          cd build
+          cmake  ..
+          make
