@@ -18,7 +18,7 @@ jobs:
           platform: x64
       - uses: ConorMacBride/install-package@v1
         with:
-          apt: libreadline-dev
+          apt: libreadline-dev libyaml-cpp-dev
           version: latest
           platform: x64
       - run: |
