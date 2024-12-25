@@ -1,0 +1,30 @@
+name: patch-version
+on:
+  push:
+    branches:
+      - master
+jobs:
+  patch-and-commit:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4 # by default, only fetches one commit
+        with:
+          ssh-key: ${{ secrets.GHA_DEPLOY_KEY }}
+      - name: Patch version information
+        id: patching
+        uses: nasa-jpl/patch-version@v3
+        with:
+          commit_msg: "${{ github.event.head_commit.message }}"
+          commit_sha: "${{ github.event.after }}"
+      - name: Workaround chown to deal with .git/objects owned by root instead of runner
+        # Allegedly, this only needs to only be done for small, new repos
+        run: |
+          sudo chown runner:docker -R .git
+      - name: Add and commit patched files
+        uses: Endbug/add-and-commit@v9
+        with:
+          add: "CMakeLists.txt"
+          default_author: github_actions
+          tag: "${{ steps.patching.outputs.new_tag }}"
+          message: "[GitHub Actions] Patched version, bumped ${{ steps.patching.outputs.bumped }} number. [skip actions]"
