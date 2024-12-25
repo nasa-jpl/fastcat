@@ -17,7 +17,7 @@ jobs:
           version: latest
           platform: x64
       - run: |
-          pip install cogapp
+          pip3 install cogapp
       - uses: ConorMacBride/install-package@v1
         with:
           apt: libreadline-dev libyaml-cpp-dev
