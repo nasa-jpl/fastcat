@@ -16,13 +16,13 @@ jobs:
         with:
           version: latest
           platform: x64
-      - run: |
-          sudo pip3 install cogapp
       - uses: ConorMacBride/install-package@v1
         with:
-          apt: libreadline-dev libyaml-cpp-dev
+          apt: libreadline-dev libyaml-cpp-dev python3-pip python3-vcstool python3-pygetdata python3-pint
           version: latest
           platform: x64
+      - run: |
+          sudo pip3 install cogapp
       - run: |
           mkdir -p build
           cd build
