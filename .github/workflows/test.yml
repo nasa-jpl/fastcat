@@ -12,12 +12,16 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: egor-tensin/setup-clang@v1
+      - uses: Bacondish2023/setup-googletest@v1
+        with:
+          tag: release-1.11.0
       - uses: ConorMacBride/install-package@v1
         with:
-          apt: valgrind libreadline-dev
+          apt: gcc-11 g++-11 libreadline-dev libyaml-cpp-dev valgrind
           version: latest
           platform: x64
+      - run: |
+          pip install cogapp pyyaml
       - run: |
           mkdir -p build
           cd build
@@ -25,3 +29,6 @@ jobs:
           make
           make test
           env CTEST_OUTPUT_ON_FAILURE=1 make -d memcheck
+        env:
+          CC:   gcc-11
+          CXX:  g++-11
