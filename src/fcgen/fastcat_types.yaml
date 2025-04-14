@@ -349,6 +349,25 @@ states:
     - name: level_ch16
       type: uint8_t
 
+  - name: el2798
+    fields:
+    - name: level_ch1
+      type: uint8_t
+    - name: level_ch2
+      type: uint8_t
+    - name: level_ch3
+      type: uint8_t
+    - name: level_ch4
+      type: uint8_t
+    - name: level_ch5
+      type: uint8_t
+    - name: level_ch6
+      type: uint8_t
+    - name: level_ch7
+      type: uint8_t
+    - name: level_ch8
+      type: uint8_t
+
   - name: el4102
     fields:
     - name: voltage_output_ch1
@@ -757,6 +776,32 @@ commands:
     - name: channel_ch15
       type: uint8_t
     - name: channel_ch16
+      type: uint8_t
+
+  - name: el2798_write_channel
+    fields:
+    - name: channel
+      type: uint8_t
+    - name: level
+      type: uint8_t
+
+  - name: el2798_write_all_channels
+    fields:
+    - name: channel_ch1
+      type: uint8_t
+    - name: channel_ch2
+      type: uint8_t
+    - name: channel_ch3
+      type: uint8_t
+    - name: channel_ch4
+      type: uint8_t
+    - name: channel_ch5
+      type: uint8_t
+    - name: channel_ch6
+      type: uint8_t
+    - name: channel_ch7
+      type: uint8_t
+    - name: channel_ch8
       type: uint8_t
 
   - name: el4102_write_channel
