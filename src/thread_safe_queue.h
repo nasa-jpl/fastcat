@@ -36,6 +36,17 @@ public:
     std::lock_guard<std::mutex> lock(m);
 		return q.empty();
   }
+
+  bool try_pop(T& item)
+  {
+    std::lock_guard<std::mutex> lock(m);
+    if (q.empty()) {
+      return false;
+    }
+    item = q.front();
+    q.pop();
+    return true;
+  }
   
 
 private:
