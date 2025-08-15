@@ -778,10 +778,8 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
 
 bool fastcat::Manager::WriteCommands()
 {
-  while (!cmd_queue_->empty()) {
-    DeviceCmd cmd = cmd_queue_->front();
-    cmd_queue_->pop();
-
+  DeviceCmd cmd;
+  while (cmd_queue_->try_pop(cmd)) {
     auto find_pair = device_map_.find(cmd.name);
 
     if (find_pair == device_map_.end()) {
