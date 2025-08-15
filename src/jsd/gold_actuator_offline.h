@@ -24,6 +24,8 @@ class GoldActuatorOffline : public GoldActuator
   void ElmoRead() override;
   void ElmoClearErrors() override;
   void ElmoSetPeakCurrent(double current) override;
+  void ElmoSetDigitalOutput(uint8_t digital_output_index,
+                            uint8_t output_level) override;
   void ElmoSetUnitMode(int32_t mode, uint16_t app_id) override;
   void ElmoCSP(const jsd_elmo_motion_command_csp_t& jsd_csp_cmd) override;
   void ElmoCSV(const jsd_elmo_motion_command_csv_t& jsd_csv_cmd) override;

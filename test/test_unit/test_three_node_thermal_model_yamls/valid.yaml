@@ -17,4 +17,6 @@ signals:
 - observed_device_name: FIXED_VALUE
   fixed_value:          20 
 - observed_device_name: FIXED_VALUE
+  fixed_value:          1.0
+- observed_device_name: FIXED_VALUE
   fixed_value:          1.0 
