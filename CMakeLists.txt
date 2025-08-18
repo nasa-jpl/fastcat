@@ -41,7 +41,7 @@ if(ENABLE_CPPCHECK)
   endif()
 endif()
 
-# @TODO(kwehage,abrinkma) Clean up missing-field-initializers warnings
+# @TODO(kwehage) Clean up missing-field-initializers warnings
 add_definitions(
     -Werror=all
     -Wall
@@ -74,7 +74,7 @@ find_package(YamlCpp REQUIRED 0.6.3)
 include(FetchContent)
 FetchContent_Declare(jsd
     GIT_REPOSITORY https://github.com/nasa-jpl/jsd.git
-    GIT_TAG v3.1.0
+    GIT_TAG v3.1.4
     )
 FetchContent_MakeAvailable(jsd)
 
