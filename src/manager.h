@@ -92,7 +92,8 @@ class Manager
   /** @brief Returns list of device state pointers
    *
    *  Provided for potential optimization. GetDeviceStates() generally performs
-   * better.
+   *  better. This function is not intended to be called in a realtime process loop
+   *  because it dynamically allocates memory to hold a vector of device state pointers.
    *  @return device states
    */
   std::vector<std::shared_ptr<const DeviceState>> GetDeviceStatePointers();
