@@ -1208,6 +1208,11 @@ void fastcat::Manager::SaveActuatorPosFile()
     WARNING("Could not move: %s, file may not exist", pos_file.c_str());
   }
 
+  if (actuator_pos_map_.empty()) {
+    WARNING("Actuator position map is empty, skipping save to: %s", pos_file.c_str());
+    return;
+  }
+
   YAML::Node file_node;
   for (auto pos_pair = actuator_pos_map_.begin();
        pos_pair != actuator_pos_map_.end(); ++pos_pair) {
