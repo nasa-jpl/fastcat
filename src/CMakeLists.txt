@@ -1,9 +1,11 @@
 ####### Fastcat COG Autocoding #######
+find_program(COG NAMES cog cogapp)
+
 add_custom_command(
     OUTPUT
     ${CMAKE_BINARY_DIR}/include/fastcat/types.h
     COMMAND
-    cog -d -D cog_yaml_file=fcgen/fastcat_types.yaml
+    ${COG} -d -D cog_yaml_file=fcgen/fastcat_types.yaml
     -o ${CMAKE_BINARY_DIR}/include/fastcat/types.h
     ${CMAKE_CURRENT_LIST_DIR}/fcgen/types.h.cog
     DEPENDS
@@ -20,7 +22,7 @@ add_custom_command(
     OUTPUT
     ${CMAKE_BINARY_DIR}/fastcat/autogen/signal_handling.cc
     COMMAND
-    cog -d -D cog_yaml_file=fcgen/fastcat_types.yaml
+    ${COG} -d -D cog_yaml_file=fcgen/fastcat_types.yaml
     -o ${CMAKE_BINARY_DIR}/fastcat/autogen/signal_handling.cc
     ${CMAKE_CURRENT_LIST_DIR}/fcgen/signal_handling.cc.cog
     DEPENDS
@@ -37,7 +39,7 @@ add_custom_command(
     OUTPUT
     ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
     COMMAND
-    cog -d -D cog_yaml_file=fcgen/fastcat_types.yaml
+    ${COG} -d -D cog_yaml_file=fcgen/fastcat_types.yaml
     -o ${CMAKE_BINARY_DIR}/fastcat/autogen/fastcat_devices/commander.cc
     ${CMAKE_CURRENT_LIST_DIR}/fcgen/commander.cc.cog
     DEPENDS
@@ -82,6 +84,7 @@ add_library(fastcat STATIC
     jsd/el1008.cc
     jsd/el3104.cc
     jsd/el3202.cc
+    jsd/el3314.cc
     jsd/el3318.cc
     jsd/gold_actuator.cc
     jsd/ild1900.cc
@@ -101,6 +104,7 @@ add_library(fastcat STATIC
     jsd/el1008_offline.cc
     jsd/el3104_offline.cc
     jsd/el3202_offline.cc
+    jsd/el3314_offline.cc
     jsd/el3318_offline.cc
     jsd/ild1900_offline.cc
     jsd/gold_actuator_offline.cc

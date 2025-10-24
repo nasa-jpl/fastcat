@@ -47,6 +47,8 @@
 #include "fastcat/jsd/el3202_offline.h"
 #include "fastcat/jsd/el3208.h"
 #include "fastcat/jsd/el3208_offline.h"
+#include "fastcat/jsd/el3314.h"
+#include "fastcat/jsd/el3314_offline.h"
 #include "fastcat/jsd/el3318.h"
 #include "fastcat/jsd/el3318_offline.h"
 #include "fastcat/jsd/el3602.h"
@@ -227,8 +229,8 @@ bool fastcat::Manager::Process(double external_time)
   std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     auto ifname = it->first;
-    auto jsd = it->second;
-    jsd_read(jsd,  1e6 / target_loop_rate_hz_);
+    auto jsd    = it->second;
+    jsd_read(jsd, 1e6 / target_loop_rate_hz_);
     if (jsd->wkc != jsd->expected_wkc && !IsFaulted()) {
       ERROR("Bad working counter experienced on jsd bus %s", ifname.c_str());
       jsd_inspect_context(jsd);
@@ -256,7 +258,7 @@ bool fastcat::Manager::Process(double external_time)
 
   for (auto it = jsd_device_list_.begin(); it != jsd_device_list_.end(); ++it) {
     (*it)->SetTime(read_time, monotonic_time);
-    
+
     if (!(*it)->Read()) {
       WARNING("Bad Process on %s", (*it)->GetName().c_str());
     }
@@ -476,11 +478,14 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
     } else if (0 == device_class.compare("El1008")) {
       device = std::make_shared<El1008>();
 
-    }else if (0 == device_class.compare("El3104")) {
+    } else if (0 == device_class.compare("El3104")) {
       device = std::make_shared<El3104>();
 
     } else if (0 == device_class.compare("El3202")) {
       device = std::make_shared<El3202>();
+
+    } else if (0 == device_class.compare("El3314")) {
+      device = std::make_shared<El3314>();
 
     } else if (0 == device_class.compare("El3318")) {
       device = std::make_shared<El3318>();
@@ -544,7 +549,7 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
     jsd_device_list_.push_back(jsdDevice);
   }
 
-  return jsd_init(jsd, ifname.c_str(), enable_ar);
+  return jsd_init(jsd, ifname.c_str(), enable_ar, 1.0e6 / target_loop_rate_hz_);
 }
 
 bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,
@@ -712,6 +717,9 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
     } else if (0 == device_class.compare("El3202")) {
       device = std::make_shared<El3202Offline>();
 
+    } else if (0 == device_class.compare("El3314")) {
+      device = std::make_shared<El3314Offline>();
+
     } else if (0 == device_class.compare("El3318")) {
       device = std::make_shared<El3318Offline>();
 
@@ -724,7 +732,7 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
     } else if (0 == device_class.compare("El1008")) {
       device = std::make_shared<El1008Offline>();
 
-    }else if (0 == device_class.compare("Ild1900")) {
+    } else if (0 == device_class.compare("Ild1900")) {
       device = std::make_shared<Ild1900Offline>();
 
     } else if (0 == device_class.compare("GoldActuator")) {
@@ -786,10 +794,8 @@ bool fastcat::Manager::ConfigOfflineBusFromYaml(const YAML::Node& node,
 
 bool fastcat::Manager::WriteCommands()
 {
-  while (!cmd_queue_->empty()) {
-    DeviceCmd cmd = cmd_queue_->front();
-    cmd_queue_->pop();
-
+  DeviceCmd cmd;
+  while (cmd_queue_->try_pop(cmd)) {
     auto find_pair = device_map_.find(cmd.name);
 
     if (find_pair == device_map_.end()) {
@@ -1236,61 +1242,62 @@ bool fastcat::Manager::CheckDeviceNameIsUnique(std::string name)
   return true;
 }
 
-void fastcat::Manager::SetExplicitInterpolationAlgorithmCubic() {
+void fastcat::Manager::SetExplicitInterpolationAlgorithmCubic()
+{
   std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
       auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
       actuator->SetExplicitInterpolationAlgorithm(
-          ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_CUBIC
-      );
+          ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_CUBIC);
     }
   }
 }
 
-void fastcat::Manager::SetExplicitInterpolationAlgorithmLinear() {
+void fastcat::Manager::SetExplicitInterpolationAlgorithmLinear()
+{
   std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
       auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
       actuator->SetExplicitInterpolationAlgorithm(
-          ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_LINEAR
-      );
+          ACTUATOR_EXPLICIT_INTERPOLATION_ALGORITHM_LINEAR);
     }
   }
 }
 
-void fastcat::Manager::SetExplicitInterpolationTimestampSourceCspMessage() {
+void fastcat::Manager::SetExplicitInterpolationTimestampSourceCspMessage()
+{
   std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
       auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
       actuator->SetExplicitInterpolationTimestampSource(
-          ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_CSP_MESSAGE
-      );
+          ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_CSP_MESSAGE);
     }
   }
 }
 
-void fastcat::Manager::SetExplicitInterpolationTimestampSourceClock() {
+void fastcat::Manager::SetExplicitInterpolationTimestampSourceClock()
+{
   std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
       auto actuator = std::dynamic_pointer_cast<fastcat::Actuator>(device);
       actuator->SetExplicitInterpolationTimestampSource(
-          ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_FASTCAT_CLOCK
-      );
+          ACTUATOR_EXPLICIT_INTERPOLATION_TIMESTAMP_FASTCAT_CLOCK);
     }
   }
 }
 
-bool fastcat::Manager::SetExplicitInterpolationCyclesDelay(size_t delay) {
-  if(delay > 10) {
-    ERROR("Cannot set cycles delay > 10 for explicit interpolation");
+bool fastcat::Manager::SetExplicitInterpolationCyclesDelay(size_t delay)
+{
+  if (delay > 50) {
+    ERROR("Cannot set cycles delay > 50 for explicit interpolation");
     return false;
   }
   std::lock_guard<std::mutex> lock(parameter_mutex_);
@@ -1304,7 +1311,8 @@ bool fastcat::Manager::SetExplicitInterpolationCyclesDelay(size_t delay) {
   return true;
 }
 
-bool fastcat::Manager::SetInterpolationCyclesStale(size_t cycles) {
+bool fastcat::Manager::SetInterpolationCyclesStale(size_t cycles)
+{
   std::lock_guard<std::mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
@@ -1315,4 +1323,3 @@ bool fastcat::Manager::SetInterpolationCyclesStale(size_t cycles) {
   }
   return true;
 }
-
