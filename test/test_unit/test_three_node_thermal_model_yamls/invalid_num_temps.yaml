@@ -18,3 +18,5 @@ signals:
   request_signal_name:  output
 - observed_device_name: egd_1
   request_signal_name:  actual_current
+- observed_device_name: egd_1
+  request_signal_name:  motor_on

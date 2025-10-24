@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.11)
 project(fastcat
     DESCRIPTION "C++ EtherCAT Device Command & Control Library"
-    VERSION 0.13.0
+    VERSION 0.13.10
     LANGUAGES C CXX
     )
 
@@ -41,7 +41,7 @@ if(ENABLE_CPPCHECK)
   endif()
 endif()
 
-# @TODO(kwehage,abrinkma) Clean up missing-field-initializers warnings
+# @TODO(kwehage) Clean up missing-field-initializers warnings
 add_definitions(
     -Werror=all
     -Wall
@@ -74,7 +74,7 @@ find_package(YamlCpp REQUIRED 0.6.3)
 include(FetchContent)
 FetchContent_Declare(jsd
     GIT_REPOSITORY https://github.com/nasa-jpl/jsd.git
-    GIT_TAG v3.0.1
+    GIT_TAG v3.1.4
     )
 FetchContent_MakeAvailable(jsd)
 

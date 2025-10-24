@@ -103,6 +103,12 @@ void fastcat::GoldActuatorOffline::ElmoSetPeakCurrent(double /* current */)
   // no-op
 }
 
+void fastcat::GoldActuatorOffline::ElmoSetDigitalOutput(
+    uint8_t /* digital_output_index */, uint8_t /* output_level */)
+{
+  // no-op
+}
+
 void fastcat::GoldActuatorOffline::ElmoSetUnitMode(int32_t  mode,
                                                    uint16_t app_id)
 {
@@ -163,7 +169,8 @@ void fastcat::GoldActuatorOffline::ElmoCSV(
   jsd_egd_state_.actual_current =
       jsd_egd_state_.cmd_current + jsd_egd_state_.cmd_ff_current;
   jsd_egd_state_.actual_position +=
-      jsd_egd_state_.actual_velocity * (state_->monotonic_time - last_monotonic_time_);  // integrated
+      jsd_egd_state_.actual_velocity *
+      (state_->monotonic_time - last_monotonic_time_);  // integrated
 }
 
 void fastcat::GoldActuatorOffline::ElmoCST(
@@ -187,5 +194,6 @@ void fastcat::GoldActuatorOffline::ElmoCST(
       jsd_egd_state_.actual_current / params_.continuous_current_limit_amps;
   jsd_egd_state_.actual_velocity = pct * params_.max_speed_eu_per_sec;
   jsd_egd_state_.actual_position +=
-      jsd_egd_state_.actual_velocity * (state_->monotonic_time - last_monotonic_time_);  // integrated
+      jsd_egd_state_.actual_velocity *
+      (state_->monotonic_time - last_monotonic_time_);  // integrated
 }
