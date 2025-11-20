@@ -107,7 +107,7 @@ fastcat::FaultType fastcat::AtiFts::Process()
 
   if (!device_fault_active_) {
     if (ati_error_) {
-      if (ati_status_code_ == (3<<30)) { 
+      if (ati_status_code_ == static_cast<unsigned int>(3<<30)) { 
         WARNING("Strain gage saturation");
         return NO_FAULT; // Ignore strain gage staturation error
       }  
