@@ -1026,10 +1026,25 @@ bool fastcat::Manager::LoadActuatorPosFile()
       break;
     }
   }
-
   if (!actuators_in_topo) {
     MSG("No actuators found in topology, bypassing saved positions file "
         "functions");
+    return true;
+  }
+ 
+  bool all_absolute_actuators_in_topo = true;
+  for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
+       ++device) {
+    std::shared_ptr<Actuator> actuator = 
+      std::dynamic_pointer_cast<Actuator>(*device);
+    if (!actuator->HasAbsoluteEncoder()) {
+      all_absolute_actuators_in_topo = false;
+      break;
+    }
+  }
+  if (all_absolute_actuators_in_topo) {
+    MSG("Topology,contains only actuators with absolute encoders; bypassing processing "
+        "saved positions file");
     return true;
   }
 
@@ -1124,15 +1139,13 @@ bool fastcat::Manager::ValidateActuatorPosFile()
     }
 
     actuator = std::dynamic_pointer_cast<Actuator>(*device);
-
-    auto find_pos_data = actuator_pos_map_.find(dev_name);
-
     if (actuator->HasAbsoluteEncoder()) {
       MSG("Actuator %s has absolute encoder so does not need saved position",
           dev_name.c_str());
       continue;
     }
 
+    auto find_pos_data = actuator_pos_map_.find(dev_name);
     if (find_pos_data == actuator_pos_map_.end()) {
       if (!actuator_fault_on_missing_pos_file_) {
         WARNING(
