@@ -1035,11 +1035,14 @@ bool fastcat::Manager::LoadActuatorPosFile()
   bool all_absolute_actuators_in_topo = true;
   for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
        ++device) {
-    std::shared_ptr<Actuator> actuator = 
-      std::dynamic_pointer_cast<Actuator>(*device);
-    if (!actuator->HasAbsoluteEncoder()) {
-      all_absolute_actuators_in_topo = false;
-      break;
+    if ((*device)->GetState()->type == GOLD_ACTUATOR_STATE ||
+        (*device)->GetState()->type == PLATINUM_ACTUATOR_STATE) {
+      std::shared_ptr<Actuator> actuator = 
+        std::dynamic_pointer_cast<Actuator>(*device);
+      if (!actuator->HasAbsoluteEncoder()) {
+        all_absolute_actuators_in_topo = false;
+        break;
+      }
     }
   }
   if (all_absolute_actuators_in_topo) {
