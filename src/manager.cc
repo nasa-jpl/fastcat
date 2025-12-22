@@ -1046,7 +1046,7 @@ bool fastcat::Manager::LoadActuatorPosFile()
     }
   }
   if (all_absolute_actuators_in_topo) {
-    MSG("Topology,contains only actuators with absolute encoders; bypassing processing "
+    MSG("Topology contains only actuators with absolute encoders; bypassing processing "
         "saved positions file");
     return true;
   }
