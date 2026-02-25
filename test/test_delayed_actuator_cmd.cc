@@ -24,25 +24,33 @@ void PrintUsage(const char* program_name)
 {
   std::cerr << "Usage: " << program_name
             << " <process_loop_frequency_hz> <actuator_name> <delay_sec> "
+               "<target_position> <profile_velocity> <profile_accel> "
                "<fastcat_yaml_config_path>\n";
 }
 }  // namespace
 
 int main(int argc, char* argv[])
 {
-  if (argc != 5) {
+  if (argc != 8) {
     PrintUsage(argv[0]);
     return 1;
   }
 
   double process_loop_frequency_hz = 0.0;
   double delay_sec                 = 0.0;
+  double target_position           = 0.0;
+  double profile_velocity          = 0.0;
+  double profile_accel             = 0.0;
   try {
     process_loop_frequency_hz = std::stod(argv[1]);
     delay_sec                 = std::stod(argv[3]);
+    target_position           = std::stod(argv[4]);
+    profile_velocity          = std::stod(argv[5]);
+    profile_accel             = std::stod(argv[6]);
   } catch (const std::exception&) {
     std::cerr << "Invalid numeric argument. "
-                 "Frequency and delay must be valid numbers.\n";
+                 "Frequency, delay, target_position, profile_velocity, and "
+                 "profile_accel must be valid numbers.\n";
     PrintUsage(argv[0]);
     return 1;
   }
@@ -57,7 +65,7 @@ int main(int argc, char* argv[])
   }
 
   std::string actuator_name(argv[2]);
-  std::string yaml_config_path(argv[4]);
+  std::string yaml_config_path(argv[7]);
 
   fastcat::Manager fcat_manager;
 
@@ -110,14 +118,17 @@ int main(int argc, char* argv[])
         fastcat::DeviceCmd cmd;
         cmd.name                                     = actuator_name;
         cmd.type                                     = fastcat::ACTUATOR_PROF_POS_CMD;
-        cmd.actuator_prof_pos_cmd.target_position   = 2000.0;
-        cmd.actuator_prof_pos_cmd.profile_velocity  = 1000.0;
-        cmd.actuator_prof_pos_cmd.profile_accel     = 100.0;
+        cmd.actuator_prof_pos_cmd.target_position   = target_position;
+        cmd.actuator_prof_pos_cmd.profile_velocity  = profile_velocity;
+        cmd.actuator_prof_pos_cmd.profile_accel     = profile_accel;
         cmd.actuator_prof_pos_cmd.relative          = 1;
         fcat_manager.QueueCommand(cmd);
 
         std::cout << "Queued ACTUATOR_PROF_POS_CMD for device '" << actuator_name
-                  << "' at t=" << elapsed_sec << " sec\n";
+                  << "' at t=" << elapsed_sec
+                  << " sec with target_position=" << target_position
+                  << ", profile_velocity=" << profile_velocity
+                  << ", profile_accel=" << profile_accel << "\n";
         sent_cmd = true;
       }
     }
