@@ -21,6 +21,9 @@ target_link_libraries(test_config ${fastcat_test_libs})
 add_executable(test_cli test_cli.cc)
 target_link_libraries(test_cli ${fastcat_test_libs})
 
+add_executable(fastcat_delayed_actuator_cmd test_delayed_actuator_cmd.cc)
+target_link_libraries(fastcat_delayed_actuator_cmd fastcat)
+
 find_package(GTest)
 if(GTEST_FOUND)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test_unit)
@@ -43,5 +46,4 @@ else()
     message(WARNING "GTest not found, test suite will not be built")
 
 endif()
-
 

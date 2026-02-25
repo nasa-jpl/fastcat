@@ -145,4 +145,3 @@ target_link_libraries(fastcat
 add_dependencies(fastcat
     fcgen
     )
-
