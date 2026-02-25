@@ -2,7 +2,6 @@
 #include <chrono>
 #include <csignal>
 #include <exception>
-#include <iostream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -22,50 +21,44 @@ void SignalHandler(int)
 
 void PrintUsage(const char* program_name)
 {
-  std::cerr << "Usage: " << program_name
-            << " <process_loop_frequency_hz> <actuator_name> <delay_sec> "
-               "<target_position> <profile_velocity> <profile_accel> "
-               "<fastcat_yaml_config_path>\n";
+  ERROR("Usage: %s"
+        " <actuator_name> <delay_sec> "
+        "<target_position> <profile_velocity> <profile_accel> "
+        "<fastcat_yaml_config_path>\n", program_name);
 }
 }  // namespace
 
 int main(int argc, char* argv[])
 {
-  if (argc != 8) {
+  if (argc != 7) {
     PrintUsage(argv[0]);
     return 1;
   }
 
-  double process_loop_frequency_hz = 0.0;
-  double delay_sec                 = 0.0;
-  double target_position           = 0.0;
-  double profile_velocity          = 0.0;
-  double profile_accel             = 0.0;
+  double delay_sec        = 0.0;
+  double target_position  = 0.0;
+  double profile_velocity = 0.0;
+  double profile_accel    = 0.0;
   try {
-    process_loop_frequency_hz = std::stod(argv[1]);
-    delay_sec                 = std::stod(argv[3]);
-    target_position           = std::stod(argv[4]);
-    profile_velocity          = std::stod(argv[5]);
-    profile_accel             = std::stod(argv[6]);
+    delay_sec        = std::stod(argv[2]);
+    target_position  = std::stod(argv[3]);
+    profile_velocity = std::stod(argv[4]);
+    profile_accel    = std::stod(argv[5]);
   } catch (const std::exception&) {
-    std::cerr << "Invalid numeric argument. "
-                 "Frequency, delay, target_position, profile_velocity, and "
-                 "profile_accel must be valid numbers.\n";
+    ERROR("Invalid numeric argument. "
+          "Delay, target_position, profile_velocity, and profile_accel "
+          "must be valid numbers.");
     PrintUsage(argv[0]);
     return 1;
   }
 
-  if (process_loop_frequency_hz <= 0.0) {
-    std::cerr << "Frequency must be > 0.\n";
-    return 1;
-  }
   if (delay_sec < 0.0) {
-    std::cerr << "Delay must be >= 0.\n";
+    ERROR("Delay must be >= 0.");
     return 1;
   }
 
-  std::string actuator_name(argv[2]);
-  std::string yaml_config_path(argv[7]);
+  std::string actuator_name(argv[1]);
+  std::string yaml_config_path(argv[6]);
 
   fastcat::Manager fcat_manager;
 
@@ -76,13 +69,18 @@ int main(int argc, char* argv[])
   try {
     node = YAML::LoadFile(yaml_config_path);
   } catch (const std::exception& e) {
-    std::cerr << "Failed to load YAML file '" << yaml_config_path
-              << "': " << e.what() << "\n";
+    ERROR("Failed to load YAML file '%s': %s", yaml_config_path.c_str(), e.what());
     return 1;
   }
 
   if (!fcat_manager.ConfigFromYaml(node)) {
-    std::cerr << "Could not configure fastcat manager from YAML.\n";
+    ERROR("Could not configure fastcat manager from YAML.");
+    return 1;
+  }
+
+  const double process_loop_frequency_hz = fcat_manager.GetTargetLoopRate();
+  if (process_loop_frequency_hz <= 0.0) {
+    ERROR("Invalid target_loop_rate_hz from YAML: %f", process_loop_frequency_hz);
     return 1;
   }
 
@@ -90,9 +88,9 @@ int main(int argc, char* argv[])
   fcat_manager.GetDeviceNamesByType(gold_actuator_names,
                                     fastcat::GOLD_ACTUATOR_STATE);
 
-  std::cout << "Gold actuators found (" << gold_actuator_names.size() << "):\n";
+  MSG("Gold actuators found (%zu):", gold_actuator_names.size());
   for (const auto& name : gold_actuator_names) {
-    std::cout << "  " << name << "\n";
+    MSG("%s", name);
   }
 
   const auto loop_period = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
@@ -103,7 +101,7 @@ int main(int argc, char* argv[])
 
   while (!g_should_exit.load()) {
     if (!fcat_manager.Process()) {
-      std::cerr << "fastcat manager faulted. Exiting process loop.\n";
+      ERROR("fastcat manager faulted. Exiting process loop.");
       break;
     }
 
@@ -116,19 +114,21 @@ int main(int argc, char* argv[])
 
       if (elapsed_sec >= delay_sec) {
         fastcat::DeviceCmd cmd;
-        cmd.name                                     = actuator_name;
-        cmd.type                                     = fastcat::ACTUATOR_PROF_POS_CMD;
+        cmd.name                                    = actuator_name;
+        cmd.type                                    = fastcat::ACTUATOR_PROF_POS_CMD;
         cmd.actuator_prof_pos_cmd.target_position   = target_position;
         cmd.actuator_prof_pos_cmd.profile_velocity  = profile_velocity;
         cmd.actuator_prof_pos_cmd.profile_accel     = profile_accel;
         cmd.actuator_prof_pos_cmd.relative          = 1;
         fcat_manager.QueueCommand(cmd);
 
-        std::cout << "Queued ACTUATOR_PROF_POS_CMD for device '" << actuator_name
-                  << "' at t=" << elapsed_sec
-                  << " sec with target_position=" << target_position
-                  << ", profile_velocity=" << profile_velocity
-                  << ", profile_accel=" << profile_accel << "\n";
+        ERROR("Queued ACTUATOR_PROF_POS_CMD for device '%s'"
+              " at t=%f"
+              " sec with target_position=%f"
+              ", profile_velocity=%f"
+              ", profile_accel=%f",
+              actuator_name.c_str(), elapsed_sec, target_position,
+              profile_velocity, profile_accel);
         sent_cmd = true;
       }
     }
