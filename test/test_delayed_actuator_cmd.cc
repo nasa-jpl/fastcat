@@ -22,7 +22,7 @@ void SignalHandler(int)
 void PrintUsage(const char* program_name)
 {
   ERROR("Usage: %s"
-        " <actuator_name> <delay_sec> "
+        " <delay_sec> "
         "<target_position> <profile_velocity> <profile_accel> "
         "<fastcat_yaml_config_path>\n", program_name);
 }
@@ -30,7 +30,7 @@ void PrintUsage(const char* program_name)
 
 int main(int argc, char* argv[])
 {
-  if (argc != 7) {
+  if (argc != 6) {
     PrintUsage(argv[0]);
     return 1;
   }
@@ -40,10 +40,10 @@ int main(int argc, char* argv[])
   double profile_velocity = 0.0;
   double profile_accel    = 0.0;
   try {
-    delay_sec        = std::stod(argv[2]);
-    target_position  = std::stod(argv[3]);
-    profile_velocity = std::stod(argv[4]);
-    profile_accel    = std::stod(argv[5]);
+    delay_sec        = std::stod(argv[1]);
+    target_position  = std::stod(argv[2]);
+    profile_velocity = std::stod(argv[3]);
+    profile_accel    = std::stod(argv[4]);
   } catch (const std::exception&) {
     ERROR("Invalid numeric argument. "
           "Delay, target_position, profile_velocity, and profile_accel "
@@ -57,8 +57,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  std::string actuator_name(argv[1]);
-  std::string yaml_config_path(argv[6]);
+  std::string yaml_config_path(argv[5]);
 
   fastcat::Manager fcat_manager;
 
@@ -88,9 +87,22 @@ int main(int argc, char* argv[])
   fcat_manager.GetDeviceNamesByType(gold_actuator_names,
                                     fastcat::GOLD_ACTUATOR_STATE);
 
+  if (gold_actuator_names.empty()) {
+    ERROR("No GoldActuator found in topology.");
+    return 1;
+  }
+
+  if (gold_actuator_names.size() > 1) {
+    ERROR("Expected exactly one GoldActuator, found %zu.",
+          gold_actuator_names.size());
+    return 1;
+  }
+
+  const std::string& actuator_name = gold_actuator_names.front();
+
   MSG("Gold actuators found (%zu):", gold_actuator_names.size());
   for (const auto& name : gold_actuator_names) {
-    MSG("%s", name);
+    MSG("%s", name.c_str());
   }
 
   const auto loop_period = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
