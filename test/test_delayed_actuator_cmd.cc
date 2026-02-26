@@ -134,13 +134,13 @@ int main(int argc, char* argv[])
         cmd.actuator_prof_pos_cmd.relative          = 1;
         fcat_manager.QueueCommand(cmd);
 
-        ERROR("Queued ACTUATOR_PROF_POS_CMD for device '%s'"
-              " at t=%f"
-              " sec with target_position=%f"
-              ", profile_velocity=%f"
-              ", profile_accel=%f",
-              actuator_name.c_str(), elapsed_sec, target_position,
-              profile_velocity, profile_accel);
+        MSG("Queued ACTUATOR_PROF_POS_CMD for device '%s'"
+            " at t=%f"
+            " sec with target_position=%f"
+            ", profile_velocity=%f"
+            ", profile_accel=%f",
+            actuator_name.c_str(), elapsed_sec, target_position,
+            profile_velocity, profile_accel);
         sent_cmd = true;
       }
     }
