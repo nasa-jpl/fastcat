@@ -1,10 +1,18 @@
 #include <atomic>
 #include <chrono>
 #include <csignal>
+#include <cstdint>
 #include <exception>
 #include <string>
 #include <thread>
 #include <vector>
+
+#include <cerrno>
+#include <sys/timerfd.h>
+#include <unistd.h>
+
+#include <fstream>
+#include <iomanip>
 
 #include <yaml-cpp/yaml.h>
 
@@ -25,6 +33,121 @@ void PrintUsage(const char* program_name)
         "<delay_sec> "
         "<target_position> <profile_velocity> <profile_accel> "
         "<fastcat_yaml_config_path>\n", program_name);
+}
+
+std::chrono::nanoseconds ComputeLoopPeriod(double frequency_hz)
+{
+  const auto period_ns = static_cast<int64_t>(1e9 / frequency_hz);
+  return std::chrono::nanoseconds(period_ns);
+}
+
+timespec ToTimespec(std::chrono::nanoseconds duration)
+{
+  const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
+  const auto rem_ns  = duration - seconds;
+
+  timespec ts{};
+  ts.tv_sec  = static_cast<time_t>(seconds.count());
+  ts.tv_nsec = static_cast<long>(rem_ns.count());
+  return ts;
+}
+
+// Monotonic time in seconds (double), similar spirit to this->now().seconds() but steady.
+double NowMonotonicSeconds()
+{
+  timespec ts{};
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return static_cast<double>(ts.tv_sec) + static_cast<double>(ts.tv_nsec) * 1e-9;
+}
+
+void ProcessTimerThread(fastcat::Manager*              manager,
+                        std::chrono::nanoseconds       loop_period,
+                        std::atomic<bool>*             process_faulted)
+{
+  const int timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC);
+  if (timer_fd < 0) {
+    ERROR("Failed to create timerfd for Process thread (errno=%d).", errno);
+    process_faulted->store(true);
+    g_should_exit.store(true);
+    return;
+  }
+
+  itimerspec timer_spec{};
+  timer_spec.it_value    = ToTimespec(loop_period);
+  timer_spec.it_interval = ToTimespec(loop_period);
+
+  if (timerfd_settime(timer_fd, 0, &timer_spec, nullptr) != 0) {
+    ERROR("Failed to configure timerfd for Process thread (errno=%d).", errno);
+    close(timer_fd);
+    process_faulted->store(true);
+    g_should_exit.store(true);
+    return;
+  }
+
+  // ---- Jitter logging setup ----
+  const double loop_period_sec =
+      std::chrono::duration_cast<std::chrono::duration<double>>(loop_period).count();
+
+  std::ofstream jitter_csv("process_jitter.csv", std::ios::out | std::ios::trunc);
+  if (!jitter_csv.is_open()) {
+    ERROR("Failed to open process_jitter.csv for writing.");
+    process_faulted->store(true);
+    g_should_exit.store(true);
+    close(timer_fd);
+    return;
+  }
+
+  jitter_csv << "t_sec,jitter_sec,expirations\n";
+  jitter_csv << std::fixed << std::setprecision(9);
+
+  bool   have_last_time = false;
+  double last_time      = 0.0;
+  // -----------------------------
+
+  while (!g_should_exit.load()) {
+    uint64_t expirations = 0;
+    const auto bytes_read = read(timer_fd, &expirations, sizeof(expirations));
+    if (bytes_read < 0) {
+      if (errno == EINTR) {
+        continue;
+      }
+      ERROR("Error reading Process timerfd (errno=%d).", errno);
+      process_faulted->store(true);
+      g_should_exit.store(true);
+      break;
+    }
+
+    if (bytes_read != static_cast<ssize_t>(sizeof(expirations))) {
+      ERROR("Unexpected Process timerfd read size %zd.", bytes_read);
+      process_faulted->store(true);
+      g_should_exit.store(true);
+      break;
+    }
+
+    // ---- Jitter calculation: right after read succeeds, before Process() ----
+    const double current_time = NowMonotonicSeconds();
+    double jitter = 0.0;
+    if (have_last_time) {
+      jitter = current_time - last_time - loop_period_sec;
+    } else {
+      // First sample: no previous timestamp to compare.
+      jitter = 0.0;
+      have_last_time = true;
+    }
+    last_time = current_time;
+
+    jitter_csv << current_time << "," << jitter << "\n";
+
+    if (!manager->Process()) {
+      ERROR("fastcat manager faulted in timer thread. Exiting process loop.");
+      process_faulted->store(true);
+      g_should_exit.store(true);
+      break;
+    }
+  }
+
+  jitter_csv.close();
+  close(timer_fd);
 }
 }  // namespace
 
@@ -105,18 +228,16 @@ int main(int argc, char* argv[])
     MSG("%s", name.c_str());
   }
 
-  const auto loop_period = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-      std::chrono::duration<double>(1.0 / process_loop_frequency_hz));
-  const auto start_time = std::chrono::steady_clock::now();
-  auto       next_time  = start_time;
-  bool       sent_cmd   = false;
+  const auto loop_period = ComputeLoopPeriod(process_loop_frequency_hz);
+  const auto start_time  = std::chrono::steady_clock::now();
+  bool       sent_cmd    = false;
+  std::atomic<bool> process_faulted(false);
+
+  MSG("Starting Process timer thread at %f Hz.", process_loop_frequency_hz);
+  std::thread process_thread(
+      ProcessTimerThread, &fcat_manager, loop_period, &process_faulted);
 
   while (!g_should_exit.load()) {
-    if (!fcat_manager.Process()) {
-      ERROR("fastcat manager faulted. Exiting process loop.");
-      break;
-    }
-
     if (!sent_cmd) {
       const auto now = std::chrono::steady_clock::now();
       const auto elapsed_sec =
@@ -145,10 +266,13 @@ int main(int argc, char* argv[])
       }
     }
 
-    next_time += loop_period;
-    std::this_thread::sleep_until(next_time);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+
+  if (process_thread.joinable()) {
+    process_thread.join();
   }
 
   fcat_manager.Shutdown();
-  return 0;
+  return process_faulted.load() ? 1 : 0;
 }
