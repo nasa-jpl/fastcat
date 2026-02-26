@@ -1,0 +1,40 @@
+fastcat:
+  target_loop_rate_hz:                100
+  zero_latency_required:              True
+  actuator_position_directory:        /cal
+  actuator_fault_on_missing_pos_file: False
+
+buses:
+
+  - type: jsd_bus
+    ifname: eth_tympo
+    enable_autorecovery: True
+
+    devices:
+    - device_class:                  IGNORE # EK1100
+    - device_class: El1008
+      name: el1008_1
+    - device_class:                  GoldActuator
+      name:                          tnet_actuator
+      actuator_type:                 revolute # eu = radians
+      gear_ratio:                    29.16 # 370692 => absolute reduction 729/25 = 29.16:1
+      counts_per_rev:                6
+      max_speed_eu_per_sec:          43.11 # Output max rpm = 12000 (gearhead max input speed) / 29.16 = 411.6 rpm => 43.11 rad/s
+      max_accel_eu_per_sec2:         10.0
+      over_speed_multiplier:         1.15
+      vel_tracking_error_eu_per_sec: 100.0
+      pos_tracking_error_eu:         100.0
+      peak_current_limit_amps:       20.9 # Motor: EC-4pole 22 (323220) stall current = 20.9 A (electrical limit). Use these as a first-pass.
+      peak_current_time_sec:         0.1
+      continuous_current_limit_amps: 1.58 # nominal current = 1.58 A (max continuous current)
+      torque_slope_amps_per_sec:     1.0
+      low_pos_cal_limit_eu:          -628000.0
+      low_pos_cmd_limit_eu:          -628000.0
+      high_pos_cmd_limit_eu:         628000.0
+      high_pos_cal_limit_eu:         628000.0
+      holding_duration_sec:          3.0
+      elmo_brake_engage_msec:        12 # Brake AB 20: reaction time coupling ≤ 12 ms, opening ≤ 16 ms
+      elmo_brake_disengage_msec:     16
+      elmo_crc:                      -754519641
+      elmo_drive_max_current_limit:  20
+      smooth_factor:                 0
