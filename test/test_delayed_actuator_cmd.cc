@@ -21,8 +21,8 @@ void SignalHandler(int)
 
 void PrintUsage(const char* program_name)
 {
-  ERROR("Usage: %s"
-        " <delay_sec> "
+  ERROR("Usage: %s "
+        "<delay_sec> "
         "<target_position> <profile_velocity> <profile_accel> "
         "<fastcat_yaml_config_path>\n", program_name);
 }
