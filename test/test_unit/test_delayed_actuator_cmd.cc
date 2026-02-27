@@ -100,7 +100,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     return;
   }
 
-  telemetry_csv << "t_sec,jitter_sec,expirations,position,velocity,current,power\n";
+  telemetry_csv << "t_sec,jitter_sec,position,velocity,current,power\n";
   telemetry_csv << std::fixed << std::setprecision(9);
 
   bool   have_last_time   = false;
@@ -164,7 +164,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
       break;
     }
 
-    telemetry_csv << current_time << "," << jitter << "," << expirations << ","
+    telemetry_csv << current_time << "," << jitter << ","
                   << pos << "," << vel << "," << cur << "," << power << "\n";
   }
 
