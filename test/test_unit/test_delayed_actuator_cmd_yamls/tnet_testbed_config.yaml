@@ -38,3 +38,5 @@ buses:
       elmo_crc:                      -1204108023
       elmo_drive_max_current_limit:  20
       smooth_factor:                 0
+      torque_constant:               0.0281 # V/(rad/s)
+      winding_resistance:            2.3
