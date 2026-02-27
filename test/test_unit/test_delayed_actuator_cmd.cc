@@ -97,7 +97,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     return;
   }
 
-  jitter_csv << "t_sec,jitter_sec\n";
+  jitter_csv << "t_sec,jitter_sec,expirations\n";
   jitter_csv << std::fixed << std::setprecision(9);
 
   bool   have_last_time = false;
