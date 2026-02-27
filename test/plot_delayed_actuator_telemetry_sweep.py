@@ -126,7 +126,7 @@ def write_sweep_csv(points: list[SweepPoint], out_csv: str) -> None:
             )
 
 
-def plot_sweep(points: list[SweepPoint], power_units: str) -> None:
+def plot_sweep(points: list[SweepPoint]) -> None:
     freq = np.array([p.frequency_hz for p in points], dtype=float)
     max_abs_jitter_us = np.array([p.max_abs_jitter_sec for p in points], dtype=float) * 1e6
     mean_abs_jitter_us = np.array([p.mean_abs_jitter_sec for p in points], dtype=float) * 1e6
@@ -146,7 +146,7 @@ def plot_sweep(points: list[SweepPoint], power_units: str) -> None:
     plt.plot(freq, max_power, marker="o", label="Max power")
     plt.plot(freq, mean_power, marker="o", label="Mean power")
     plt.xlabel("Process loop frequency (Hz)")
-    plt.ylabel(power_units)
+    plt.ylabel("Power (W)")
     plt.title("Power vs Process Loop Frequency")
     plt.grid(True)
     plt.legend()
@@ -162,7 +162,6 @@ def main() -> None:
         default=None,
         help="Optional output CSV for sweep summary (default: <dir>/process_telemetry_sweep_summary.csv)",
     )
-    ap.add_argument("--power_units", default="Power", help="Y-axis label for power (e.g., W)")
     args = ap.parse_args()
 
     points = collect_points(args.dir)
@@ -177,7 +176,7 @@ def main() -> None:
     write_sweep_csv(points, out_csv)
     print(f"Wrote sweep summary CSV: {out_csv}")
 
-    plot_sweep(points, args.power_units)
+    plot_sweep(points)
 
 
 if __name__ == "__main__":
