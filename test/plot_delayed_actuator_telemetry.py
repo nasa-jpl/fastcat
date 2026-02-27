@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Plot and summarize telemetry from process_telemetry.csv
+Plot and summarize telemetry from process_telemetry_<freq>Hz.csv.
 
 CSV columns:
   t_sec,jitter_sec,position,velocity,current,power
@@ -25,6 +25,7 @@ Plots:
 from __future__ import annotations
 
 import argparse
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -60,7 +61,7 @@ def fmt_jitter_sec(x: float) -> str:
     return f"{x:.9e} s  ({x * 1e6:.3f} us)"
 
 
-def summarize(jitter: np.ndarray, power: np.ndarray) -> None:
+def compute_summary(jitter: np.ndarray, power: np.ndarray) -> dict[str, float]:
     jitter = jitter[np.isfinite(jitter)]
     power = power[np.isfinite(power)]
 
@@ -71,20 +72,50 @@ def summarize(jitter: np.ndarray, power: np.ndarray) -> None:
 
     max_abs_jitter = float(np.max(np.abs(jitter)))
     mean_abs_jitter = float(np.mean(np.abs(jitter)))
+    max_power = float(np.max(power))
+    mean_power = float(np.mean(power))
 
     motoring = power[power > 0.0]
     duty = float(motoring.size / power.size)
+
+    max_motoring_power = float(np.max(motoring)) if motoring.size else float("nan")
+    mean_motoring_power = float(np.mean(motoring)) if motoring.size else float("nan")
+
+    return {
+        "max_abs_jitter_sec": max_abs_jitter,
+        "mean_abs_jitter_sec": mean_abs_jitter,
+        "max_power": max_power,
+        "mean_power": mean_power,
+        "max_motoring_power": max_motoring_power,
+        "mean_motoring_power": mean_motoring_power,
+        "motoring_duty": duty,
+        "n_samples": float(power.size),
+    }
+
+
+def summarize(summary: dict[str, float]) -> None:
+    max_abs_jitter = summary["max_abs_jitter_sec"]
+    mean_abs_jitter = summary["mean_abs_jitter_sec"]
+    max_power = summary["max_power"]
+    mean_power = summary["mean_power"]
+    max_motoring_power = summary["max_motoring_power"]
+    mean_motoring_power = summary["mean_motoring_power"]
+    duty = summary["motoring_duty"]
 
     print("\n=== Jitter ===")
     print(f"Max |jitter| : {fmt_jitter_sec(max_abs_jitter)}")
     print(f"Mean |jitter|: {fmt_jitter_sec(mean_abs_jitter)}")
 
+    print("\n=== Power (all samples) ===")
+    print(f"Max power       : {max_power:.6g}")
+    print(f"Mean power      : {mean_power:.6g}")
+
     print("\n=== Motoring power (power > 0 only) ===")
-    if motoring.size == 0:
+    if not np.isfinite(max_motoring_power):
         print("No motoring samples found (power > 0).")
     else:
-        print(f"Max motoring power : {float(np.max(motoring)):.6g}")
-        print(f"Mean motoring power: {float(np.mean(motoring)):.6g}  (avg over motoring samples)")
+        print(f"Max motoring power : {max_motoring_power:.6g}")
+        print(f"Mean motoring power: {mean_motoring_power:.6g}  (avg over motoring samples)")
         print(f"Motoring duty      : {duty * 100:.2f}% of samples")
 
 
@@ -99,7 +130,7 @@ def plot_series(t: np.ndarray, y: np.ndarray, xlabel: str, ylabel: str, title: s
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--csv", default="process_telemetry.csv", help="Path to telemetry CSV")
+    ap.add_argument("--csv", default="process_telemetry_10Hz.csv", help="Path to telemetry CSV")
     ap.add_argument("--limit", type=float, default=None, help="Plot only first N seconds (relative time)")
     ap.add_argument("--show_hist", action="store_true", help="Also show jitter histogram")
     ap.add_argument("--power_units", default="Power", help="Y-axis label for power (e.g., W)")
@@ -134,7 +165,8 @@ def main() -> None:
     if np.count_nonzero(mtv) >= 3:
         accel[mtv] = compute_accel(t[mtv], vel[mtv])
 
-    summarize(jitter, power)
+    summary = compute_summary(jitter, power)
+    summarize(summary)
 
     # Plots (jitter in us)
     plot_series(t, jitter * 1e6, "Time (s)", "Jitter (us)", "Loop Jitter vs Time")
