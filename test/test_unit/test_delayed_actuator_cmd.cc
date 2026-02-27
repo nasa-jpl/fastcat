@@ -110,7 +110,6 @@ void ProcessTimerThread(fastcat::Manager*              manager,
 
   bool   have_last_time   = false;
   double last_time        = 0.0;
-  bool   warned_not_found = false;
   bool   warned_bad_type  = false;
   // -----------------------------
 
