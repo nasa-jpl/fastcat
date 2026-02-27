@@ -89,16 +89,21 @@ void ProcessTimerThread(fastcat::Manager*              manager,
   // ---- Telemetry logging setup ----
   const double loop_period_sec =
       std::chrono::duration_cast<std::chrono::duration<double>>(loop_period).count();
+  const int loop_frequency_hz = (int)(1.0 / loop_period_sec);
+  const std::string telemetry_filename =
+      "process_telemetry_" + std::to_string(loop_frequency_hz) +
+      "Hz.csv";
 
-  std::ofstream telemetry_csv("process_telemetry.csv",
+  std::ofstream telemetry_csv(telemetry_filename,
                               std::ios::out | std::ios::trunc);
   if (!telemetry_csv.is_open()) {
-    ERROR("Failed to open process_telemetry.csv for writing.");
+    ERROR("Failed to open %s for writing.", telemetry_filename.c_str());
     process_faulted->store(true);
     g_should_exit.store(true);
     close(timer_fd);
     return;
   }
+  MSG("Writing telemetry to %s", telemetry_filename.c_str());
 
   telemetry_csv << "t_sec,jitter_sec,position,velocity,current,power\n";
   telemetry_csv << std::fixed << std::setprecision(9);
@@ -148,10 +153,10 @@ void ProcessTimerThread(fastcat::Manager*              manager,
       break;
     }
 
-    double pos   = std::numeric_limits<double>::quiet_NaN();
-    double vel   = std::numeric_limits<double>::quiet_NaN();
-    double cur   = std::numeric_limits<double>::quiet_NaN();
-    double power = std::numeric_limits<double>::quiet_NaN();
+    double pos   = 0.0;
+    double vel   = 0.0;
+    double cur   = 0.0;
+    double power = 0.0;
     std::vector<fastcat::DeviceState> states = manager->GetDeviceStates();
     for (const auto& s : states) {
       if (s.name != actuator_name) {
