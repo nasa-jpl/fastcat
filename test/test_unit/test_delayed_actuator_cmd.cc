@@ -13,6 +13,7 @@
 
 #include <fstream>
 #include <iomanip>
+#include <limits>
 
 #include <yaml-cpp/yaml.h>
 
@@ -61,6 +62,7 @@ double NowMonotonicSeconds()
 }
 
 void ProcessTimerThread(fastcat::Manager*              manager,
+                        std::string                    actuator_name,
                         std::chrono::nanoseconds       loop_period,
                         std::atomic<bool>*             process_faulted)
 {
@@ -84,24 +86,27 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     return;
   }
 
-  // ---- Jitter logging setup ----
+  // ---- Telemetry logging setup ----
   const double loop_period_sec =
       std::chrono::duration_cast<std::chrono::duration<double>>(loop_period).count();
 
-  std::ofstream jitter_csv("process_jitter.csv", std::ios::out | std::ios::trunc);
-  if (!jitter_csv.is_open()) {
-    ERROR("Failed to open process_jitter.csv for writing.");
+  std::ofstream telemetry_csv("process_telemetry.csv",
+                              std::ios::out | std::ios::trunc);
+  if (!telemetry_csv.is_open()) {
+    ERROR("Failed to open process_telemetry.csv for writing.");
     process_faulted->store(true);
     g_should_exit.store(true);
     close(timer_fd);
     return;
   }
 
-  jitter_csv << "t_sec,jitter_sec,expirations\n";
-  jitter_csv << std::fixed << std::setprecision(9);
+  telemetry_csv << "t_sec,jitter_sec,expirations,position,velocity,current,power\n";
+  telemetry_csv << std::fixed << std::setprecision(9);
 
-  bool   have_last_time = false;
-  double last_time      = 0.0;
+  bool   have_last_time   = false;
+  double last_time        = 0.0;
+  bool   warned_not_found = false;
+  bool   warned_bad_type  = false;
   // -----------------------------
 
   while (!g_should_exit.load()) {
@@ -124,7 +129,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
       break;
     }
 
-    // ---- Jitter calculation: right after read succeeds, before Process() ----
+    // ---- Jitter calculation ----
     const double current_time = NowMonotonicSeconds();
     double jitter = 0.0;
     if (have_last_time) {
@@ -136,17 +141,34 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     }
     last_time = current_time;
 
-    jitter_csv << current_time << "," << jitter << "\n";
-
     if (!manager->Process()) {
       ERROR("fastcat manager faulted in timer thread. Exiting process loop.");
       process_faulted->store(true);
       g_should_exit.store(true);
       break;
     }
+
+    double pos   = std::numeric_limits<double>::quiet_NaN();
+    double vel   = std::numeric_limits<double>::quiet_NaN();
+    double cur   = std::numeric_limits<double>::quiet_NaN();
+    double power = std::numeric_limits<double>::quiet_NaN();
+    std::vector<fastcat::DeviceState> states = manager->GetDeviceStates();
+    for (const auto& s : states) {
+      if (s.name != actuator_name) {
+        continue;
+      }
+      pos   = s.gold_actuator_state.actual_position;
+      vel   = s.gold_actuator_state.actual_velocity;
+      cur   = s.gold_actuator_state.actual_current;
+      power = s.gold_actuator_state.power;
+      break;
+    }
+
+    telemetry_csv << current_time << "," << jitter << "," << expirations << ","
+                  << pos << "," << vel << "," << cur << "," << power << "\n";
   }
 
-  jitter_csv.close();
+  telemetry_csv.close();
   close(timer_fd);
 }
 }  // namespace
@@ -235,7 +257,8 @@ int main(int argc, char* argv[])
 
   MSG("Starting Process timer thread at %f Hz.", process_loop_frequency_hz);
   std::thread process_thread(
-      ProcessTimerThread, &fcat_manager, loop_period, &process_faulted);
+      ProcessTimerThread, &fcat_manager, actuator_name, loop_period,
+      &process_faulted);
 
   while (!g_should_exit.load()) {
     if (!sent_cmd) {
