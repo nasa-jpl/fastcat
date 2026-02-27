@@ -7,7 +7,7 @@ fastcat:
 buses:
 
   - type: jsd_bus
-    ifname: eth_tympo
+    ifname: eth0
     enable_autorecovery: True
 
     devices:
