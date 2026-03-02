@@ -128,7 +128,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     }
     MSG("Writing telemetry to %s", telemetry_filename.c_str());
 
-    telemetry_csv << "t_sec,jitter_sec,position,velocity,current,power\n";
+    telemetry_csv << "t_sec,jitter_sec,position,velocity,current,power,cmd_position,ff_velocity,ff_current\n";
     telemetry_csv << std::fixed << std::setprecision(9);
   } else {
     MSG("Telemetry recording disabled.");
@@ -168,10 +168,13 @@ void ProcessTimerThread(fastcat::Manager*              manager,
       break;
     }
 
-    double pos   = 0.0;
-    double vel   = 0.0;
-    double cur   = 0.0;
-    double power = 0.0;
+    double pos    = 0.0;
+    double vel    = 0.0;
+    double cur    = 0.0;
+    double power  = 0.0;
+    double cmd_pos = 0.0;
+    double ff_vel  = 0.0;
+    double ff_cur  = 0.0;
     std::vector<fastcat::DeviceState> states = manager->GetDeviceStates();
     for (const auto& s : states) {
       if (s.name != actuator_name) {
@@ -180,7 +183,10 @@ void ProcessTimerThread(fastcat::Manager*              manager,
       pos   = s.gold_actuator_state.actual_position;
       vel   = s.gold_actuator_state.actual_velocity;
       cur   = s.gold_actuator_state.actual_current;
-      power = s.gold_actuator_state.power;
+      power   = s.gold_actuator_state.power;
+      cmd_pos = s.gold_actuator_state.cmd_position;
+      ff_vel  = s.gold_actuator_state.cmd_velocity;
+      ff_cur  = s.gold_actuator_state.cmd_current;
       break;
     }
 
@@ -206,7 +212,8 @@ void ProcessTimerThread(fastcat::Manager*              manager,
         last_time = current_time;
 
         telemetry_csv << current_time << "," << jitter << ","
-                      << pos << "," << vel << "," << cur << "," << power << "\n";
+                      << pos << "," << vel << "," << cur << "," << power << ","
+                      << cmd_pos << "," << ff_vel << "," << ff_cur << "\n";
       }
 
       if (vel != 0.0) {

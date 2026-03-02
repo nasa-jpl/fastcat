@@ -3,7 +3,7 @@
 Plot and summarize telemetry from process_telemetry_<freq>Hz.csv.
 
 CSV columns:
-  t_sec,jitter_sec,position,velocity,current,power
+  t_sec,jitter_sec,position,velocity,current,power,cmd_position,ff_velocity,ff_current
 
 Printed metrics:
   Jitter:
@@ -16,9 +16,9 @@ Printed metrics:
 
 Plots:
   - jitter (us) vs time
-  - position vs time
-  - velocity vs time
-  - acceleration vs time (computed as d(velocity)/dt)
+  - position vs commanded position vs time
+  - velocity vs commanded velocity vs time
+  - current vs commanded current vs time
   - power vs time
 """
 
@@ -36,7 +36,7 @@ def load_csv(path: str) -> dict[str, np.ndarray]:
         raise ValueError(f"No rows found in {path}")
 
     names = list(data.dtype.names or [])
-    required = ["t_sec", "jitter_sec", "position", "velocity", "power"]
+    required = ["t_sec", "jitter_sec", "position", "velocity", "current", "power"]
     missing = [c for c in required if c not in names]
     if missing:
         raise ValueError(f"Missing required columns in CSV: {missing}. Found: {names}")
@@ -44,17 +44,11 @@ def load_csv(path: str) -> dict[str, np.ndarray]:
     return {k: data[k].astype(float) for k in names}
 
 
-def compute_accel(t: np.ndarray, vel: np.ndarray) -> np.ndarray:
-    # Ensure increasing time for gradient
-    order = np.argsort(t)
-    t_sorted = t[order]
-    v_sorted = vel[order]
-
-    a_sorted = np.gradient(v_sorted, t_sorted)
-
-    a = np.empty_like(a_sorted)
-    a[order] = a_sorted
-    return a
+def first_present(d: dict[str, np.ndarray], candidates: list[str], label: str) -> np.ndarray:
+    for name in candidates:
+        if name in d:
+            return d[name]
+    raise ValueError(f"Missing {label}. Expected one of columns: {candidates}")
 
 
 def fmt_jitter_sec(x: float) -> str:
@@ -128,6 +122,25 @@ def plot_series(t: np.ndarray, y: np.ndarray, xlabel: str, ylabel: str, title: s
     plt.grid(True)
 
 
+def plot_pair(
+    t: np.ndarray,
+    actual: np.ndarray,
+    commanded: np.ndarray,
+    ylabel: str,
+    title: str,
+    actual_label: str,
+    commanded_label: str,
+) -> None:
+    plt.figure()
+    plt.plot(t, actual, label=actual_label)
+    plt.plot(t, commanded, label=commanded_label)
+    plt.xlabel("Time (s)")
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.grid(True)
+    plt.legend()
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--csv", default="process_telemetry_10Hz.csv", help="Path to telemetry CSV")
@@ -142,11 +155,23 @@ def main() -> None:
     jitter = d["jitter_sec"]
     pos = d["position"]
     vel = d["velocity"]
+    cur = d["current"]
     power = d["power"]
+    cmd_pos = first_present(d, ["cmd_position"], "commanded position")
+    cmd_vel = first_present(d, ["cmd_velocity", "ff_velocity"], "commanded velocity")
+    cmd_cur = first_present(d, ["cmd_current", "ff_current"], "commanded current")
 
     # Keep rows with finite time
     m = np.isfinite(t)
-    t, jitter, pos, vel, power = t[m], jitter[m], pos[m], vel[m], power[m]
+    t = t[m]
+    jitter = jitter[m]
+    pos = pos[m]
+    vel = vel[m]
+    cur = cur[m]
+    power = power[m]
+    cmd_pos = cmd_pos[m]
+    cmd_vel = cmd_vel[m]
+    cmd_cur = cmd_cur[m]
 
     if t.size < 2:
         raise ValueError("Not enough samples.")
@@ -157,22 +182,48 @@ def main() -> None:
     # Optional time limit
     if args.limit is not None:
         mm = t <= args.limit
-        t, jitter, pos, vel, power = t[mm], jitter[mm], pos[mm], vel[mm], power[mm]
-
-    # Acceleration from velocity (only where t and vel are finite)
-    accel = np.full_like(vel, np.nan)
-    mtv = np.isfinite(t) & np.isfinite(vel)
-    if np.count_nonzero(mtv) >= 3:
-        accel[mtv] = compute_accel(t[mtv], vel[mtv])
+        t = t[mm]
+        jitter = jitter[mm]
+        pos = pos[mm]
+        vel = vel[mm]
+        cur = cur[mm]
+        power = power[mm]
+        cmd_pos = cmd_pos[mm]
+        cmd_vel = cmd_vel[mm]
+        cmd_cur = cmd_cur[mm]
 
     summary = compute_summary(jitter, power)
     summarize(summary)
 
     # Plots (jitter in us)
     plot_series(t, jitter * 1e6, "Time (s)", "Jitter (us)", "Loop Jitter vs Time")
-    plot_series(t, pos, "Time (s)", "Position", "Position vs Time")
-    plot_series(t, vel, "Time (s)", "Velocity", "Velocity vs Time")
-    plot_series(t, accel, "Time (s)", "Acceleration", "Acceleration vs Time (computed)")
+    plot_pair(
+        t,
+        pos,
+        cmd_pos,
+        "Position",
+        "Position vs Commanded Position",
+        "Actual Position",
+        "Commanded Position",
+    )
+    plot_pair(
+        t,
+        vel,
+        cmd_vel,
+        "Velocity",
+        "Velocity vs Commanded Velocity",
+        "Actual Velocity",
+        "Commanded Velocity",
+    )
+    plot_pair(
+        t,
+        cur,
+        cmd_cur,
+        "Current",
+        "Current vs Commanded Current",
+        "Actual Current",
+        "Commanded Current",
+    )
     plot_series(t, power, "Time (s)", args.power_units, "Power vs Time")
 
     if args.show_hist:
