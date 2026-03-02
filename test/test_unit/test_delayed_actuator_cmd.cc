@@ -1,6 +1,8 @@
 #include <atomic>
+#include <algorithm>
 #include <chrono>
 #include <csignal>
+#include <cctype>
 #include <cstdint>
 #include <exception>
 #include <string>
@@ -33,6 +35,7 @@ void PrintUsage(const char* program_name)
   ERROR("Usage: %s "
         "<delay_sec> "
         "<target_position> <profile_velocity> <profile_accel> "
+        "<enable_telemetry: 0|1> "
         "<fastcat_yaml_config_path>\n", program_name);
 }
 
@@ -61,9 +64,28 @@ double NowMonotonicSeconds()
   return static_cast<double>(ts.tv_sec) + static_cast<double>(ts.tv_nsec) * 1e-9;
 }
 
+bool ParseBoolArg(const std::string& value, bool* parsed)
+{
+  std::string lowered = value;
+  std::transform(lowered.begin(), lowered.end(), lowered.begin(),
+                 [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+  if (lowered == "1" || lowered == "true" || lowered == "on") {
+    *parsed = true;
+    return true;
+  }
+  if (lowered == "0" || lowered == "false" || lowered == "off") {
+    *parsed = false;
+    return true;
+  }
+  return false;
+}
+
 void ProcessTimerThread(fastcat::Manager*              manager,
                         std::string                    actuator_name,
                         std::chrono::nanoseconds       loop_period,
+                        bool                           telemetry_enabled,
+                        std::atomic<bool>*             sent_cmd,
                         std::atomic<bool>*             process_faulted)
 {
   const int timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC);
@@ -89,27 +111,34 @@ void ProcessTimerThread(fastcat::Manager*              manager,
   // ---- Telemetry logging setup ----
   const double loop_period_sec =
       std::chrono::duration_cast<std::chrono::duration<double>>(loop_period).count();
-  const int loop_frequency_hz = (int)(1.0 / loop_period_sec);
-  const std::string telemetry_filename =
-      "process_telemetry_" + std::to_string(loop_frequency_hz) +
-      "Hz.csv";
+  std::ofstream telemetry_csv;
+  if (telemetry_enabled) {
+    const int loop_frequency_hz = (int)(1.0 / loop_period_sec);
+    const std::string telemetry_filename =
+        "process_telemetry_" + std::to_string(loop_frequency_hz) +
+        "Hz.csv";
 
-  std::ofstream telemetry_csv(telemetry_filename,
-                              std::ios::out | std::ios::trunc);
-  if (!telemetry_csv.is_open()) {
-    ERROR("Failed to open %s for writing.", telemetry_filename.c_str());
-    process_faulted->store(true);
-    g_should_exit.store(true);
-    close(timer_fd);
-    return;
+    telemetry_csv.open(telemetry_filename, std::ios::out | std::ios::trunc);
+    if (!telemetry_csv.is_open()) {
+      ERROR("Failed to open %s for writing.", telemetry_filename.c_str());
+      process_faulted->store(true);
+      g_should_exit.store(true);
+      close(timer_fd);
+      return;
+    }
+    MSG("Writing telemetry to %s", telemetry_filename.c_str());
+
+    telemetry_csv << "t_sec,jitter_sec,position,velocity,current,power\n";
+    telemetry_csv << std::fixed << std::setprecision(9);
+  } else {
+    MSG("Telemetry recording disabled.");
   }
-  MSG("Writing telemetry to %s", telemetry_filename.c_str());
 
-  telemetry_csv << "t_sec,jitter_sec,position,velocity,current,power\n";
-  telemetry_csv << std::fixed << std::setprecision(9);
-
-  bool   have_last_time   = false;
-  double last_time        = 0.0;
+  bool   recording_started    = false;
+  bool   have_last_time       = false;
+  double last_time            = 0.0;
+  bool   saw_nonzero_velocity = false;
+  int    zero_velocity_iters  = 0;
   // -----------------------------
 
   while (!g_should_exit.load()) {
@@ -131,18 +160,6 @@ void ProcessTimerThread(fastcat::Manager*              manager,
       g_should_exit.store(true);
       break;
     }
-
-    // ---- Jitter calculation ----
-    const double current_time = NowMonotonicSeconds();
-    double jitter = 0.0;
-    if (have_last_time) {
-      jitter = current_time - last_time - loop_period_sec;
-    } else {
-      // First sample: no previous timestamp to compare.
-      jitter = 0.0;
-      have_last_time = true;
-    }
-    last_time = current_time;
 
     if (!manager->Process()) {
       ERROR("fastcat manager faulted in timer thread. Exiting process loop.");
@@ -167,18 +184,56 @@ void ProcessTimerThread(fastcat::Manager*              manager,
       break;
     }
 
-    telemetry_csv << current_time << "," << jitter << ","
-                  << pos << "," << vel << "," << cur << "," << power << "\n";
+    if (!sent_cmd->load()) {
+      continue;
+    }
+
+    if (!recording_started) {
+      recording_started = true;
+      have_last_time    = false;
+      last_time         = 0.0;
+      MSG("Starting telemetry recording after command was sent.");
+    }
+    else {
+      if (telemetry_enabled) {
+        const double current_time = NowMonotonicSeconds();
+        double jitter = 0.0;
+        if (have_last_time) {
+          jitter = current_time - last_time - loop_period_sec;
+        } else {
+          have_last_time = true;
+        }
+        last_time = current_time;
+
+        telemetry_csv << current_time << "," << jitter << ","
+                      << pos << "," << vel << "," << cur << "," << power << "\n";
+      }
+
+      if (vel != 0.0) {
+        saw_nonzero_velocity = true;
+        zero_velocity_iters  = 0;
+      } else if (saw_nonzero_velocity) {
+        zero_velocity_iters++;
+        if (zero_velocity_iters >= 20) {
+          MSG("Stopping telemetry recording after 20 consecutive zero-velocity iterations.");
+          g_should_exit.store(true);
+          break;
+        }
+      }
+    }
   }
 
-  telemetry_csv.close();
+  if (telemetry_enabled) {
+    telemetry_csv.close();
+  }
+  
   close(timer_fd);
 }
 }  // namespace
 
 int main(int argc, char* argv[])
 {
-  if (argc != 6) {
+  if (argc != 7) {
     PrintUsage(argv[0]);
     return 1;
   }
@@ -187,11 +242,18 @@ int main(int argc, char* argv[])
   double target_position  = 0.0;
   double profile_velocity = 0.0;
   double profile_accel    = 0.0;
+  bool enable_telemetry   = true;
   try {
     delay_sec        = std::stod(argv[1]);
     target_position  = std::stod(argv[2]);
     profile_velocity = std::stod(argv[3]);
     profile_accel    = std::stod(argv[4]);
+
+    if (!ParseBoolArg(argv[5], &enable_telemetry)) {
+      ERROR("Invalid telemetry flag '%s'. Expected one of: 0, 1, false, true, off, on.", argv[5]);
+      PrintUsage(argv[0]);
+      return 1;
+    }
   } catch (const std::exception&) {
     ERROR("Invalid numeric argument. "
           "Delay, target_position, profile_velocity, and profile_accel "
@@ -205,7 +267,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  std::string yaml_config_path(argv[5]);
+  std::string yaml_config_path(argv[6]);
 
   fastcat::Manager fcat_manager;
 
@@ -255,16 +317,18 @@ int main(int argc, char* argv[])
 
   const auto loop_period = ComputeLoopPeriod(process_loop_frequency_hz);
   const auto start_time  = std::chrono::steady_clock::now();
-  bool       sent_cmd    = false;
+  std::atomic<bool> sent_cmd(false);
   std::atomic<bool> process_faulted(false);
 
   MSG("Starting Process timer thread at %f Hz.", process_loop_frequency_hz);
   std::thread process_thread(
       ProcessTimerThread, &fcat_manager, actuator_name, loop_period,
+      enable_telemetry,
+      &sent_cmd,
       &process_faulted);
 
   while (!g_should_exit.load()) {
-    if (!sent_cmd) {
+    if (!sent_cmd.load()) {
       const auto now = std::chrono::steady_clock::now();
       const auto elapsed_sec =
           std::chrono::duration_cast<std::chrono::duration<double>>(now -
@@ -288,7 +352,7 @@ int main(int argc, char* argv[])
             ", profile_accel=%f",
             actuator_name.c_str(), elapsed_sec, target_position,
             profile_velocity, profile_accel);
-        sent_cmd = true;
+        sent_cmd.store(true);
       }
     }
 
