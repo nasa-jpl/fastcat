@@ -10,6 +10,7 @@ Computes per-file:
   - mean absolute jitter
   - max power
   - mean power
+  - whether max absolute jitter exceeds one loop period
 
 Then plots these metrics with frequency on the x-axis.
 """
@@ -38,7 +39,7 @@ class SweepPoint:
     mean_abs_jitter_sec: float
     max_power: float
     mean_power: float
-    filename: str
+    max_abs_jitter_exceeds_period: int
 
 
 def load_csv(path: str) -> dict[str, np.ndarray]:
@@ -84,6 +85,8 @@ def collect_points(directory: str) -> list[SweepPoint]:
         max_abs_jitter, mean_abs_jitter, max_power, mean_power = compute_summary(
             d["jitter_sec"], d["power"]
         )
+        period_sec = 1.0 / frequency_hz
+        max_abs_jitter_exceeds_period = int(max_abs_jitter > period_sec)
 
         points.append(
             SweepPoint(
@@ -92,7 +95,7 @@ def collect_points(directory: str) -> list[SweepPoint]:
                 mean_abs_jitter_sec=mean_abs_jitter,
                 max_power=max_power,
                 mean_power=mean_power,
-                filename=name,
+                max_abs_jitter_exceeds_period=max_abs_jitter_exceeds_period,
             )
         )
 
@@ -110,7 +113,7 @@ def write_sweep_csv(points: list[SweepPoint], out_csv: str) -> None:
                 "mean_abs_jitter_sec",
                 "max_power",
                 "mean_power",
-                "source_csv",
+                "max_abs_jitter_exceeds_period",
             ]
         )
         for p in points:
@@ -121,7 +124,7 @@ def write_sweep_csv(points: list[SweepPoint], out_csv: str) -> None:
                     p.mean_abs_jitter_sec,
                     p.max_power,
                     p.mean_power,
-                    p.filename,
+                    p.max_abs_jitter_exceeds_period,
                 ]
             )
 
@@ -132,6 +135,7 @@ def plot_sweep(points: list[SweepPoint]) -> None:
     mean_abs_jitter_us = np.array([p.mean_abs_jitter_sec for p in points], dtype=float) * 1e6
     max_power = np.array([p.max_power for p in points], dtype=float)
     mean_power = np.array([p.mean_power for p in points], dtype=float)
+    exceeds_period = np.array([p.max_abs_jitter_exceeds_period for p in points], dtype=int)
 
     plt.figure()
     plt.plot(freq, max_abs_jitter_us, marker="o", label="Max |jitter|")
@@ -150,6 +154,15 @@ def plot_sweep(points: list[SweepPoint]) -> None:
     plt.title("Power vs Process Loop Frequency")
     plt.grid(True)
     plt.legend()
+
+    plt.figure()
+    plt.step(freq, exceeds_period, where="mid")
+    plt.scatter(freq, exceeds_period)
+    plt.xlabel("Process loop frequency (Hz)")
+    plt.ylabel("Max |jitter| > period (0/1)")
+    plt.yticks([0, 1])
+    plt.title("Jitter Exceeds Period vs Process Loop Frequency")
+    plt.grid(True)
 
     plt.show()
 
