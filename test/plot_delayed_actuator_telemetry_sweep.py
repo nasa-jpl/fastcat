@@ -10,6 +10,7 @@ Computes per-file:
   - mean absolute jitter
   - max power
   - mean power
+  - success flag based on test duration (>= 0.5s)
   - whether max absolute jitter exceeds one loop period
 
 Then plots these metrics with frequency on the x-axis.
@@ -35,6 +36,8 @@ TELEMETRY_FILENAME_RE = re.compile(
 @dataclass
 class SweepPoint:
     frequency_hz: float
+    test_duration_sec: float
+    test_success: int
     max_abs_jitter_sec: float
     mean_abs_jitter_sec: float
     max_power: float
@@ -48,7 +51,7 @@ def load_csv(path: str) -> dict[str, np.ndarray]:
         raise ValueError(f"No rows found in {path}")
 
     names = list(data.dtype.names or [])
-    required = ["jitter_sec", "power"]
+    required = ["t_sec", "jitter_sec", "power"]
     missing = [c for c in required if c not in names]
     if missing:
         raise ValueError(f"Missing required columns in {path}: {missing}")
@@ -72,6 +75,13 @@ def compute_summary(jitter: np.ndarray, power: np.ndarray) -> tuple[float, float
     return max_abs_jitter, mean_abs_jitter, max_power, mean_power
 
 
+def compute_test_duration_sec(t_sec: np.ndarray) -> float:
+    t_sec = t_sec[np.isfinite(t_sec)]
+    if t_sec.size == 0:
+        return float("nan")
+    return float(np.max(t_sec) - np.min(t_sec))
+
+
 def collect_points(directory: str) -> list[SweepPoint]:
     points: list[SweepPoint] = []
     for name in sorted(os.listdir(directory)):
@@ -82,15 +92,28 @@ def collect_points(directory: str) -> list[SweepPoint]:
         frequency_hz = float(m.group("freq"))
         path = os.path.join(directory, name)
         d = load_csv(path)
-        max_abs_jitter, mean_abs_jitter, max_power, mean_power = compute_summary(
-            d["jitter_sec"], d["power"]
-        )
-        period_sec = 1.0 / frequency_hz
-        max_abs_jitter_exceeds_period = int(max_abs_jitter > period_sec)
+        test_duration_sec = compute_test_duration_sec(d["t_sec"])
+        test_success = int(np.isfinite(test_duration_sec) and (test_duration_sec >= 0.5))
+
+        if test_success:
+            max_abs_jitter, mean_abs_jitter, max_power, mean_power = compute_summary(
+                d["jitter_sec"], d["power"]
+            )
+            period_sec = 1.0 / frequency_hz
+            max_abs_jitter_exceeds_period = int(max_abs_jitter > period_sec)
+        else:
+            # Unsuccessful runs (<0.5 s) should not be represented as zeros.
+            max_abs_jitter = float("nan")
+            mean_abs_jitter = float("nan")
+            max_power = float("nan")
+            mean_power = float("nan")
+            max_abs_jitter_exceeds_period = 0
 
         points.append(
             SweepPoint(
                 frequency_hz=frequency_hz,
+                test_duration_sec=test_duration_sec,
+                test_success=test_success,
                 max_abs_jitter_sec=max_abs_jitter,
                 mean_abs_jitter_sec=mean_abs_jitter,
                 max_power=max_power,
@@ -109,6 +132,8 @@ def write_sweep_csv(points: list[SweepPoint], out_csv: str) -> None:
         writer.writerow(
             [
                 "frequency_hz",
+                "test_duration_sec",
+                "test_success",
                 "max_abs_jitter_sec",
                 "mean_abs_jitter_sec",
                 "max_power",
@@ -120,6 +145,8 @@ def write_sweep_csv(points: list[SweepPoint], out_csv: str) -> None:
             writer.writerow(
                 [
                     p.frequency_hz,
+                    p.test_duration_sec,
+                    p.test_success,
                     p.max_abs_jitter_sec,
                     p.mean_abs_jitter_sec,
                     p.max_power,
@@ -131,6 +158,7 @@ def write_sweep_csv(points: list[SweepPoint], out_csv: str) -> None:
 
 def plot_sweep(points: list[SweepPoint]) -> None:
     freq = np.array([p.frequency_hz for p in points], dtype=float)
+    test_success = np.array([p.test_success for p in points], dtype=int)
     max_abs_jitter_us = np.array([p.max_abs_jitter_sec for p in points], dtype=float) * 1e6
     mean_abs_jitter_us = np.array([p.mean_abs_jitter_sec for p in points], dtype=float) * 1e6
     max_power = np.array([p.max_power for p in points], dtype=float)
@@ -154,6 +182,15 @@ def plot_sweep(points: list[SweepPoint]) -> None:
     plt.title("Power vs Process Loop Frequency")
     plt.grid(True)
     plt.legend()
+
+    plt.figure()
+    plt.step(freq, test_success, where="mid")
+    plt.scatter(freq, test_success)
+    plt.xlabel("Process loop frequency (Hz)")
+    plt.ylabel("Test success (0/1)")
+    plt.yticks([0, 1])
+    plt.title("Test Success vs Process Loop Frequency")
+    plt.grid(True)
 
     plt.figure()
     plt.step(freq, exceeds_period, where="mid")
