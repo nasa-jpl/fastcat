@@ -111,25 +111,35 @@ void ProcessTimerThread(fastcat::Manager*              manager,
   // ---- Telemetry logging setup ----
   const double loop_period_sec =
       std::chrono::duration_cast<std::chrono::duration<double>>(loop_period).count();
-  std::ofstream telemetry_csv;
+  constexpr size_t kMaxTelemetrySamples = 1000000;
+  std::string telemetry_filename;
+  std::vector<double> t_sec_samples;
+  std::vector<double> jitter_sec_samples;
+  std::vector<double> position_samples;
+  std::vector<double> velocity_samples;
+  std::vector<double> current_samples;
+  std::vector<double> power_samples;
+  std::vector<double> cmd_position_samples;
+  std::vector<double> ff_velocity_samples;
+  std::vector<double> ff_current_samples;
+  size_t telemetry_sample_count = 0;
+  bool telemetry_overflow = false;
   if (telemetry_enabled) {
     const int loop_frequency_hz = (int)(1.0 / loop_period_sec);
-    const std::string telemetry_filename =
+    telemetry_filename =
         "process_telemetry_" + std::to_string(loop_frequency_hz) +
         "Hz.csv";
-
-    telemetry_csv.open(telemetry_filename, std::ios::out | std::ios::trunc);
-    if (!telemetry_csv.is_open()) {
-      ERROR("Failed to open %s for writing.", telemetry_filename.c_str());
-      process_faulted->store(true);
-      g_should_exit.store(true);
-      close(timer_fd);
-      return;
-    }
-    MSG("Writing telemetry to %s", telemetry_filename.c_str());
-
-    telemetry_csv << "t_sec,jitter_sec,position,velocity,current,power,cmd_position,ff_velocity,ff_current\n";
-    telemetry_csv << std::fixed << std::setprecision(9);
+    t_sec_samples.resize(kMaxTelemetrySamples);
+    jitter_sec_samples.resize(kMaxTelemetrySamples);
+    position_samples.resize(kMaxTelemetrySamples);
+    velocity_samples.resize(kMaxTelemetrySamples);
+    current_samples.resize(kMaxTelemetrySamples);
+    power_samples.resize(kMaxTelemetrySamples);
+    cmd_position_samples.resize(kMaxTelemetrySamples);
+    ff_velocity_samples.resize(kMaxTelemetrySamples);
+    ff_current_samples.resize(kMaxTelemetrySamples);
+    MSG("Buffering telemetry in memory (max %zu samples) and writing to %s at shutdown.",
+        kMaxTelemetrySamples, telemetry_filename.c_str());
   } else {
     MSG("Telemetry recording disabled.");
   }
@@ -211,9 +221,22 @@ void ProcessTimerThread(fastcat::Manager*              manager,
         }
         last_time = current_time;
 
-        telemetry_csv << current_time << "," << jitter << ","
-                      << pos << "," << vel << "," << cur << "," << power << ","
-                      << cmd_pos << "," << ff_vel << "," << ff_cur << "\n";
+        if (telemetry_sample_count < kMaxTelemetrySamples) {
+          t_sec_samples[telemetry_sample_count] = current_time;
+          jitter_sec_samples[telemetry_sample_count] = jitter;
+          position_samples[telemetry_sample_count] = pos;
+          velocity_samples[telemetry_sample_count] = vel;
+          current_samples[telemetry_sample_count] = cur;
+          power_samples[telemetry_sample_count] = power;
+          cmd_position_samples[telemetry_sample_count] = cmd_pos;
+          ff_velocity_samples[telemetry_sample_count] = ff_vel;
+          ff_current_samples[telemetry_sample_count] = ff_cur;
+          telemetry_sample_count++;
+        } else if (!telemetry_overflow) {
+          telemetry_overflow = true;
+          ERROR("Telemetry buffer reached max capacity (%zu). Additional samples will be dropped.",
+                kMaxTelemetrySamples);
+        }
       }
 
       if (vel != 0.0) {
@@ -231,7 +254,23 @@ void ProcessTimerThread(fastcat::Manager*              manager,
   }
 
   if (telemetry_enabled) {
-    telemetry_csv.close();
+    std::ofstream telemetry_csv(telemetry_filename, std::ios::out | std::ios::trunc);
+    if (!telemetry_csv.is_open()) {
+      ERROR("Failed to open %s for writing.", telemetry_filename.c_str());
+      process_faulted->store(true);
+    } else {
+      telemetry_csv << "t_sec,jitter_sec,position,velocity,current,power,cmd_position,ff_velocity,ff_current\n";
+      telemetry_csv << std::fixed << std::setprecision(9);
+      for (size_t i = 0; i < telemetry_sample_count; ++i) {
+        telemetry_csv << t_sec_samples[i] << "," << jitter_sec_samples[i] << ","
+                      << position_samples[i] << "," << velocity_samples[i] << ","
+                      << current_samples[i] << "," << power_samples[i] << ","
+                      << cmd_position_samples[i] << "," << ff_velocity_samples[i] << ","
+                      << ff_current_samples[i] << "\n";
+      }
+      telemetry_csv.close();
+      MSG("Wrote %zu telemetry samples to %s", telemetry_sample_count, telemetry_filename.c_str());
+    }
   }
   
   close(timer_fd);
