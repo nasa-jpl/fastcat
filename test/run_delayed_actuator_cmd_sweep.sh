@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Defaults (override via env vars or CLI flags)
-FASTCAT_YAML="${FASTCAT_YAML:-test/test_unit/test_delayed_actuator_cmd_yamls/tnet_testbed_config.yaml}"
+FASTCAT_YAML="${FASTCAT_YAML:-test_unit/test_delayed_actuator_cmd_yamls/tnet_testbed_config.yaml}"
 BIN_PATH="${BIN_PATH:-../build/bin/fastcat_delayed_actuator_cmd}"
 
 MIN_HZ="${MIN_HZ:-100}"
