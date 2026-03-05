@@ -4,6 +4,7 @@ set -euo pipefail
 # Defaults (override via env vars or CLI flags)
 FASTCAT_YAML="${FASTCAT_YAML:-test_unit/test_delayed_actuator_cmd_yamls/tnet_testbed_config.yaml}"
 BIN_PATH="${BIN_PATH:-../build/bin/fastcat_delayed_actuator_cmd}"
+CORE="${CORE:-3}"
 
 MIN_HZ="${MIN_HZ:-100}"
 MAX_HZ="${MAX_HZ:-2500}"
@@ -31,10 +32,11 @@ Options:
   --velocity <float>     Profile velocity (default: $PROFILE_VELOCITY)
   --accel <float>        Profile accel (default: $PROFILE_ACCEL)
   --telemetry <0|1>      Enable telemetry argument passed to binary (default: $ENABLE_TELEMETRY)
+  --core <id>            CPU core for taskset pinning (default: $CORE)
   --help                 Show this help
 
 Environment overrides:
-  FASTCAT_YAML, BIN_PATH, MIN_HZ, MAX_HZ, STEP_HZ,
+  FASTCAT_YAML, BIN_PATH, CORE, MIN_HZ, MAX_HZ, STEP_HZ,
   DELAY_SEC, TARGET_POSITION, PROFILE_VELOCITY, PROFILE_ACCEL, ENABLE_TELEMETRY
 EOF
 }
@@ -81,6 +83,10 @@ while [[ $# -gt 0 ]]; do
       ENABLE_TELEMETRY="$2"
       shift 2
       ;;
+    --core)
+      CORE="$2"
+      shift 2
+      ;;
     --help|-h)
       usage
       exit 0
@@ -115,6 +121,10 @@ if (( MIN_HZ > MAX_HZ )); then
 fi
 if ! [[ "$ENABLE_TELEMETRY" =~ ^[01]$ ]]; then
   echo "--telemetry must be 0 or 1." >&2
+  exit 1
+fi
+if ! [[ "$CORE" =~ ^[0-9]+$ ]]; then
+  echo "--core must be a non-negative integer." >&2
   exit 1
 fi
 
@@ -161,11 +171,12 @@ set_loop_rate_hz() {
   yaml_tmp=""
 }
 
-RUN_CMD=(sudo "$BIN_PATH")
+RUN_CMD=(sudo taskset -c "$CORE" "$BIN_PATH")
 
 echo "Sweep config:"
 echo "  YAML:             $FASTCAT_YAML"
 echo "  Binary:           $BIN_PATH"
+echo "  CPU core:         $CORE"
 echo "  Range:            ${MIN_HZ}..${MAX_HZ} Hz (step ${STEP_HZ})"
 echo "  Cmd args:         $DELAY_SEC $TARGET_POSITION $PROFILE_VELOCITY $PROFILE_ACCEL $ENABLE_TELEMETRY"
 
