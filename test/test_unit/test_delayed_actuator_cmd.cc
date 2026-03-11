@@ -159,16 +159,6 @@ void ProcessTimerThread(fastcat::Manager*              manager,
 
     double jitter = 0.0;
     double current_time = 0.0;
-    if (telemetry_enabled) {
-      current_time = NowMonotonicSeconds();
-      if (have_last_time) {
-        jitter = current_time - last_time -  loop_period_sec;
-      } else {
-        jitter = 0.0;
-        have_last_time = true;
-      }
-      last_time = current_time;
-    }
 
     if (bytes_read < 0) {
       if (errno == EINTR) {
@@ -193,6 +183,18 @@ void ProcessTimerThread(fastcat::Manager*              manager,
       g_should_exit.store(true);
       break;
     }
+
+    if (telemetry_enabled) {
+      current_time = NowMonotonicSeconds();
+      if (have_last_time) {
+        jitter = current_time - last_time -  loop_period_sec;
+      } else {
+        jitter = 0.0;
+        have_last_time = true;
+      }
+      last_time = current_time;
+    }
+
 
     double pos    = 0.0;
     double vel    = 0.0;
