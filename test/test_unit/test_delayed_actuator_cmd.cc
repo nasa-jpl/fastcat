@@ -57,10 +57,10 @@ timespec ToTimespec(std::chrono::nanoseconds duration)
 }
 
 // Monotonic time in seconds (double), similar spirit to this->now().seconds() but steady.
-double NowMonotonicRawSeconds()
+double NowMonotonicSeconds()
 {
   timespec ts{};
-  clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+  clock_gettime(CLOCK_MONOTONIC, &ts);
   return static_cast<double>(ts.tv_sec) + static_cast<double>(ts.tv_nsec) * 1e-9;
 }
 
@@ -88,7 +88,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
                         std::atomic<bool>*             sent_cmd,
                         std::atomic<bool>*             process_faulted)
 {
-  const int timer_fd = timerfd_create(CLOCK_MONOTONIC_RAW, TFD_CLOEXEC);
+  const int timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC);
   if (timer_fd < 0) {
     ERROR("Failed to create timerfd for Process thread (errno=%d).", errno);
     process_faulted->store(true);
@@ -160,7 +160,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     double jitter = 0.0;
     double current_time = 0.0;
     if (telemetry_enabled) {
-      current_time = NowMonotonicRawSeconds();
+      current_time = NowMonotonicSeconds();
       if (have_last_time) {
         jitter = current_time - last_time -  loop_period_sec;
       } else {
@@ -228,7 +228,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     }
     else {
       if (telemetry_enabled) {
-        current_time = NowMonotonicRawSeconds();
+        current_time = NowMonotonicSeconds();
         const double process_loop_time = current_time - last_time;
         if (telemetry_sample_count < kMaxTelemetrySamples) {
           t_sec_samples[telemetry_sample_count] = current_time;
