@@ -8,6 +8,8 @@ Scans a directory for files named:
 Computes per-file:
   - max absolute jitter
   - mean absolute jitter
+  - max process loop duration
+  - mean process loop duration
   - max power
   - mean power
   - success flag based on test duration (>= 0.5s)
@@ -40,9 +42,12 @@ class SweepPoint:
     test_success: int
     max_abs_jitter_sec: float
     mean_abs_jitter_sec: float
+    max_process_loop_sec: float
+    mean_process_loop_sec: float
     max_power: float
     mean_power: float
     max_abs_jitter_exceeds_period: int
+    max_process_loop_exceeds_period: int
 
 
 def load_csv(path: str) -> dict[str, np.ndarray]:
@@ -51,7 +56,7 @@ def load_csv(path: str) -> dict[str, np.ndarray]:
         raise ValueError(f"No rows found in {path}")
 
     names = list(data.dtype.names or [])
-    required = ["t_sec", "jitter_sec", "power"]
+    required = ["t_sec", "jitter_sec", "process_loop_sec", "power"]
     missing = [c for c in required if c not in names]
     if missing:
         raise ValueError(f"Missing required columns in {path}: {missing}")
@@ -59,20 +64,25 @@ def load_csv(path: str) -> dict[str, np.ndarray]:
     return {k: data[k].astype(float) for k in names}
 
 
-def compute_summary(jitter: np.ndarray, power: np.ndarray) -> tuple[float, float, float, float]:
+def compute_summary(jitter: np.ndarray, process_loop: np.ndarray, power: np.ndarray) -> tuple[float, float, float, float, float, float]:
     jitter = jitter[np.isfinite(jitter)]
+    process_loop = process_loop[np.isfinite(process_loop)]
     power = power[np.isfinite(power)]
 
     if jitter.size == 0:
         raise ValueError("No finite jitter samples.")
+    if process_loop.size == 0:
+        raise ValueError("No finite process loop samples.")
     if power.size == 0:
         raise ValueError("No finite power samples.")
 
     max_abs_jitter = float(np.max(np.abs(jitter)))
     mean_abs_jitter = float(np.mean(np.abs(jitter)))
+    max_process_loop = float(np.max(process_loop))
+    mean_process_loop = float(np.mean(process_loop))
     max_power = float(np.max(power))
     mean_power = float(np.mean(power))
-    return max_abs_jitter, mean_abs_jitter, max_power, mean_power
+    return max_abs_jitter, mean_abs_jitter, max_process_loop, mean_process_loop, max_power, mean_power
 
 
 def compute_test_duration_sec(t_sec: np.ndarray) -> float:
@@ -96,11 +106,12 @@ def collect_points(directory: str) -> list[SweepPoint]:
         test_success = int(np.isfinite(test_duration_sec) and (test_duration_sec >= 0.5))
 
         if test_success:
-            max_abs_jitter, mean_abs_jitter, max_power, mean_power = compute_summary(
-                d["jitter_sec"], d["power"]
+            max_abs_jitter, mean_abs_jitter, max_process_loop, mean_process_loop, max_power, mean_power = compute_summary(
+                d["jitter_sec"], d["process_loop_sec"], d["power"]
             )
             period_sec = 1.0 / frequency_hz
             max_abs_jitter_exceeds_period = int(max_abs_jitter > period_sec)
+            max_process_loop_exceeds_period = int(max_process_loop > period_sec)
         else:
             # Unsuccessful runs (<0.5 s) should not be represented as zeros.
             max_abs_jitter = float("nan")
@@ -108,6 +119,7 @@ def collect_points(directory: str) -> list[SweepPoint]:
             max_power = float("nan")
             mean_power = float("nan")
             max_abs_jitter_exceeds_period = 0
+            max_process_loop_exceeds_period = 0
 
         points.append(
             SweepPoint(
@@ -119,6 +131,7 @@ def collect_points(directory: str) -> list[SweepPoint]:
                 max_power=max_power,
                 mean_power=mean_power,
                 max_abs_jitter_exceeds_period=max_abs_jitter_exceeds_period,
+                max_process_loop_exceeds_period=max_process_loop_exceeds_period,
             )
         )
 
@@ -139,6 +152,7 @@ def write_sweep_csv(points: list[SweepPoint], out_csv: str) -> None:
                 "max_power",
                 "mean_power",
                 "max_abs_jitter_exceeds_period",
+                "max_process_loop_exceeds_period",
             ]
         )
         for p in points:
@@ -152,6 +166,7 @@ def write_sweep_csv(points: list[SweepPoint], out_csv: str) -> None:
                     p.max_power,
                     p.mean_power,
                     p.max_abs_jitter_exceeds_period,
+                    p.max_process_loop_exceeds_period,
                 ]
             )
 
@@ -161,9 +176,12 @@ def plot_sweep(points: list[SweepPoint]) -> None:
     test_success = np.array([p.test_success for p in points], dtype=int)
     max_abs_jitter_us = np.array([p.max_abs_jitter_sec for p in points], dtype=float) * 1e6
     mean_abs_jitter_us = np.array([p.mean_abs_jitter_sec for p in points], dtype=float) * 1e6
+    max_process_loop_us = np.array([p.max_process_loop_sec for p in points], dtype=float) * 1e6
+    mean_process_loop_us = np.array([p.mean_process_loop_sec for p in points], dtype=float) * 1e6
     max_power = np.array([p.max_power for p in points], dtype=float)
     mean_power = np.array([p.mean_power for p in points], dtype=float)
-    exceeds_period = np.array([p.max_abs_jitter_exceeds_period for p in points], dtype=int)
+    jitter_exceeds_period = np.array([p.max_abs_jitter_exceeds_period for p in points], dtype=int)
+    process_loop_exceeds_period = np.array([p.max_process_loop_exceeds_period for p in points], dtype=int)
 
     plt.figure()
     plt.plot(freq, max_abs_jitter_us, marker="o", label="Max |jitter|")
@@ -193,12 +211,21 @@ def plot_sweep(points: list[SweepPoint]) -> None:
     plt.grid(True)
 
     plt.figure()
-    plt.step(freq, exceeds_period, where="mid")
-    plt.scatter(freq, exceeds_period)
+    plt.step(freq, jitter_exceeds_period, where="mid")
+    plt.scatter(freq, jitter_exceeds_period)
     plt.xlabel("Process loop frequency (Hz)")
     plt.ylabel("Max |jitter| > period (0/1)")
     plt.yticks([0, 1])
     plt.title("Jitter Exceeds Period vs Process Loop Frequency")
+    plt.grid(True)
+
+    plt.figure()
+    plt.step(freq, process_loop_exceeds_period, where="mid")
+    plt.scatter(freq, process_loop_exceeds_period)
+    plt.xlabel("Process loop frequency (Hz)")
+    plt.ylabel("Max |process loop| > period (0/1)")
+    plt.yticks([0, 1])
+    plt.title("Process Loop Duration Exceeds Period vs Process Loop Frequency")
     plt.grid(True)
 
     plt.show()

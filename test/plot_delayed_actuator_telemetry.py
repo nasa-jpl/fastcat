@@ -9,6 +9,8 @@ Printed metrics:
   Jitter:
     - max(|jitter|)
     - mean(|jitter|)
+    - max(process loop duration)
+    - mean(process loop duration)
   Motoring power (power > 0 only):
     - max(power)
     - mean(power) averaged over motoring samples
@@ -16,6 +18,7 @@ Printed metrics:
 
 Plots:
   - jitter (us) vs time
+  - process loop duration (us) vs time
   - position vs commanded position vs time
   - velocity vs commanded velocity vs time
   - current vs commanded current vs time
@@ -36,7 +39,7 @@ def load_csv(path: str) -> dict[str, np.ndarray]:
         raise ValueError(f"No rows found in {path}")
 
     names = list(data.dtype.names or [])
-    required = ["t_sec", "jitter_sec", "position", "velocity", "current", "power"]
+    required = ["t_sec", "jitter_sec", "process_loop_sec", "position", "velocity", "current", "power"]
     missing = [c for c in required if c not in names]
     if missing:
         raise ValueError(f"Missing required columns in CSV: {missing}. Found: {names}")
@@ -55,17 +58,26 @@ def fmt_jitter_sec(x: float) -> str:
     return f"{x:.9e} s  ({x * 1e6:.3f} us)"
 
 
-def compute_summary(jitter: np.ndarray, power: np.ndarray) -> dict[str, float]:
+def fmt_process_loop_sec(x: float) -> str:
+    return f"{x:.9e} s  ({x * 1e6:.3f} us)"
+
+
+def compute_summary(jitter: np.ndarray, process_loop: np.ndarray, power: np.ndarray) -> dict[str, float]:
     jitter = jitter[np.isfinite(jitter)]
+    process_loop = process_loop[np.isfinite(process_loop)]
     power = power[np.isfinite(power)]
 
     if jitter.size == 0:
         raise ValueError("No finite jitter samples.")
+    if process_loop.size == 0:
+        raise ValueError("No finite process loop duration samples.")
     if power.size == 0:
         raise ValueError("No finite power samples.")
 
     max_abs_jitter = float(np.max(np.abs(jitter)))
     mean_abs_jitter = float(np.mean(np.abs(jitter)))
+    max_process_loop = float(np.max(process_loop))
+    mean_process_loop = float(np.mean(process_loop))
     max_power = float(np.max(power))
     mean_power = float(np.mean(power))
 
@@ -78,6 +90,8 @@ def compute_summary(jitter: np.ndarray, power: np.ndarray) -> dict[str, float]:
     return {
         "max_abs_jitter_sec": max_abs_jitter,
         "mean_abs_jitter_sec": mean_abs_jitter,
+        "max_process_loop_sec": max_process_loop,
+        "mean_process_loop_sec": mean_process_loop,
         "max_power": max_power,
         "mean_power": mean_power,
         "max_motoring_power": max_motoring_power,
@@ -90,6 +104,8 @@ def compute_summary(jitter: np.ndarray, power: np.ndarray) -> dict[str, float]:
 def summarize(summary: dict[str, float]) -> None:
     max_abs_jitter = summary["max_abs_jitter_sec"]
     mean_abs_jitter = summary["mean_abs_jitter_sec"]
+    max_process_loop = summary["max_process_loop_sec"]
+    mean_process_loop = summary["mean_process_loop_sec"]
     max_power = summary["max_power"]
     mean_power = summary["mean_power"]
     max_motoring_power = summary["max_motoring_power"]
@@ -99,6 +115,10 @@ def summarize(summary: dict[str, float]) -> None:
     print("\n=== Jitter ===")
     print(f"Max |jitter| : {fmt_jitter_sec(max_abs_jitter)}")
     print(f"Mean |jitter|: {fmt_jitter_sec(mean_abs_jitter)}")
+
+    print("\n=== Process loop duration ===")
+    print(f"Max (process loop) : {fmt_process_loop_sec(max_process_loop)}")
+    print(f"Mean (process loop): {fmt_process_loop_sec(mean_process_loop)}")
 
     print("\n=== Power (all samples) ===")
     print(f"Max power       : {max_power:.6g}")
@@ -153,6 +173,7 @@ def main() -> None:
 
     t = d["t_sec"]
     jitter = d["jitter_sec"]
+    process_loop = d["process_loop_sec"]
     pos = d["position"]
     vel = d["velocity"]
     cur = d["current"]
@@ -165,6 +186,7 @@ def main() -> None:
     m = np.isfinite(t)
     t = t[m]
     jitter = jitter[m]
+    process_loop = process_loop[m]
     pos = pos[m]
     vel = vel[m]
     cur = cur[m]
@@ -184,6 +206,7 @@ def main() -> None:
         mm = t <= args.limit
         t = t[mm]
         jitter = jitter[mm]
+        process_loop = process_loop[mm]
         pos = pos[mm]
         vel = vel[mm]
         cur = cur[mm]
@@ -192,11 +215,12 @@ def main() -> None:
         cmd_vel = cmd_vel[mm]
         cmd_cur = cmd_cur[mm]
 
-    summary = compute_summary(jitter, power)
+    summary = compute_summary(jitter, process_loop, power)
     summarize(summary)
 
     # Plots (jitter in us)
     plot_series(t, jitter * 1e6, "Time (s)", "Jitter (us)", "Loop Jitter vs Time")
+    plot_series(t, process_loop * 1e6, "Time (s)", "Process Loop Duration (us)", "Process Loop Duration vs Time")
     plot_pair(
         t,
         pos,

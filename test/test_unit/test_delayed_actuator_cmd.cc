@@ -57,7 +57,7 @@ timespec ToTimespec(std::chrono::nanoseconds duration)
 }
 
 // Monotonic time in seconds (double), similar spirit to this->now().seconds() but steady.
-double NowMonotonicSeconds()
+double NowMonotonicRawSeconds()
 {
   timespec ts{};
   clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
@@ -115,6 +115,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
   std::string telemetry_filename;
   std::vector<double> t_sec_samples;
   std::vector<double> jitter_sec_samples;
+  std::vector<double> process_loop_sec_samples;
   std::vector<double> position_samples;
   std::vector<double> velocity_samples;
   std::vector<double> current_samples;
@@ -131,6 +132,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
         "Hz.csv";
     t_sec_samples.resize(kMaxTelemetrySamples);
     jitter_sec_samples.resize(kMaxTelemetrySamples);
+    process_loop_sec_samples.resize(kMaxTelemetrySamples);
     position_samples.resize(kMaxTelemetrySamples);
     velocity_samples.resize(kMaxTelemetrySamples);
     current_samples.resize(kMaxTelemetrySamples);
@@ -158,7 +160,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     double jitter = 0.0;
     double current_time = 0.0;
     if (telemetry_enabled) {
-      current_time = NowMonotonicSeconds();
+      current_time = NowMonotonicRawSeconds();
       if (have_last_time) {
         jitter = current_time - last_time -  loop_period_sec;
       } else {
@@ -226,9 +228,12 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     }
     else {
       if (telemetry_enabled) {
+        current_time = NowMonotonicRawSeconds();
+        const double process_loop_time = current - last_time;
         if (telemetry_sample_count < kMaxTelemetrySamples) {
           t_sec_samples[telemetry_sample_count] = current_time;
           jitter_sec_samples[telemetry_sample_count] = jitter;
+          process_loop_sec_samples[telemetry_sample_count] = process_loop_time;
           position_samples[telemetry_sample_count] = pos;
           velocity_samples[telemetry_sample_count] = vel;
           current_samples[telemetry_sample_count] = cur;
@@ -264,10 +269,10 @@ void ProcessTimerThread(fastcat::Manager*              manager,
       ERROR("Failed to open %s for writing.", telemetry_filename.c_str());
       process_faulted->store(true);
     } else {
-      telemetry_csv << "t_sec,jitter_sec,position,velocity,current,power,cmd_position,ff_velocity,ff_current\n";
+      telemetry_csv << "t_sec,jitter_sec,process_loop_sec,position,velocity,current,power,cmd_position,ff_velocity,ff_current\n";
       telemetry_csv << std::fixed << std::setprecision(9);
       for (size_t i = 0; i < telemetry_sample_count; ++i) {
-        telemetry_csv << t_sec_samples[i] << "," << jitter_sec_samples[i] << ","
+        telemetry_csv << t_sec_samples[i] << "," << jitter_sec_samples[i] << "," << process_loop_sec_samples[i] << ","
                       << position_samples[i] << "," << velocity_samples[i] << ","
                       << current_samples[i] << "," << power_samples[i] << ","
                       << cmd_position_samples[i] << "," << ff_velocity_samples[i] << ","
