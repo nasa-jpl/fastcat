@@ -60,7 +60,7 @@ timespec ToTimespec(std::chrono::nanoseconds duration)
 double NowMonotonicSeconds()
 {
   timespec ts{};
-  clock_gettime(CLOCK_MONOTONIC, &ts);
+  clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
   return static_cast<double>(ts.tv_sec) + static_cast<double>(ts.tv_nsec) * 1e-9;
 }
 
@@ -88,7 +88,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
                         std::atomic<bool>*             sent_cmd,
                         std::atomic<bool>*             process_faulted)
 {
-  const int timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC);
+  const int timer_fd = timerfd_create(CLOCK_MONOTONIC_RAW, TFD_CLOEXEC);
   if (timer_fd < 0) {
     ERROR("Failed to create timerfd for Process thread (errno=%d).", errno);
     process_faulted->store(true);
@@ -154,6 +154,20 @@ void ProcessTimerThread(fastcat::Manager*              manager,
   while (!g_should_exit.load()) {
     uint64_t expirations = 0;
     const auto bytes_read = read(timer_fd, &expirations, sizeof(expirations));
+
+    double jitter = 0.0;
+    double current_time = 0.0;
+    if (telemetry_enabled) {
+      current_time = NowMonotonicSeconds();
+      if (have_last_time) {
+        jitter = current_time - last_time -  loop_period_sec;
+      } else {
+        jitter = 0.0;
+        have_last_time = true;
+      }
+      last_time = current_time;
+    }
+
     if (bytes_read < 0) {
       if (errno == EINTR) {
         continue;
@@ -188,7 +202,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     std::vector<fastcat::DeviceState> states = manager->GetDeviceStates();
     for (const auto& s : states) {
       if (s.name != actuator_name) {
-        continue;
+        continue; 
       }
       pos   = s.gold_actuator_state.actual_position;
       vel   = s.gold_actuator_state.actual_velocity;
@@ -212,15 +226,6 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     }
     else {
       if (telemetry_enabled) {
-        const double current_time = NowMonotonicSeconds();
-        double jitter = 0.0;
-        if (have_last_time) {
-          jitter = current_time - last_time - loop_period_sec;
-        } else {
-          have_last_time = true;
-        }
-        last_time = current_time;
-
         if (telemetry_sample_count < kMaxTelemetrySamples) {
           t_sec_samples[telemetry_sample_count] = current_time;
           jitter_sec_samples[telemetry_sample_count] = jitter;
