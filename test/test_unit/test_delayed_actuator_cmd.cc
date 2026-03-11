@@ -229,7 +229,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     else {
       if (telemetry_enabled) {
         current_time = NowMonotonicRawSeconds();
-        const double process_loop_time = current - last_time;
+        const double process_loop_time = current_time - last_time;
         if (telemetry_sample_count < kMaxTelemetrySamples) {
           t_sec_samples[telemetry_sample_count] = current_time;
           jitter_sec_samples[telemetry_sample_count] = jitter;
