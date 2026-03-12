@@ -116,6 +116,8 @@ def collect_points(directory: str) -> list[SweepPoint]:
             # Unsuccessful runs (<0.5 s) should not be represented as zeros.
             max_abs_jitter = float("nan")
             mean_abs_jitter = float("nan")
+            max_process_loop = float("nan")
+            mean_process_loop = float("nan")
             max_power = float("nan")
             mean_power = float("nan")
             max_abs_jitter_exceeds_period = 0
@@ -128,6 +130,8 @@ def collect_points(directory: str) -> list[SweepPoint]:
                 test_success=test_success,
                 max_abs_jitter_sec=max_abs_jitter,
                 mean_abs_jitter_sec=mean_abs_jitter,
+                max_process_loop_sec=max_process_loop,
+                mean_process_loop_sec=mean_process_loop,
                 max_power=max_power,
                 mean_power=mean_power,
                 max_abs_jitter_exceeds_period=max_abs_jitter_exceeds_period,
@@ -163,6 +167,8 @@ def write_sweep_csv(points: list[SweepPoint], out_csv: str) -> None:
                     p.test_success,
                     p.max_abs_jitter_sec,
                     p.mean_abs_jitter_sec,
+                    p.max_process_loop_sec,
+                    p.mean_process_loop_sec,
                     p.max_power,
                     p.mean_power,
                     p.max_abs_jitter_exceeds_period,
@@ -189,6 +195,15 @@ def plot_sweep(points: list[SweepPoint]) -> None:
     plt.xlabel("Process loop frequency (Hz)")
     plt.ylabel("Jitter (us)")
     plt.title("Jitter vs Process Loop Frequency")
+    plt.grid(True)
+    plt.legend()
+
+    plt.figure()
+    plt.plot(freq, max_process_loop_us, marker="o", label="Max (process loop duration)")
+    plt.plot(freq, mean_process_loop_us, marker="o", label="Mean (process loop duration)")
+    plt.xlabel("Process loop frequency (Hz)")
+    plt.ylabel("Process loop duration (us)")
+    plt.title("Process Loop Duration vs Process Loop Frequency")
     plt.grid(True)
     plt.legend()
 
