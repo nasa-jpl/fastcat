@@ -5,6 +5,7 @@
 #include <cctype>
 #include <cstdint>
 #include <exception>
+#include <functional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -24,6 +25,21 @@
 namespace
 {
 std::atomic<bool> g_should_exit(false);
+constexpr size_t  kMaxTelemetrySamples = 1000000;
+
+struct TelemetryBuffers
+{
+  std::vector<double> t_sec_samples;
+  std::vector<double> jitter_sec_samples;
+  std::vector<double> process_loop_sec_samples;
+  std::vector<double> position_samples;
+  std::vector<double> velocity_samples;
+  std::vector<double> current_samples;
+  std::vector<double> power_samples;
+  std::vector<double> cmd_position_samples;
+  std::vector<double> ff_velocity_samples;
+  std::vector<double> ff_current_samples;
+};
 
 void SignalHandler(int)
 {
@@ -85,6 +101,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
                         std::string                    actuator_name,
                         std::chrono::nanoseconds       loop_period,
                         bool                           telemetry_enabled,
+                        TelemetryBuffers&              telemetry_buffers,
                         std::atomic<bool>*             sent_cmd,
                         std::atomic<bool>*             process_faulted)
 {
@@ -111,18 +128,17 @@ void ProcessTimerThread(fastcat::Manager*              manager,
   // ---- Telemetry logging setup ----
   const double loop_period_sec =
       std::chrono::duration_cast<std::chrono::duration<double>>(loop_period).count();
-  constexpr size_t kMaxTelemetrySamples = 1000000;
   std::string telemetry_filename;
-  std::vector<double> t_sec_samples;
-  std::vector<double> jitter_sec_samples;
-  std::vector<double> process_loop_sec_samples;
-  std::vector<double> position_samples;
-  std::vector<double> velocity_samples;
-  std::vector<double> current_samples;
-  std::vector<double> power_samples;
-  std::vector<double> cmd_position_samples;
-  std::vector<double> ff_velocity_samples;
-  std::vector<double> ff_current_samples;
+  auto& t_sec_samples            = telemetry_buffers.t_sec_samples;
+  auto& jitter_sec_samples       = telemetry_buffers.jitter_sec_samples;
+  auto& process_loop_sec_samples = telemetry_buffers.process_loop_sec_samples;
+  auto& position_samples         = telemetry_buffers.position_samples;
+  auto& velocity_samples         = telemetry_buffers.velocity_samples;
+  auto& current_samples          = telemetry_buffers.current_samples;
+  auto& power_samples            = telemetry_buffers.power_samples;
+  auto& cmd_position_samples     = telemetry_buffers.cmd_position_samples;
+  auto& ff_velocity_samples      = telemetry_buffers.ff_velocity_samples;
+  auto& ff_current_samples       = telemetry_buffers.ff_current_samples;
   size_t telemetry_sample_count = 0;
   bool telemetry_overflow = false;
   if (telemetry_enabled) {
@@ -130,16 +146,6 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     telemetry_filename =
         "process_telemetry_" + std::to_string(loop_frequency_hz) +
         "Hz.csv";
-    t_sec_samples.resize(kMaxTelemetrySamples);
-    jitter_sec_samples.resize(kMaxTelemetrySamples);
-    process_loop_sec_samples.resize(kMaxTelemetrySamples);
-    position_samples.resize(kMaxTelemetrySamples);
-    velocity_samples.resize(kMaxTelemetrySamples);
-    current_samples.resize(kMaxTelemetrySamples);
-    power_samples.resize(kMaxTelemetrySamples);
-    cmd_position_samples.resize(kMaxTelemetrySamples);
-    ff_velocity_samples.resize(kMaxTelemetrySamples);
-    ff_current_samples.resize(kMaxTelemetrySamples);
     MSG("Buffering telemetry in memory (max %zu samples) and writing to %s at shutdown.",
         kMaxTelemetrySamples, telemetry_filename.c_str());
   } else {
@@ -159,6 +165,17 @@ void ProcessTimerThread(fastcat::Manager*              manager,
 
     double jitter = 0.0;
     double current_time = 0.0;
+
+    if (telemetry_enabled) {
+      current_time = NowMonotonicSeconds();
+      if (have_last_time) {
+        jitter = current_time - last_time -  loop_period_sec;
+      } else {
+        jitter = 0.0;
+        have_last_time = true;
+      }
+      last_time = current_time;
+    }
 
     if (bytes_read < 0) {
       if (errno == EINTR) {
@@ -183,18 +200,6 @@ void ProcessTimerThread(fastcat::Manager*              manager,
       g_should_exit.store(true);
       break;
     }
-
-    if (telemetry_enabled) {
-      current_time = NowMonotonicSeconds();
-      if (have_last_time) {
-        jitter = current_time - last_time -  loop_period_sec;
-      } else {
-        jitter = 0.0;
-        have_last_time = true;
-      }
-      last_time = current_time;
-    }
-
 
     double pos    = 0.0;
     double vel    = 0.0;
@@ -224,8 +229,6 @@ void ProcessTimerThread(fastcat::Manager*              manager,
 
     if (!recording_started) {
       recording_started = true;
-      have_last_time    = false;
-      last_time         = 0.0;
       MSG("Starting telemetry recording after command was sent.");
     }
     else {
@@ -301,6 +304,7 @@ int main(int argc, char* argv[])
   double profile_velocity = 0.0;
   double profile_accel    = 0.0;
   bool enable_telemetry   = true;
+  TelemetryBuffers telemetry_buffers;
   try {
     delay_sec        = std::stod(argv[1]);
     target_position  = std::stod(argv[2]);
@@ -323,6 +327,19 @@ int main(int argc, char* argv[])
   if (delay_sec < 0.0) {
     ERROR("Delay must be >= 0.");
     return 1;
+  }
+
+  if (enable_telemetry) {
+    telemetry_buffers.t_sec_samples.resize(kMaxTelemetrySamples);
+    telemetry_buffers.jitter_sec_samples.resize(kMaxTelemetrySamples);
+    telemetry_buffers.process_loop_sec_samples.resize(kMaxTelemetrySamples);
+    telemetry_buffers.position_samples.resize(kMaxTelemetrySamples);
+    telemetry_buffers.velocity_samples.resize(kMaxTelemetrySamples);
+    telemetry_buffers.current_samples.resize(kMaxTelemetrySamples);
+    telemetry_buffers.power_samples.resize(kMaxTelemetrySamples);
+    telemetry_buffers.cmd_position_samples.resize(kMaxTelemetrySamples);
+    telemetry_buffers.ff_velocity_samples.resize(kMaxTelemetrySamples);
+    telemetry_buffers.ff_current_samples.resize(kMaxTelemetrySamples);
   }
 
   std::string yaml_config_path(argv[6]);
@@ -382,6 +399,7 @@ int main(int argc, char* argv[])
   std::thread process_thread(
       ProcessTimerThread, &fcat_manager, actuator_name, loop_period,
       enable_telemetry,
+      std::ref(telemetry_buffers),
       &sent_cmd,
       &process_faulted);
 
