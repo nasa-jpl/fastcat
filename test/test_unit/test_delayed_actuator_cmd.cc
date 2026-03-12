@@ -146,7 +146,6 @@ void ProcessTimerThread(fastcat::Manager*              manager,
     telemetry_filename =
         "process_telemetry_" + std::to_string(loop_frequency_hz) +
         "Hz.csv";
-    // MSG("Buffering telemetry in memory (max %zu samples) and writing to %s at shutdown.", kMaxTelemetrySamples, telemetry_filename.c_str());
   } else {
     MSG("Telemetry recording disabled.");
   }
