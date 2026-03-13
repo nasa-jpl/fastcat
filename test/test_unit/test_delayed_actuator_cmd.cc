@@ -252,6 +252,8 @@ int main(int argc, char* argv[])
     return 1;
   }
 
+  MSG("Running delayed actuator cmd with NO BUFFERING!");
+
   double delay_sec        = 0.0;
   double target_position  = 0.0;
   double profile_velocity = 0.0;
