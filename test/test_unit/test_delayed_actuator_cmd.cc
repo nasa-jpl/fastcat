@@ -218,7 +218,7 @@ void ProcessTimerThread(fastcat::Manager*              manager,
         current_time = NowMonotonicSeconds();
         const double process_loop_time = current_time - last_time;
 
-        telemetry_csv << current_time << "," << jitter << "," << process_loop_time << "."
+        telemetry_csv << current_time << "," << jitter << "," << process_loop_time << ","
                       << pos << "," << vel << "," << cur << "," << power << ","
                       << cmd_pos << "," << ff_vel << "," << ff_cur << "\n";
       }
