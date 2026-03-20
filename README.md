@@ -11,11 +11,11 @@ To learn more about fastcat, checkout the following documents:
 - 2021 Aeroconf paper submission `Fastcat: An Open-Source Library for Composable
   EtherCAT Control Systems`
 - README for build details
-- The API documentation (build locally using doxygen - Github hosting still a work-in-progress)
+- The API documentation
 
 ### Prerequisites
 
-Fastcat has ben tested on Ubuntu 20.04, though it should work on older versions of Ubuntu with minor revisions to these steps. 
+Fastcat has ben tested on Ubuntu 20.04, 22.04 and 24.04, though it should work on older versions of Ubuntu with minor revisions to these steps. 
 
 ```bash
 $ sudo apt install libyaml-cpp-dev libreadline-dev doxygen python3-pip
@@ -51,8 +51,6 @@ $ make memcheck  # note valgrind is required to perform memory checking
 ```bash
 # Install dependencies for Ubuntu
 $ sudo apt install doxygen graphviz
-
-# use the build system to generate the code for you!
 $ cd build
 $ make doc
 ```
@@ -67,12 +65,12 @@ We recommend using the CMake `FetchContent` utility to acquire fastcat and its u
 include(FetchContent)
 FetchContent_Declare(fastcat
     GIT_REPOSITORY git@github.com:nasa-jpl/fastcat.git
-    GIT_TAG v0.4.3
+    GIT_TAG v0.13.13
     )
 FetchContent_MakeAvailable(fastcat)
 ```
 
-It is always recommend you specify your dependency to a tagged reldroppingease (`GIT_TAG v0.4.3`) so updates to master cannot break your build (NOT `GIT_TAG master`). 
+It is always recommend you specify your dependency to a tagged reldroppingease (`GIT_TAG v0.13.13`) so updates to master cannot break your build (NOT `GIT_TAG master`). 
 
 ### Semantic Versioning
 
@@ -83,8 +81,4 @@ fastcat uses Semantic versioning to help applications reason about the software 
 * Patch Versions will denote bug fixes or minor improvements and will not break user applications.
 
 Violations of these rules will be considered errors and should be patched immediately. Please open an issue if you find a violation.
-
-**Note**
-
-Major version `0` indicates the API is still considered experimental and subject to change with any new release. These rules will be strictly followed after a Major version `1` release. 
 
