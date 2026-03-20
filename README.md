@@ -80,6 +80,8 @@ $ make doc
 
 The output documentation is created in the directory `doxygen_html` and can be opened by any web browser from the root `index.html` webpage.
 
+The repository also includes a GitHub Actions workflow that builds this `doc` target and publishes it to GitHub Pages on pushes to `master`. Once GitHub Pages is enabled for the repository with GitHub Actions as the source, the published site will be available at <https://nasa-jpl.github.io/fastcat/>.
+
 ### Using fastcat in your Project
 
 We recommend using the CMake `FetchContent` utility to acquire fastcat and its upstream dependencies.

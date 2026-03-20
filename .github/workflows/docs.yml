@@ -1,0 +1,53 @@
+name: docs
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - ".doxyfile.in"
+      - "CMakeLists.txt"
+      - "README.md"
+      - "doc/**"
+      - "src/**"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Install documentation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz libyaml-cpp-dev
+      - name: Configure CMake
+        run: cmake -S . -B build -DBUILD_TESTS=OFF
+      - name: Build documentation
+        run: cmake --build build --target doc
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: build/doxygen_html
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
