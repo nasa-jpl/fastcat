@@ -49,29 +49,12 @@ def GetStateFields(type_data, device_class_name):
 
   return field_list
 
-def main():
-  args = ParseArgs()
-
-  from graphviz import Digraph
-  import yaml
-  import IPython
-
-  print("Attempting to open %s" % args.config_yaml)
-  with open(args.config_yaml, 'r') as config_file:
-    data = yaml.load(config_file, Loader=yaml.Loader)
-
-  with open('src/fcgen/fastcat_types.yaml', 'r') as types_file:
-    type_data = yaml.load(types_file, Loader=yaml.Loader)
-
-  bus_data = data['buses']
-
+def CreateGraph(bus_data, type_data, Digraph):
   dot = Digraph(comment="fcviz")
   dot.graph_attr['nodesep'] = '1'
   dot.node_attr['shape'] = 'record'
   dot.node_attr['width'] = '0.1'
   dot.node_attr['height'] = '0.1'
-
-  dot_edges = [];
 
   for bus in bus_data:
     devices = bus['devices']
@@ -133,6 +116,24 @@ def main():
 
           print('from: %s; to: %s' % (from_node_str, to_node_str))
           dot.edge(from_node_str, to_node_str, label=label_str)
+
+  return dot
+
+def main():
+  args = ParseArgs()
+
+  from graphviz import Digraph
+  import yaml
+  import IPython
+
+  print("Attempting to open %s" % args.config_yaml)
+  with open(args.config_yaml, 'r') as config_file:
+    data = yaml.load(config_file, Loader=yaml.Loader)
+
+  with open('src/fcgen/fastcat_types.yaml', 'r') as types_file:
+    type_data = yaml.load(types_file, Loader=yaml.Loader)
+
+  dot = CreateGraph(data['buses'], type_data, Digraph)
 
   dot.engine = 'dot'
   print(dot.source)
