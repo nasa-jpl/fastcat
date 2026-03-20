@@ -15,11 +15,34 @@ To learn more about fastcat, checkout the following documents:
 
 ### Prerequisites
 
-Fastcat has ben tested on Ubuntu 20.04, 22.04 and 24.04, though it should work on older versions of Ubuntu with minor revisions to these steps. 
+Fastcat has been tested on Ubuntu 20.04, 22.04 and 24.04, though it should work on older versions of Ubuntu with minor revisions to these steps.
 
 ```bash
-$ sudo apt install libyaml-cpp-dev libreadline-dev doxygen python3-pip
-$ sudo pip3 install pyaml cogapp graphviz ipython==7.9
+$ sudo apt install libyaml-cpp-dev libreadline-dev doxygen graphviz
+```
+
+The `fcviz` utility is configured as a `uv` script, so its Python dependencies do not need to be installed globally:
+
+Install `uv` using Astral's official installer:
+
+```bash
+$ curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Installation options and other platforms are documented by Astral at <https://docs.astral.sh/uv/getting-started/installation/>.
+
+```bash
+$ uv run fcviz/fcviz.py example_configs/paper_examples/paper_faulter_config.yaml
+```
+
+If you do not want to use `uv`, check the inline dependency metadata at the top of `fcviz/fcviz.py` and install those packages in your preferred Python environment before running the script directly.
+
+If you need to regenerate code with `fcgen`, install Ubuntu's `python3-cogapp` package. On some systems, you may need to enable the `universe` repository first:
+
+```bash
+$ sudo add-apt-repository universe
+$ sudo apt update
+$ sudo apt install python3-cogapp
 ```
 
 ### Building
@@ -81,4 +104,3 @@ fastcat uses Semantic versioning to help applications reason about the software 
 * Patch Versions will denote bug fixes or minor improvements and will not break user applications.
 
 Violations of these rules will be considered errors and should be patched immediately. Please open an issue if you find a violation.
-

@@ -1,3 +1,15 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.8"
+# dependencies = [
+#   "graphviz",
+#   "ipython==7.9",
+#   "PyYAML",
+# ]
+# ///
+# If you prefer not to use uv, install the dependencies listed above and run
+# this file with python3 directly.
+
 import sys
 from graphviz import Digraph
 import yaml
