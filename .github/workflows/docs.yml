@@ -11,12 +11,24 @@ on:
       - "doc/**"
       - "src/**"
       - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - ".doxyfile.in"
+      - "CMakeLists.txt"
+      - "README.md"
+      - "doc/**"
+      - "src/**"
+      - ".github/workflows/docs.yml"
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Deploy the generated docs to GitHub Pages"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -27,7 +39,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
       - name: Install documentation dependencies
         run: |
           sudo apt-get update
@@ -37,17 +48,23 @@ jobs:
       - name: Build documentation
         run: cmake --build build --target doc
       - name: Upload Pages artifact
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && inputs.deploy)
         uses: actions/upload-pages-artifact@v4
         with:
           path: build/doxygen_html
 
   deploy:
     needs: build
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && inputs.deploy)
     runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/configure-pages@v5
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
