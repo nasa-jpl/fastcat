@@ -2,7 +2,8 @@
 #define FASTCAT_THREAD_SAFE_QUEUE_H_
 
 #include <queue>
-#include <mutex>
+
+#include "fastcat/mutex.h"
 
 namespace fastcat {
 template <class T>
@@ -15,31 +16,31 @@ public:
 
   void push(T t)
   {
-    std::lock_guard<std::mutex> lock(m);
+    LockGuard<Mutex> lock(m);
     q.push(t);
   }
 
   T front(void)
   {
-    std::lock_guard<std::mutex> lock(m);
-  	return q.front();  
+    LockGuard<Mutex> lock(m);
+    return q.front();
   }
 
   void pop(void)
   {
-    std::lock_guard<std::mutex> lock(m);
-		q.pop();
+    LockGuard<Mutex> lock(m);
+    q.pop();
   }
 
   bool empty(void)
   {
-    std::lock_guard<std::mutex> lock(m);
-		return q.empty();
+    LockGuard<Mutex> lock(m);
+    return q.empty();
   }
 
   bool try_pop(T& item)
   {
-    std::lock_guard<std::mutex> lock(m);
+    LockGuard<Mutex> lock(m);
     if (q.empty()) {
       return false;
     }
@@ -51,7 +52,7 @@ public:
 
 private:
   std::queue<T> q;
-  mutable std::mutex m;
+  mutable Mutex  m;
 
 };
 

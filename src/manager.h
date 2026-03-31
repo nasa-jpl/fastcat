@@ -5,7 +5,6 @@
 
 // Include c then c++ libraries
 #include <memory>
-#include <mutex>
 #include <queue>
 #include <unordered_map>
 #include <vector>
@@ -13,6 +12,7 @@
 // Include external then project includes
 #include <yaml-cpp/yaml.h>
 
+#include "fastcat/mutex.h"
 #include "fastcat/thread_safe_queue.h"
 #include "fastcat/device_base.h"
 #include "fastcat/jsd/actuator.h"
@@ -246,7 +246,7 @@ class Manager
   std::unordered_map<std::string, bool>              unique_device_map_;
   std::shared_ptr<std::queue<SdoResponse>>           sdo_response_queue_;
 
-  std::mutex parameter_mutex_;
+  Mutex parameter_mutex_;
 
 };
 }  // namespace fastcat

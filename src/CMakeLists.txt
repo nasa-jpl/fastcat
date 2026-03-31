@@ -137,12 +137,22 @@ target_include_directories(
     ${SOEM_INCLUDE_DIRS}
     )
 
-target_link_libraries(fastcat
-    jsd-lib
-    ${YAMLCPP_LIBRARY}
-    )
+if(FASTCAT_USE_YAMLCPP_SHIM)
+    if(NOT FASTCAT_YAMLCPP_SHIM_INCLUDE_DIR)
+        message(FATAL_ERROR
+            "FASTCAT_USE_YAMLCPP_SHIM requires FASTCAT_YAMLCPP_SHIM_INCLUDE_DIR")
+    endif()
+
+    target_compile_definitions(fastcat PUBLIC FASTCAT_USE_YAMLCPP_SHIM)
+    target_include_directories(fastcat PUBLIC ${FASTCAT_YAMLCPP_SHIM_INCLUDE_DIR})
+    target_link_libraries(fastcat jsd-lib)
+else()
+    target_link_libraries(fastcat
+        jsd-lib
+        ${YAMLCPP_LIBRARY}
+        )
+endif()
 
 add_dependencies(fastcat
     fcgen
     )
-

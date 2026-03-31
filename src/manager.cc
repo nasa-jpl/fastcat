@@ -230,7 +230,7 @@ bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
 
 bool fastcat::Manager::Process(double external_time)
 {
-  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  fastcat::LockGuard<fastcat::Mutex> lock(parameter_mutex_);
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     auto ifname = it->first;
     auto jsd    = it->second;
@@ -317,7 +317,7 @@ bool fastcat::Manager::Process(double external_time)
   SdoResponse entry;
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     while (jsd_sdo_pop_response_queue(it->second, &entry.response)) {
-      if (entry.response.slave_id <= *(it->second->ecx_context.slavecount)) {
+      if (entry.response.slave_id <= it->second->ecx_context.slavecount) {
         entry.device_name =
             it->second->slave_configs[entry.response.slave_id].name;
       } else {
@@ -1077,6 +1077,12 @@ bool fastcat::Manager::LoadActuatorPosFile()
 
   MSG_DEBUG("Opening Pos File: %s", pos_file.c_str());
 
+#ifdef FASTCAT_USE_YAMLCPP_SHIM
+  WARNING("Ignoring saved actuator positions file while using the YAML shim");
+  WARNING("\tPath: %s", pos_file.c_str());
+  return true;
+#endif
+
   YAML::Node node = YAML::LoadFile(pos_file);
   if (!node) {
     ERROR("Could not parse pos file YAML: %s", pos_file.c_str());
@@ -1276,7 +1282,7 @@ bool fastcat::Manager::CheckDeviceNameIsUnique(std::string name)
 
 void fastcat::Manager::SetExplicitInterpolationAlgorithmCubic()
 {
-  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  fastcat::LockGuard<fastcat::Mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
@@ -1289,7 +1295,7 @@ void fastcat::Manager::SetExplicitInterpolationAlgorithmCubic()
 
 void fastcat::Manager::SetExplicitInterpolationAlgorithmLinear()
 {
-  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  fastcat::LockGuard<fastcat::Mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
@@ -1302,7 +1308,7 @@ void fastcat::Manager::SetExplicitInterpolationAlgorithmLinear()
 
 void fastcat::Manager::SetExplicitInterpolationTimestampSourceCspMessage()
 {
-  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  fastcat::LockGuard<fastcat::Mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
@@ -1315,7 +1321,7 @@ void fastcat::Manager::SetExplicitInterpolationTimestampSourceCspMessage()
 
 void fastcat::Manager::SetExplicitInterpolationTimestampSourceClock()
 {
-  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  fastcat::LockGuard<fastcat::Mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
@@ -1332,7 +1338,7 @@ bool fastcat::Manager::SetExplicitInterpolationCyclesDelay(size_t delay)
     ERROR("Cannot set cycles delay > 50 for explicit interpolation");
     return false;
   }
-  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  fastcat::LockGuard<fastcat::Mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
@@ -1345,7 +1351,7 @@ bool fastcat::Manager::SetExplicitInterpolationCyclesDelay(size_t delay)
 
 bool fastcat::Manager::SetInterpolationCyclesStale(size_t cycles)
 {
-  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  fastcat::LockGuard<fastcat::Mutex> lock(parameter_mutex_);
   for (auto device : jsd_device_list_) {
     if (device->GetState()->type == GOLD_ACTUATOR_STATE ||
         device->GetState()->type == PLATINUM_ACTUATOR_STATE) {
