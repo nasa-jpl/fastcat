@@ -125,6 +125,16 @@ bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
     return false;
   }
 
+  bad_working_counter_fault_threshold_ = 0U;
+  if (fastcat_node["bad_working_counter_fault_threshold"] &&
+      !ParseVal(fastcat_node, "bad_working_counter_fault_threshold",
+                bad_working_counter_fault_threshold_)) {
+    return false;
+  }
+  bad_working_counter_count_ = 0;
+  bad_working_counter_event_count_ = 0U;
+  bad_working_counter_event_drop_count_ = 0U;
+
   // Configure Buses
   YAML::Node buses_node;
   if (!ParseList(node, "buses", buses_node)) {
@@ -213,9 +223,9 @@ bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
   //   before reporting valid actual encoder positions after startup.
   //   An up-to-date drive position is absolutely essential to setting the
   //   Actuator posititions properly from file using incremental encoders.
-  this->Process();  // PDO Read and Write (first PDO Write)
-  this->Process();  // PDO Read and Write (Need to re-read after the first PDO
-                    // write)
+  PrimeJsdProcessDataReceive();
+  this->Process();  // PDO Read and Write (receives the primed PDO frame)
+  this->Process();  // PDO Read and Write (re-read after the first warm-up write)
 
   if (!SetActuatorPositions()) {
     return false;
@@ -228,6 +238,17 @@ bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
   return true;
 }
 
+void fastcat::Manager::PrimeJsdProcessDataReceive()
+{
+  // The fastcat process loop intentionally reads first and writes last, so each
+  // cycle receives the PDO frame sent by the previous cycle. During startup,
+  // send one frame before the warm-up Process() calls so the first read has an
+  // outstanding PDO frame to receive instead of reporting EC_NOFRAME.
+  for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
+    jsd_write(it->second);
+  }
+}
+
 bool fastcat::Manager::Process(double external_time)
 {
   fastcat::LockGuard<fastcat::Mutex> lock(parameter_mutex_);
@@ -235,10 +256,41 @@ bool fastcat::Manager::Process(double external_time)
     auto ifname = it->first;
     auto jsd    = it->second;
     jsd_read(jsd, 1e6 / target_loop_rate_hz_);
-    if (jsd->wkc != jsd->expected_wkc && !IsFaulted()) {
-      ERROR("Bad working counter experienced on jsd bus %s", ifname.c_str());
-      jsd_inspect_context(jsd);
-      ExecuteAllDeviceFaults();
+    if (jsd->wkc != jsd->expected_wkc) {
+      ++bad_working_counter_count_;
+      if (bad_working_counter_event_count_ < kMaxBadWorkingCounterEvents) {
+        auto& event = bad_working_counter_events_[bad_working_counter_event_count_++];
+        event.count = bad_working_counter_count_;
+        event.time_sec = jsd_time_get_mono_time_sec();
+        event.actual_wkc = jsd->wkc;
+        event.expected_wkc = jsd->expected_wkc;
+      } else {
+        ++bad_working_counter_event_drop_count_;
+      }
+      if (!IsFaulted()) {
+        const bool should_fault =
+            bad_working_counter_fault_threshold_ == 0U ||
+            bad_working_counter_count_ >= bad_working_counter_fault_threshold_;
+        if (should_fault) {
+          ERROR("Bad working counter fault threshold reached on jsd bus %s "
+                "(count: %lu, threshold: %lu, actual: %d, expected: %d)",
+                ifname.c_str(),
+                static_cast<unsigned long>(bad_working_counter_count_),
+                static_cast<unsigned long>(bad_working_counter_fault_threshold_),
+                jsd->wkc, jsd->expected_wkc);
+          jsd_inspect_context(jsd);
+          ExecuteAllDeviceFaults();
+        } else if (bad_working_counter_count_ == 1U ||
+                   (bad_working_counter_count_ % 1000U) == 0U) {
+          WARNING(
+              "Bad working counter tolerated on jsd bus %s "
+              "(count: %lu, threshold: %lu, actual: %d, expected: %d)",
+              ifname.c_str(),
+              static_cast<unsigned long>(bad_working_counter_count_),
+              static_cast<unsigned long>(bad_working_counter_fault_threshold_),
+              jsd->wkc, jsd->expected_wkc);
+        }
+      }
     }
   }
 
@@ -366,6 +418,32 @@ fastcat::Manager::GetDeviceStatePointers()
 double fastcat::Manager::GetTargetLoopRate() { return target_loop_rate_hz_; }
 
 bool fastcat::Manager::IsFaulted() { return faulted_; }
+
+uint64_t fastcat::Manager::GetBadWorkingCounterCount()
+{
+  return bad_working_counter_count_;
+}
+
+std::size_t fastcat::Manager::GetBadWorkingCounterEventCount()
+{
+  return bad_working_counter_event_count_;
+}
+
+uint64_t fastcat::Manager::GetBadWorkingCounterEventDropCount()
+{
+  return bad_working_counter_event_drop_count_;
+}
+
+bool fastcat::Manager::GetBadWorkingCounterEvent(
+    std::size_t index, BadWorkingCounterEvent& event)
+{
+  if (index >= bad_working_counter_event_count_) {
+    return false;
+  }
+
+  event = bad_working_counter_events_[index];
+  return true;
+}
 
 void fastcat::Manager::GetDeviceNamesByType(
     std::vector<std::string>& names, fastcat::DeviceStateType device_state_type)

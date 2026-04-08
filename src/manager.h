@@ -4,6 +4,8 @@
 // Include related header (for cc files)
 
 // Include c then c++ libraries
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <queue>
 #include <unordered_map>
@@ -30,6 +32,15 @@ typedef std::pair<std::string, jsd_t*>                      JSDPair;
 class Manager
 {
  public:
+  static constexpr std::size_t kMaxBadWorkingCounterEvents = 128;
+
+  struct BadWorkingCounterEvent {
+    uint64_t count = 0;
+    double time_sec = 0.0;
+    int actual_wkc = 0;
+    int expected_wkc = 0;
+  };
+
   Manager();
   ~Manager();
 
@@ -107,6 +118,15 @@ class Manager
    *  @return true if bus is faulted
    */
   bool IsFaulted();
+
+  /** @brief Public getter for bad EtherCAT working counter events
+   *  @return number of bad working counter events seen by Process()
+   */
+  uint64_t GetBadWorkingCounterCount();
+  std::size_t GetBadWorkingCounterEventCount();
+  uint64_t GetBadWorkingCounterEventDropCount();
+  bool GetBadWorkingCounterEvent(std::size_t index,
+                                 BadWorkingCounterEvent& event);
 
   /** @brief Attempts to recover a faulty JSD bus by name
    *
@@ -215,6 +235,7 @@ class Manager
   bool ConfigJSDBusFromYaml(const YAML::Node& node, double external_time);
   bool ConfigFastcatBusFromYaml(const YAML::Node& node, double external_time);
   bool ConfigOfflineBusFromYaml(const YAML::Node& node, double external_time);
+  void PrimeJsdProcessDataReceive();
   bool WriteCommands();
   bool ConfigSignals();
   bool SortFastcatDevice(
@@ -231,9 +252,14 @@ class Manager
 
   double                        target_loop_rate_hz_                = 0.0;
   bool                          zero_latency_required_              = true;
+  uint64_t                      bad_working_counter_fault_threshold_ = 0U;
   bool                          faulted_                            = true;
   bool                          actuator_fault_on_missing_pos_file_ = true;
   bool                          online_devices_exist_               = false;
+  uint64_t                      bad_working_counter_count_          = 0;
+  BadWorkingCounterEvent        bad_working_counter_events_[kMaxBadWorkingCounterEvents];
+  std::size_t                   bad_working_counter_event_count_    = 0U;
+  uint64_t                      bad_working_counter_event_drop_count_ = 0U;
   std::string                   actuator_position_directory_;
   std::map<std::string, jsd_t*> jsd_map_;
 
