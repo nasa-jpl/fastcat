@@ -97,8 +97,8 @@ void fastcat::Manager::Shutdown()
   SaveActuatorPosFile();
 }
 
-bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
-                                      double            external_time)
+bool fastcat::Manager::CreateConfigFromYaml(const YAML::Node& node,
+                                            double            external_time)
 {
   // Configure Fastcat Parameters
   YAML::Node fastcat_node;
@@ -209,6 +209,15 @@ bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
   SUCCESS("Configured Signals.");
 
   return true;
+}
+
+bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
+                                      double            external_time)
+{
+  if (!CreateConfigFromYaml(node, external_time)) {
+    return false;
+  }
+  return InitHardware();
 }
 
 bool fastcat::Manager::InitHardware()

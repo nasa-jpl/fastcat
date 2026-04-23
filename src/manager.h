@@ -47,6 +47,12 @@ class Manager
    */
   bool ConfigFromYaml(const YAML::Node& node, double external_time = -1);
 
+  /** @brief Parses YAML configuration and creates device objects (no hardware init)
+   *
+   *  @return true on successful configuration. If false, application should quit.
+   */
+  bool CreateConfigFromYaml(const YAML::Node& node, double external_time = -1);
+
   /** @brief Initializes EtherCAT hardware (executes deferred jsd_init calls)
    *
    *  @return true on successful hardware initialization. If false, application should quit.
