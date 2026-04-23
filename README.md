@@ -72,7 +72,72 @@ FetchContent_Declare(fastcat
 FetchContent_MakeAvailable(fastcat)
 ```
 
-It is always recommend you specify your dependency to a tagged reldroppingease (`GIT_TAG v0.4.3`) so updates to master cannot break your build (NOT `GIT_TAG master`). 
+It is always recommend you specify your dependency to a tagged release (`GIT_TAG v0.4.3`) so updates to master cannot break your build (NOT `GIT_TAG master`).
+
+### Manager API Usage
+
+Fastcat provides two initialization patterns to accommodate different application architectures:
+
+#### Standard Initialization (Single-Phase)
+
+For simple applications, use `ConfigFromYaml()` which handles both configuration parsing and hardware initialization:
+
+```cpp
+#include "fastcat/manager.h"
+
+fastcat::Manager manager;
+YAML::Node node = YAML::LoadFile("config.yaml");
+
+if (!manager.ConfigFromYaml(node)) {
+    // Handle error
+    return false;
+}
+
+// Manager is ready - start your control loop
+while (running) {
+    manager.Process();
+}
+```
+
+#### Split Initialization (Two-Phase)
+
+For applications that need to perform time-consuming operations between configuration parsing and hardware initialization (e.g., ROS node setup), use the split API to prevent EtherCAT watchdog timeouts:
+
+```cpp
+#include "fastcat/manager.h"
+
+fastcat::Manager manager;
+YAML::Node node = YAML::LoadFile("config.yaml");
+
+// Phase 1: Parse YAML and create device objects (no hardware init)
+if (!manager.CreateConfigFromYaml(node)) {
+    // Handle error
+    return false;
+}
+
+// Perform time-consuming setup operations here
+// Example: Create ROS publishers, subscribers, services, etc.
+// This won't cause EtherCAT slaves to timeout because they're not yet in OP state
+
+// Phase 2: Initialize EtherCAT hardware and transition slaves to OP state
+if (!manager.InitHardware()) {
+    // Handle error
+    return false;
+}
+
+// IMPORTANT: Start your control loop immediately after InitHardware()
+// to prevent SM watchdog timeouts (~100ms)
+while (running) {
+    manager.Process();
+}
+```
+
+**When to use split initialization:**
+- Your application performs time-consuming setup (>50ms) after configuration
+- You're integrating with frameworks that have initialization overhead (ROS, middleware, etc.)
+- You need to query device information before hardware initialization
+
+**Note:** The `Process()` loop must maintain the target loop rate specified in your YAML configuration to prevent EtherCAT watchdog timeouts. 
 
 ### Semantic Versioning
 
