@@ -117,7 +117,7 @@ This example can be recreated with the following command:
 
 ``` bash
 !$ cd </path/to/fastcat>
-$ python3 fcviz/fcviz.py example_configs/paper_examples/paper_faulter_config.yaml
+$ uv run fcviz/fcviz.py example_configs/paper_examples/paper_faulter_config.yaml
 ```
 
 

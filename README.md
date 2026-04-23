@@ -11,15 +11,38 @@ To learn more about fastcat, checkout the following documents:
 - 2021 Aeroconf paper submission `Fastcat: An Open-Source Library for Composable
   EtherCAT Control Systems`
 - README for build details
-- The API documentation (build locally using doxygen - Github hosting still a work-in-progress)
+- The API documentation
 
 ### Prerequisites
 
-Fastcat has ben tested on Ubuntu 20.04, though it should work on older versions of Ubuntu with minor revisions to these steps. 
+Fastcat has been tested on Ubuntu 20.04, 22.04 and 24.04, though it should work on older versions of Ubuntu with minor revisions to these steps.
 
 ```bash
-$ sudo apt install libyaml-cpp-dev libreadline-dev doxygen python3-pip
-$ sudo pip3 install pyaml cogapp graphviz ipython==7.9
+$ sudo apt install libyaml-cpp-dev libreadline-dev doxygen graphviz
+```
+
+The `fcviz` utility is configured as a `uv` script, so its Python dependencies do not need to be installed globally:
+
+Install `uv` using Astral's official installer:
+
+```bash
+$ curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Installation options and other platforms are documented by Astral at <https://docs.astral.sh/uv/getting-started/installation/>.
+
+```bash
+$ uv run fcviz/fcviz.py example_configs/paper_examples/paper_faulter_config.yaml
+```
+
+If you do not want to use `uv`, check the inline dependency metadata at the top of `fcviz/fcviz.py` and install those packages in your preferred Python environment before running the script directly.
+
+If you need to regenerate code with `fcgen`, install Ubuntu's `python3-cogapp` package. On some systems, you may need to enable the `universe` repository first:
+
+```bash
+$ sudo add-apt-repository universe
+$ sudo apt update
+$ sudo apt install python3-cogapp
 ```
 
 ### Building
@@ -51,13 +74,13 @@ $ make memcheck  # note valgrind is required to perform memory checking
 ```bash
 # Install dependencies for Ubuntu
 $ sudo apt install doxygen graphviz
-
-# use the build system to generate the code for you!
 $ cd build
 $ make doc
 ```
 
 The output documentation is created in the directory `doxygen_html` and can be opened by any web browser from the root `index.html` webpage.
+
+The repository also includes a GitHub Actions workflow that builds this `doc` target and publishes it to GitHub Pages on pushes to `master`. Once GitHub Pages is enabled for the repository with GitHub Actions as the source, the published site will be available at <https://nasa-jpl.github.io/fastcat/>.
 
 ### Using fastcat in your Project
 
@@ -67,12 +90,12 @@ We recommend using the CMake `FetchContent` utility to acquire fastcat and its u
 include(FetchContent)
 FetchContent_Declare(fastcat
     GIT_REPOSITORY git@github.com:nasa-jpl/fastcat.git
-    GIT_TAG v0.4.3
+    GIT_TAG v0.13.13
     )
 FetchContent_MakeAvailable(fastcat)
 ```
 
-It is always recommend you specify your dependency to a tagged release (`GIT_TAG v0.4.3`) so updates to master cannot break your build (NOT `GIT_TAG master`).
+It is always recommend you specify your dependency to a tagged release (e.g. `GIT_TAG v0.13.13`) so updates to master cannot break your build (NOT `GIT_TAG master`).
 
 ### Manager API Usage
 
@@ -139,6 +162,8 @@ while (running) {
 
 **Note:** The `Process()` loop must maintain the target loop rate specified in your YAML configuration to prevent EtherCAT watchdog timeouts. 
 
+It is always recommend you specify your dependency to a tagged release (e.g. `GIT_TAG v0.13.13`) so updates to master cannot break your build (NOT `GIT_TAG master`). 
+
 ### Semantic Versioning
 
 fastcat uses Semantic versioning to help applications reason about the software as updates are continuously rolled out. Tailored to fastcat, the Semver rules are as follows:
@@ -148,8 +173,3 @@ fastcat uses Semantic versioning to help applications reason about the software 
 * Patch Versions will denote bug fixes or minor improvements and will not break user applications.
 
 Violations of these rules will be considered errors and should be patched immediately. Please open an issue if you find a violation.
-
-**Note**
-
-Major version `0` indicates the API is still considered experimental and subject to change with any new release. These rules will be strictly followed after a Major version `1` release. 
-
