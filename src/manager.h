@@ -240,6 +240,11 @@ class Manager
   void GetActuatorPositions();
   void SaveActuatorPosFile();
   bool CheckDeviceNameIsUnique(std::string name);
+  struct JsdBusInitParams {
+    std::string ifname;
+    jsd_t*      jsd;
+    bool        enable_autorecovery;
+  };
 
   double                        target_loop_rate_hz_                = 0.0;
   bool                          zero_latency_required_              = true;
@@ -258,11 +263,6 @@ class Manager
   std::unordered_map<std::string, bool>              unique_device_map_;
   std::shared_ptr<std::queue<SdoResponse>>           sdo_response_queue_;
 
-  struct JsdBusInitParams {
-    std::string ifname;
-    jsd_t*      jsd;
-    bool        enable_autorecovery;
-  };
   std::vector<JsdBusInitParams> pending_jsd_inits_;
 
   std::mutex parameter_mutex_;
