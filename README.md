@@ -162,8 +162,6 @@ while (running) {
 
 **Note:** The `Process()` loop must maintain the target loop rate specified in your YAML configuration to prevent EtherCAT watchdog timeouts. 
 
-It is always recommend you specify your dependency to a tagged release (e.g. `GIT_TAG v0.13.13`) so updates to master cannot break your build (NOT `GIT_TAG master`). 
-
 ### Semantic Versioning
 
 fastcat uses Semantic versioning to help applications reason about the software as updates are continuously rolled out. Tailored to fastcat, the Semver rules are as follows:
