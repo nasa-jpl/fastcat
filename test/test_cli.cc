@@ -474,6 +474,11 @@ int main(int argc, char* argv[])
     return 0;
   }
 
+  if (!manager.InitHardware()) {
+    ERROR("Could not initialize Fastcat Manager hardware");
+    return 0;
+  }
+
   pthread_t cli_thread;
   int       retval;
   double    loop_rate = manager.GetTargetLoopRate();

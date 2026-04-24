@@ -97,8 +97,8 @@ void fastcat::Manager::Shutdown()
   SaveActuatorPosFile();
 }
 
-bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
-                                      double            external_time)
+bool fastcat::Manager::CreateConfigFromYaml(const YAML::Node& node,
+                                            double            external_time)
 {
   // Configure Fastcat Parameters
   YAML::Node fastcat_node;
@@ -207,6 +207,29 @@ bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
     return false;
   }
   SUCCESS("Configured Signals.");
+
+  return true;
+}
+
+bool fastcat::Manager::ConfigFromYaml(const YAML::Node& node,
+                                      double            external_time)
+{
+  if (!CreateConfigFromYaml(node, external_time)) {
+    return false;
+  }
+  return InitHardware();
+}
+
+bool fastcat::Manager::InitHardware()
+{
+  for (auto& p : pending_jsd_inits_) {
+    if (!jsd_init(p.jsd, p.ifname.c_str(), p.enable_autorecovery,
+                  1.0e6 / target_loop_rate_hz_)) {
+      ERROR("Failed to initialize JSD bus: %s", p.ifname.c_str());
+      return false;
+    }
+  }
+  pending_jsd_inits_.clear();
 
   MSG("Reading initial state of all devices.");
   // Empirically observed some EGDs require at least one valid PDO write
@@ -559,7 +582,8 @@ bool fastcat::Manager::ConfigJSDBusFromYaml(const YAML::Node& node,
     jsd_device_list_.push_back(jsdDevice);
   }
 
-  return jsd_init(jsd, ifname.c_str(), enable_ar, 1.0e6 / target_loop_rate_hz_);
+  pending_jsd_inits_.push_back({ifname, jsd, enable_ar});
+  return true;
 }
 
 bool fastcat::Manager::ConfigFastcatBusFromYaml(const YAML::Node& node,

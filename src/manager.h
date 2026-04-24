@@ -47,6 +47,18 @@ class Manager
    */
   bool ConfigFromYaml(const YAML::Node& node, double external_time = -1);
 
+  /** @brief Parses YAML configuration and creates device objects (no hardware init)
+   *
+   *  @return true on successful configuration. If false, application should quit.
+   */
+  bool CreateConfigFromYaml(const YAML::Node& node, double external_time = -1);
+
+  /** @brief Initializes EtherCAT hardware (executes deferred jsd_init calls)
+   *
+   *  @return true on successful hardware initialization. If false, application should quit.
+   */
+  bool InitHardware();
+
   /** @brief Updates synchronous PDO and background async SDO requests.
    *
    *  Process() proceeds by
@@ -228,6 +240,11 @@ class Manager
   void GetActuatorPositions();
   void SaveActuatorPosFile();
   bool CheckDeviceNameIsUnique(std::string name);
+  struct JsdBusInitParams {
+    std::string ifname;
+    jsd_t*      jsd;
+    bool        enable_autorecovery;
+  };
 
   double                        target_loop_rate_hz_                = 0.0;
   bool                          zero_latency_required_              = true;
@@ -245,6 +262,8 @@ class Manager
   std::map<std::string, ActuatorPosData>             actuator_pos_map_;
   std::unordered_map<std::string, bool>              unique_device_map_;
   std::shared_ptr<std::queue<SdoResponse>>           sdo_response_queue_;
+
+  std::vector<JsdBusInitParams> pending_jsd_inits_;
 
   std::mutex parameter_mutex_;
 
