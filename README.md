@@ -171,3 +171,7 @@ fastcat uses Semantic versioning to help applications reason about the software 
 * Patch Versions will denote bug fixes or minor improvements and will not break user applications.
 
 Violations of these rules will be considered errors and should be patched immediately. Please open an issue if you find a violation.
+
+## License
+
+fastcat is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for more details.
