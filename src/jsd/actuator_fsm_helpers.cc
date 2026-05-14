@@ -551,7 +551,7 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
           JSD_ELMO_STATE_MACHINE_STATE_QUICK_STOP_ACTIVE ||
       elmo_state_machine_state ==
           JSD_ELMO_STATE_MACHINE_STATE_FAULT_REACTION_ACTIVE ||
-      elmo_state_machine_state == 
+      elmo_state_machine_state ==
           JSD_ELMO_STATE_MACHINE_STATE_FAULT ||
       elmo_state_machine_state == 
           JSD_ELMO_STATE_MACHINE_STATE_SWITCHED_ON) {
