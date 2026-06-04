@@ -25,9 +25,7 @@ fastcat::Actuator::Actuator()
 bool fastcat::Actuator::ConfigFromYaml(const YAML::Node& node)
 {
   actuator_sms_ = ACTUATOR_SMS_HALTED;
-  elmo_state_machine_state_initialized_ = false;
-  last_elmo_state_machine_state_ =
-      JSD_ELMO_STATE_MACHINE_STATE_NOT_READY_TO_SWITCH_ON;
+  last_elmo_state_machine_state_ = JSD_ELMO_STATE_MACHINE_STATE_NOT_READY_TO_SWITCH_ON;
 
   // monotonic_initialization_time_sec_ set by base class method
   // SetInitializationTime, which must be called prior to ConfigFromYaml
@@ -231,10 +229,6 @@ bool fastcat::Actuator::Read()
 {
   ElmoRead();
   PopulateState();
-  if (!elmo_state_machine_state_initialized_) {
-    last_elmo_state_machine_state_ = GetElmoStateMachineState();
-    elmo_state_machine_state_initialized_ = true;
-  }
   return true;
 }
 
@@ -491,10 +485,6 @@ fastcat::FaultType fastcat::Actuator::Process()
       ERROR("Bad Actuator State Machine State: %d", actuator_sms_);
       retval = ALL_DEVICE_FAULT;
       break;
-  }
-
-  if (elmo_state_machine_state_initialized_) {
-    last_elmo_state_machine_state_ = GetElmoStateMachineState();
   }
 
   ElmoProcess();

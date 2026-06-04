@@ -547,10 +547,10 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
     return true;
   }
   auto elmo_state_machine_state = GetElmoStateMachineState();
-  if (elmo_state_machine_state_initialized_ &&
-      last_elmo_state_machine_state_ ==
+  if (last_elmo_state_machine_state_ ==
           JSD_ELMO_STATE_MACHINE_STATE_OPERATION_ENABLED &&
-      elmo_state_machine_state == JSD_ELMO_STATE_MACHINE_STATE_SWITCHED_ON) {
+      elmo_state_machine_state == 
+          JSD_ELMO_STATE_MACHINE_STATE_SWITCHED_ON) {
     ERROR("%s: Elmo drive state machine transitioned from OPERATION_ENABLED "
           "to SWITCHED_ON during motion",
           name_.c_str());
@@ -563,9 +563,7 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
       elmo_state_machine_state ==
           JSD_ELMO_STATE_MACHINE_STATE_FAULT_REACTION_ACTIVE ||
       elmo_state_machine_state ==
-          JSD_ELMO_STATE_MACHINE_STATE_FAULT ||
-      elmo_state_machine_state == 
-          JSD_ELMO_STATE_MACHINE_STATE_SWITCHED_ON) {
+          JSD_ELMO_STATE_MACHINE_STATE_FAULT) {
     ERROR("%s: Elmo drive state machine state is off nominal", name_.c_str());
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION;
     return true;
