@@ -548,26 +548,33 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
   }
   auto elmo_state_machine_state = GetElmoStateMachineState();
   if (last_elmo_state_machine_state_ ==
-          JSD_ELMO_STATE_MACHINE_STATE_OPERATION_ENABLED &&
-      elmo_state_machine_state == 
+          JSD_ELMO_STATE_MACHINE_STATE_OPERATION_ENABLED) {
+    if (elmo_state_machine_state == 
           JSD_ELMO_STATE_MACHINE_STATE_SWITCHED_ON) {
-    ERROR("%s: Elmo drive state machine transitioned from OPERATION_ENABLED "
-          "to SWITCHED_ON during motion",
+      ERROR("%s: Elmo drive state machine transitioned from OPERATION_ENABLED "
+          "to SWITCHED_ON during motion! This transition should not occur.",
           name_.c_str());
-    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION;
-    return true;
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION;
+      return true;
+    }
+    else if (elmo_state_machine_state == 
+          JSD_ELMO_STATE_MACHINE_STATE_QUICK_STOP_ACTIVE) {
+      ERROR("%s: Elmo drive state machine transitioned from OPERATION_ENABLED "
+          "to QUICK_STOP_ACTIVE during motion! Likely due to fastcat fault.",
+          name_.c_str());
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION;
+      return true;
+    }
+    else if (elmo_state_machine_state ==
+          JSD_ELMO_STATE_MACHINE_STATE_FAULT) {
+      ERROR("%s: Elmo drive state machine transitioned from OPERATION_ENABLED "
+        "to FAULT during motion! This fault arose from the drive itself.",
+        name_.c_str());
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION;
+      return true;
+    }
   }
 
-  if (elmo_state_machine_state ==
-          JSD_ELMO_STATE_MACHINE_STATE_QUICK_STOP_ACTIVE ||
-      elmo_state_machine_state ==
-          JSD_ELMO_STATE_MACHINE_STATE_FAULT_REACTION_ACTIVE ||
-      elmo_state_machine_state ==
-          JSD_ELMO_STATE_MACHINE_STATE_FAULT) {
-    ERROR("%s: Elmo drive state machine state is off nominal", name_.c_str());
-    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION;
-    return true;
-  }
   return false;
 }
 
