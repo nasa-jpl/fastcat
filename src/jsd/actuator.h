@@ -175,6 +175,9 @@ class Actuator : public JsdDeviceBase
   ActuatorFastcatFault fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
 
   DeviceCmd last_cmd_ = {};
+  
+  jsd_elmo_state_machine_state_t last_elmo_state_machine_state_ =
+    JSD_ELMO_STATE_MACHINE_STATE_NOT_READY_TO_SWITCH_ON;
 
   // Timeout in seconds after which a fault should occur if a transition out of
   // PROF_*_DISENGAGING does not take place. Default value corresponds to the
@@ -263,8 +266,6 @@ class Actuator : public JsdDeviceBase
 
   bool    actuator_absolute_encoder_ = false;
   int32_t elmo_pos_offset_cnts_      = 1;
-  jsd_elmo_state_machine_state_t last_elmo_state_machine_state_ =
-      JSD_ELMO_STATE_MACHINE_STATE_NOT_READY_TO_SWITCH_ON;
   RingBuffer<DeviceCmd> last_device_cmd_ = RingBuffer<DeviceCmd>(50);
   double csp_interpolation_offset_time_ = 0.0;
   size_t csp_cycles_delay_ = 4;
