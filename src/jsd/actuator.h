@@ -10,6 +10,7 @@
 #include "fastcat/trap.h"
 #include "fastcat/ring_buffer.h"
 #include "jsd/jsd_elmo_common_types.h"
+#include "jsd/jsd_elmo_common.h"
 
 namespace fastcat
 {
