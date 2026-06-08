@@ -76,6 +76,8 @@ void fastcat::GoldActuator::PopulateState()
 
   state_->gold_actuator_state.cmd_max_current = jsd_egd_state_.cmd_max_current;
 
+  last_elmo_state_machine_state_ = static_cast<jsd_elmo_state_machine_state_t>(
+      state_->gold_actuator_state.elmo_state_machine_state);
   state_->gold_actuator_state.elmo_state_machine_state =
       static_cast<uint32_t>(jsd_egd_state_.actual_state_machine_state);
   state_->gold_actuator_state.elmo_mode_of_operation =

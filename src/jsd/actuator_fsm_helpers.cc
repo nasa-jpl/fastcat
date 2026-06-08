@@ -547,15 +547,46 @@ bool fastcat::Actuator::IsMotionFaultConditionMet()
     return true;
   }
   auto elmo_state_machine_state = GetElmoStateMachineState();
-  if (elmo_state_machine_state ==
-          JSD_ELMO_STATE_MACHINE_STATE_QUICK_STOP_ACTIVE ||
-      elmo_state_machine_state ==
-          JSD_ELMO_STATE_MACHINE_STATE_FAULT_REACTION_ACTIVE ||
-      elmo_state_machine_state ==
-          JSD_ELMO_STATE_MACHINE_STATE_FAULT ||
-      elmo_state_machine_state == 
+  if (last_elmo_state_machine_state_ ==
+          JSD_ELMO_STATE_MACHINE_STATE_OPERATION_ENABLED) {
+    if (elmo_state_machine_state == 
           JSD_ELMO_STATE_MACHINE_STATE_SWITCHED_ON) {
-    ERROR("%s: Elmo drive state machine state is off nominal", name_.c_str());
+      ERROR("%s: Elmo drive state machine transitioned from %s "
+          "to %s during motion! This transition should not occur.",
+          name_.c_str(), 
+          jsd_elmo_state_machine_state_to_string(last_elmo_state_machine_state_),
+          jsd_elmo_state_machine_state_to_string(elmo_state_machine_state));
+      fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION;
+      return true;
+    }
+  } 
+  if (elmo_state_machine_state == 
+        JSD_ELMO_STATE_MACHINE_STATE_QUICK_STOP_ACTIVE) {
+    ERROR("%s: Elmo drive state machine transitioned from %s "
+        "to %s during motion! This is likely due to fastcat fault.",
+        name_.c_str(), 
+        jsd_elmo_state_machine_state_to_string(last_elmo_state_machine_state_),
+        jsd_elmo_state_machine_state_to_string(elmo_state_machine_state));
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION;
+    return true;
+  }
+  else if (elmo_state_machine_state ==
+        JSD_ELMO_STATE_MACHINE_STATE_FAULT) {
+    ERROR("%s: Elmo drive state machine transitioned from %s "
+      "to %s during motion! This fault arose from the drive itself.",
+      name_.c_str(),
+      jsd_elmo_state_machine_state_to_string(last_elmo_state_machine_state_),
+      jsd_elmo_state_machine_state_to_string(elmo_state_machine_state));
+    fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION;
+    return true;
+  }
+  else if (elmo_state_machine_state ==
+        JSD_ELMO_STATE_MACHINE_STATE_FAULT_REACTION_ACTIVE) {
+    ERROR("%s: Elmo drive state machine transitioned from %s "
+      "to %s during motion! The drive just triggered a fault.",
+      name_.c_str(),
+      jsd_elmo_state_machine_state_to_string(last_elmo_state_machine_state_),
+      jsd_elmo_state_machine_state_to_string(elmo_state_machine_state));
     fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_INVALID_ELMO_SMS_DURING_MOTION;
     return true;
   }

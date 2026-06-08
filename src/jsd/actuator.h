@@ -10,6 +10,7 @@
 #include "fastcat/trap.h"
 #include "fastcat/ring_buffer.h"
 #include "jsd/jsd_elmo_common_types.h"
+#include "jsd/jsd_elmo_common.h"
 
 namespace fastcat
 {
@@ -174,6 +175,9 @@ class Actuator : public JsdDeviceBase
   ActuatorFastcatFault fastcat_fault_ = ACTUATOR_FASTCAT_FAULT_OKAY;
 
   DeviceCmd last_cmd_ = {};
+  
+  jsd_elmo_state_machine_state_t last_elmo_state_machine_state_ =
+    JSD_ELMO_STATE_MACHINE_STATE_NOT_READY_TO_SWITCH_ON;
 
   // Timeout in seconds after which a fault should occur if a transition out of
   // PROF_*_DISENGAGING does not take place. Default value corresponds to the
