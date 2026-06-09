@@ -8,6 +8,7 @@ To learn more about fastcat, checkout the following documents:
 
 - [Fastcat Primer](doc/fastcat_primer.md)
 - [Complete list of Fastcat Device Configuration YAML Parameters](doc/fastcat_device_config_parameters.md)
+- [Command-line Utilities](doc/utilities.md) — `jsd_slaveinfo`, `solo_vel_profile`, `solo_pos_profile`
 - 2021 Aeroconf paper submission `Fastcat: An Open-Source Library for Composable
   EtherCAT Control Systems`
 - README for build details
