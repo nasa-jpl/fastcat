@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
         std::cerr << "  config_path: relative path to fastcat YAML config" << std::endl;
         std::cerr << "  actuator_name: name of actuator in YAML" << std::endl;
         std::cerr << "  accel: acceleration/deceleration (rad/s²)" << std::endl;
-        std::cerr << "  cruise_speed: cruise velocity (rad/s)" << std::endl;
+        std::cerr << "  cruise_speed: cruise velocity (rad/s, may be negative)" << std::endl;
         std::cerr << "  cruise_duration: hold time at cruise (s)" << std::endl;
         return 1;
     }
@@ -82,8 +82,8 @@ int main(int argc, char** argv) {
         std::cerr << "Error: acceleration must be positive" << std::endl;
         return 1;
     }
-    if (cruise_speed <= 0) {
-        std::cerr << "Error: cruise_speed must be positive" << std::endl;
+    if (cruise_speed == 0) {
+        std::cerr << "Error: cruise_speed must be non-zero" << std::endl;
         return 1;
     }
     if (cruise_duration <= 0) {
@@ -195,7 +195,7 @@ int main(int argc, char** argv) {
     int tick_count = 0;
     const int brake_disengage_ticks = static_cast<int>(2.0 * loop_rate);  // 2s wait for brake/enable
 
-    double accel_time = cruise_speed / accel;
+    double accel_time = std::abs(cruise_speed) / accel;
     double decel_time = accel_time;
     int run_ticks = static_cast<int>((accel_time + cruise_duration + decel_time + 0.5) * loop_rate);
     int run_tick_count = 0;
