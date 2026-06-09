@@ -6,11 +6,11 @@ them land in `build/bin/`:
 | Binary | Purpose |
 |---|---|
 | `jsd_slaveinfo` | Enumerate EtherCAT slaves on a given interface |
-| `solo_vel_profile` | Run a trapezoidal velocity profile on a single actuator |
-| `solo_pos_profile` | Run a trapezoidal position profile on a single actuator |
+| `elmo_vel_profile` | Run a trapezoidal velocity profile on a single actuator |
+| `elmo_pos_profile` | Run a trapezoidal position profile on a single actuator |
 
 `jsd_slaveinfo` is built as part of fastcat's [JSD](https://github.com/nasa-jpl/jsd)
-dependency. The two `solo_*_profile` binaries are native fastcat utilities
+dependency. The two `elmo_*_profile` binaries are native fastcat utilities
 under `utils/`.
 
 ## Capabilities
@@ -46,7 +46,7 @@ To enable password-less `setcap`, run `sudo visudo` and add:
 <your_username> ALL=(ALL) NOPASSWD: /usr/sbin/setcap
 ```
 
-Note: `AUTO_SETCAP` only applies to `solo_vel_profile` and `solo_pos_profile`.
+Note: `AUTO_SETCAP` only applies to `elmo_vel_profile` and `elmo_pos_profile`.
 `jsd_slaveinfo` is built by the JSD dependency and is not covered by this
 option — set its capabilities manually after each rebuild.
 
@@ -76,7 +76,7 @@ For more detailed documentation see the JSD project's own
 
 ---
 
-## `solo_vel_profile`
+## `elmo_vel_profile`
 
 Runs a trapezoidal velocity profile on one actuator described by a fastcat
 YAML config. The profile accelerates from rest to a cruise speed, holds for a
@@ -86,7 +86,7 @@ timestamped CSV file in the current working directory.
 ### Usage
 
 ```
-./build/bin/solo_vel_profile <config> <actuator_name> <accel> <cruise_speed> <cruise_duration>
+./build/bin/elmo_vel_profile <config> <actuator_name> <accel> <cruise_speed> <cruise_duration>
 ```
 
 | Argument | Description |
@@ -101,7 +101,7 @@ timestamped CSV file in the current working directory.
 
 ```
 cd build/bin
-./solo_vel_profile ../../example_configs/single_elmo.yaml gold_act_1 2.0 5.0 3.0
+./elmo_vel_profile ../../example_configs/single_elmo.yaml gold_act_1 2.0 5.0 3.0
 ```
 
 ### Telemetry output
@@ -119,7 +119,7 @@ control tick:
 
 ---
 
-## `solo_pos_profile`
+## `elmo_pos_profile`
 
 Runs a trapezoidal position profile on one actuator. The trapezoid shape is
 chosen automatically based on the requested distance: triangular if the move
@@ -130,7 +130,7 @@ Negative `relative_position` values move in the negative direction.
 ### Usage
 
 ```
-./build/bin/solo_pos_profile <config> <actuator_name> <accel> <max_velocity> <relative_position>
+./build/bin/elmo_pos_profile <config> <actuator_name> <accel> <max_velocity> <relative_position>
 ```
 
 | Argument | Description |
@@ -145,8 +145,8 @@ Negative `relative_position` values move in the negative direction.
 
 ```
 cd build/bin
-./solo_pos_profile ../../example_configs/single_elmo.yaml gold_act_1 2.0 5.0 3.0
-./solo_pos_profile ../../example_configs/single_elmo.yaml gold_act_1 2.0 5.0 -3.0
+./elmo_pos_profile ../../example_configs/single_elmo.yaml gold_act_1 2.0 5.0 3.0
+./elmo_pos_profile ../../example_configs/single_elmo.yaml gold_act_1 2.0 5.0 -3.0
 ```
 
 ### Telemetry output

@@ -8,7 +8,7 @@ To learn more about fastcat, checkout the following documents:
 
 - [Fastcat Primer](doc/fastcat_primer.md)
 - [Complete list of Fastcat Device Configuration YAML Parameters](doc/fastcat_device_config_parameters.md)
-- [Command-line Utilities](doc/utilities.md) — `jsd_slaveinfo`, `solo_vel_profile`, `solo_pos_profile`
+- [Command-line Utilities](doc/utilities.md) — `jsd_slaveinfo`, `elmo_vel_profile`, `elmo_pos_profile`
 - 2021 Aeroconf paper submission `Fastcat: An Open-Source Library for Composable
   EtherCAT Control Systems`
 - README for build details
@@ -60,19 +60,19 @@ $ make
 
 ### Network Port Access for EtherCAT
 
-The shipped utilities (`jsd_slaveinfo`, `solo_vel_profile`, `solo_pos_profile`) and any modules built using fastcat open raw EtherCAT sockets and need `CAP_NET_ADMIN` + `CAP_NET_RAW` permissions.
+The shipped utilities (`jsd_slaveinfo`, `elmo_vel_profile`, `elmo_pos_profile`) and any modules built using fastcat open raw EtherCAT sockets and need `CAP_NET_ADMIN` + `CAP_NET_RAW` permissions.
 This can be achieved either by running the binary as the root user, or by using the `sudo setcap` command to permit non-root users to access the raw socket.
-For example, you can permit a non-root user to run the `solo_vel_profile` binary with the command:
+For example, you can permit a non-root user to run the `elmo_vel_profile` binary with the command:
 
 ```bash
-$ sudo setcap cap_net_admin,cap_net_raw=eip /absolute/path/to/build/bin/solo_vel_profile
+$ sudo setcap cap_net_admin,cap_net_raw=eip /absolute/path/to/build/bin/elmo_vel_profile
 ```
 
 **The raw socketr permissions are cleared on every relink**, so you must re-run `sudo setcap` after each rebuild.
 
 #### Auto-setcap during build
 
-For dev machines, build with `-DAUTO_SETCAP=ON` to automatically run `sudo setcap` on `solo_vel_profile` and `solo_pos_profile` after each link:
+For dev machines, build with `-DAUTO_SETCAP=ON` to automatically run `sudo setcap` on `elmo_vel_profile` and `elmo_pos_profile` after each link:
 
 ```bash
 $ cmake -S . -B build -DAUTO_SETCAP=ON
