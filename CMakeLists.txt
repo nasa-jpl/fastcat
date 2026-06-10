@@ -80,6 +80,7 @@ FetchContent_MakeAvailable(jsd)
 
 ####### Build #######
 add_subdirectory(src)
+add_subdirectory(utils)
 
 
 ####### Test Suite #######
