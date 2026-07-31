@@ -40,6 +40,16 @@ class Manager
    */
   void Shutdown();
 
+  /** @brief Capture current actuator positions and write them to file.
+   *
+   * Acquires the same internal mutex used by Process(), so this is safe to
+   * call while the process loop is still running (e.g. from a signal / shutdown
+   * callback). The write itself is crash-safe (atomic rename). Intended for
+   * callers that want to persist positions without tearing down the bus.
+   * @return void
+   */
+  void SaveActuatorPositions();
+
   /** @brief Method that accepts a fastcat topology yaml and intializes bus
    *
    *  @return true on successful initialization. If false, application should

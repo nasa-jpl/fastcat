@@ -3,13 +3,16 @@
 
 // Include c then c++ libraries
 #include <errno.h>
+#include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <typeindex>
 #include <typeinfo>
 
@@ -93,6 +96,16 @@ fastcat::Manager::~Manager()
 
 void fastcat::Manager::Shutdown()
 {
+  SaveActuatorPositions();
+}
+
+void fastcat::Manager::SaveActuatorPositions()
+{
+  // Serialize against Process(), which mutates the same device state under
+  // this mutex. GetActuatorPositions() reads that state, so without this lock a
+  // save triggered while the process loop is still running (e.g. a shutdown
+  // callback) would race the loop.
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
   GetActuatorPositions();
   SaveActuatorPosFile();
 }
@@ -1265,12 +1278,10 @@ void fastcat::Manager::SaveActuatorPosFile()
       actuator_position_directory_ + "/fastcat_saved_positions_prev.yaml";
   std::string pos_file =
       actuator_position_directory_ + "/fastcat_saved_positions.yaml";
-
-  MSG("Renaming %s -> %s", pos_file.c_str(), prev_pos_file.c_str());
-
-  if (0 != rename(pos_file.c_str(), prev_pos_file.c_str())) {
-    WARNING("Could not move: %s, file may not exist", pos_file.c_str());
-  }
+  // Temp file lives in the SAME directory as pos_file so the final rename is a
+  // same-filesystem atomic replace.
+  std::string tmp_pos_file =
+      actuator_position_directory_ + "/fastcat_saved_positions.yaml.tmp";
 
   YAML::Node file_node;
   for (auto pos_pair = actuator_pos_map_.begin();
@@ -1280,11 +1291,73 @@ void fastcat::Manager::SaveActuatorPosFile()
     act_node["position"]      = pos_pair->second.position;
     file_node["actuators"].push_back(act_node);
   }
+  std::stringstream ss;
+  ss << file_node;
+  std::string contents = ss.str();
 
+  // Write the new positions to a temp file, flush it all the way to disk, and
+  // only then atomically rename it over the canonical file. This guarantees
+  // that fastcat_saved_positions.yaml is never partially written: at any
+  // instant a reader (or a crash) sees either the complete old file or the
+  // complete new one, never a truncated/empty file. This is the crash-safe
+  // replacement for the previous rename-then-write scheme, which could leave
+  // no canonical file at all if killed between the rename and the write.
   umask(000);
-  std::ofstream file(pos_file, std::ios::out);
-  file << file_node;
-  file.close();
+  {
+    std::ofstream file(tmp_pos_file, std::ios::out | std::ios::trunc);
+    if (!file) {
+      ERROR("Could not open temp pos file for writing: %s (%s); leaving %s "
+            "untouched",
+            tmp_pos_file.c_str(), strerror(errno), pos_file.c_str());
+      return;
+    }
+    file << contents;
+    file.flush();
+    if (!file) {
+      ERROR("Failed while writing temp pos file: %s; leaving %s untouched",
+            tmp_pos_file.c_str(), pos_file.c_str());
+      file.close();
+      remove(tmp_pos_file.c_str());
+      return;
+    }
+    file.close();
+  }
+
+  // fsync the temp file's contents to durable storage before the rename.
+  int fd = open(tmp_pos_file.c_str(), O_RDONLY);
+  if (fd >= 0) {
+    if (0 != fsync(fd)) {
+      WARNING("fsync failed on %s: %s", tmp_pos_file.c_str(), strerror(errno));
+    }
+    close(fd);
+  } else {
+    WARNING("Could not reopen %s to fsync: %s", tmp_pos_file.c_str(),
+            strerror(errno));
+  }
+
+  // Keep a backup of the last-known-good canonical file WITHOUT removing it.
+  // A plain copy (not rename) means the canonical file always continues to
+  // exist right up until the atomic replace below.
+  struct stat st;
+  if (0 == stat(pos_file.c_str(), &st)) {
+    std::ifstream src(pos_file, std::ios::binary);
+    std::ofstream dst(prev_pos_file, std::ios::binary | std::ios::trunc);
+    if (src && dst) {
+      dst << src.rdbuf();
+    } else {
+      WARNING("Could not back up %s -> %s", pos_file.c_str(),
+              prev_pos_file.c_str());
+    }
+  }
+
+  // Atomic replace: this is the only operation that touches the canonical file.
+  if (0 != rename(tmp_pos_file.c_str(), pos_file.c_str())) {
+    ERROR("Atomic rename %s -> %s failed: %s; canonical file left unchanged",
+          tmp_pos_file.c_str(), pos_file.c_str(), strerror(errno));
+    remove(tmp_pos_file.c_str());
+    return;
+  }
+
   MSG("Successfully wrote Pos File: %s", pos_file.c_str());
 }
 
