@@ -249,6 +249,17 @@ class Manager
   bool SetActuatorPositions();
   void GetActuatorPositions();
   void SaveActuatorPosFile();
+  void InvalidateActuatorPosFile();
+  // True iff every GOLD/PLATINUM actuator has its brake engaged (motor_on == 0,
+  // i.e. unpowered and mechanically held). Actuators with absolute encoders are
+  // ignored (their positions are not persisted). Returns false if there are no
+  // relevant actuators.
+  bool AllBrakesEngaged();
+  // Called at the end of each Process() cycle (under parameter_mutex_). On the
+  // rising edge of AllBrakesEngaged() it saves current positions; on the
+  // falling edge (motion starting) it invalidates the saved file so a stale
+  // in-motion position can never be loaded.
+  void UpdatePositionFileOnBrakeState();
   bool CheckDeviceNameIsUnique(std::string name);
   struct JsdBusInitParams {
     std::string ifname;
@@ -276,6 +287,11 @@ class Manager
   std::vector<JsdBusInitParams> pending_jsd_inits_;
 
   std::mutex parameter_mutex_;
+
+  // Rising/falling-edge tracking for the brake-triggered position save. Starts
+  // true so that if the bus comes up already stopped (all brakes engaged) we do
+  // not immediately re-save; the first save happens after a motion->stop cycle.
+  bool prev_all_brakes_engaged_ = true;
 
 };
 }  // namespace fastcat

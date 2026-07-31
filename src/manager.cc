@@ -106,6 +106,20 @@ void fastcat::Manager::SaveActuatorPositions()
   // save triggered while the process loop is still running (e.g. a shutdown
   // callback) would race the loop.
   std::lock_guard<std::mutex> lock(parameter_mutex_);
+
+  // Only persist positions when the arm is safely stopped (all brakes engaged).
+  // If this save is requested while the arm is in motion (e.g. a shutdown that
+  // interrupts a move), writing would capture in-motion positions. Instead,
+  // leave the file invalidated so a stale/wrong position can never be loaded --
+  // it is safer to have no saved positions than incorrect ones.
+  if (!AllBrakesEngaged()) {
+    WARNING(
+        "SaveActuatorPositions requested while not all brakes are engaged; "
+        "skipping save and leaving position file invalidated");
+    InvalidateActuatorPosFile();
+    return;
+  }
+
   GetActuatorPositions();
   SaveActuatorPosFile();
 }
@@ -365,6 +379,10 @@ bool fastcat::Manager::Process(double external_time)
       sdo_response_queue_->push(entry);
     }
   }
+
+  // Persist actuator positions when the arm settles (all brakes engaged) and
+  // invalidate the saved file when motion resumes. Runs under parameter_mutex_.
+  UpdatePositionFileOnBrakeState();
 
   return !faulted_;
 }
@@ -1359,6 +1377,87 @@ void fastcat::Manager::SaveActuatorPosFile()
   }
 
   MSG("Successfully wrote Pos File: %s", pos_file.c_str());
+}
+
+void fastcat::Manager::InvalidateActuatorPosFile()
+{
+  // Remove the canonical position file so that a subsequent startup does not
+  // load stale positions. The _prev.yaml backup (from the last successful save)
+  // is intentionally left in place for debugging. With
+  // actuator_fault_on_missing_pos_file_ == true the next startup will fault
+  // rather than silently trust an out-of-date file, which is the desired
+  // "no positions is better than wrong positions" behavior.
+  std::string pos_file =
+      actuator_position_directory_ + "/fastcat_saved_positions.yaml";
+
+  struct stat st;
+  if (0 != stat(pos_file.c_str(), &st)) {
+    // Already absent; nothing to do.
+    return;
+  }
+
+  if (0 != remove(pos_file.c_str())) {
+    WARNING("Could not invalidate (remove) pos file %s: %s", pos_file.c_str(),
+            strerror(errno));
+  } else {
+    MSG("Invalidated saved position file (motion started): %s",
+        pos_file.c_str());
+  }
+}
+
+bool fastcat::Manager::AllBrakesEngaged()
+{
+  bool found_actuator = false;
+  for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
+       ++device) {
+    std::shared_ptr<DeviceState> dev_state = (*device)->GetState();
+
+    if (dev_state->type != GOLD_ACTUATOR_STATE &&
+        dev_state->type != PLATINUM_ACTUATOR_STATE) {
+      continue;
+    }
+
+    std::shared_ptr<Actuator> actuator =
+        std::dynamic_pointer_cast<Actuator>(*device);
+
+    // Absolute-encoder actuators are not persisted, so their motion does not
+    // affect whether we should save the (incremental-encoder) positions.
+    if (actuator->HasAbsoluteEncoder()) {
+      continue;
+    }
+
+    found_actuator = true;
+
+    // motor_on == 0 means the motor is unpowered and the (spring-applied) brake
+    // is engaged. Any powered/moving actuator means brakes are not all engaged.
+    uint8_t motor_on = (dev_state->type == GOLD_ACTUATOR_STATE)
+                           ? dev_state->gold_actuator_state.motor_on
+                           : dev_state->platinum_actuator_state.motor_on;
+    if (motor_on != 0) {
+      return false;
+    }
+  }
+
+  return found_actuator;
+}
+
+void fastcat::Manager::UpdatePositionFileOnBrakeState()
+{
+  // Called at the end of Process() while parameter_mutex_ is held.
+  bool all_engaged = AllBrakesEngaged();
+
+  if (all_engaged && !prev_all_brakes_engaged_) {
+    // Rising edge: motion just stopped and all brakes engaged -> persist.
+    MSG("All actuator brakes engaged; saving actuator positions");
+    GetActuatorPositions();
+    SaveActuatorPosFile();
+  } else if (!all_engaged && prev_all_brakes_engaged_) {
+    // Falling edge: motion just started -> invalidate the saved file so a stale
+    // position can never be loaded if we are interrupted before the next stop.
+    InvalidateActuatorPosFile();
+  }
+
+  prev_all_brakes_engaged_ = all_engaged;
 }
 
 bool fastcat::Manager::CheckDeviceNameIsUnique(std::string name)
