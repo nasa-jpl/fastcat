@@ -86,6 +86,10 @@ fastcat::Manager::Manager()
 
 fastcat::Manager::~Manager()
 {
+  // Stop the background position writer (drains any final queued request) before
+  // tearing down the bus.
+  StopPosWriter();
+
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     if (it->second != NULL) {
       jsd_free(it->second);
@@ -116,12 +120,16 @@ void fastcat::Manager::SaveActuatorPositions()
     WARNING(
         "SaveActuatorPositions requested while not all brakes are engaged; "
         "skipping save and leaving position file invalidated");
-    InvalidateActuatorPosFile();
+    // Shutdown path: wait for the writer to finish so the file state is durable
+    // before the process exits.
+    PostPosInvalidateRequest(/*wait=*/true);
     return;
   }
 
   GetActuatorPositions();
-  SaveActuatorPosFile();
+  // Build the snapshot here (under the lock) and wait for the background writer
+  // to flush it to disk, so a clean shutdown is guaranteed durable before exit.
+  PostPosWriteRequest(BuildActuatorPosYaml(), /*wait=*/true);
 }
 
 bool fastcat::Manager::CreateConfigFromYaml(const YAML::Node& node,
@@ -274,6 +282,11 @@ bool fastcat::Manager::InitHardware()
   // After the first valid PDO exchange, reset all devices to
   // attempt to start in nominal, post-reset state.
   this->ExecuteAllDeviceResets();
+
+  // Start the background position-file writer now that the bus is up. All
+  // position saves/invalidations are handed to this thread so disk I/O never
+  // runs on the RT Process() thread.
+  StartPosWriter();
 
   return true;
 }
@@ -1290,17 +1303,12 @@ void fastcat::Manager::GetActuatorPositions()
   }
 }
 
-void fastcat::Manager::SaveActuatorPosFile()
+std::string fastcat::Manager::BuildActuatorPosYaml()
 {
-  std::string prev_pos_file =
-      actuator_position_directory_ + "/fastcat_saved_positions_prev.yaml";
-  std::string pos_file =
-      actuator_position_directory_ + "/fastcat_saved_positions.yaml";
-  // Temp file lives in the SAME directory as pos_file so the final rename is a
-  // same-filesystem atomic replace.
-  std::string tmp_pos_file =
-      actuator_position_directory_ + "/fastcat_saved_positions.yaml.tmp";
-
+  // Pure serialization of the current actuator_pos_map_. Runs on the RT thread
+  // under parameter_mutex_ (cheap: no syscalls), so the returned string is a
+  // consistent snapshot that the background writer can persist without any
+  // access to shared device state.
   YAML::Node file_node;
   for (auto pos_pair = actuator_pos_map_.begin();
        pos_pair != actuator_pos_map_.end(); ++pos_pair) {
@@ -1311,7 +1319,21 @@ void fastcat::Manager::SaveActuatorPosFile()
   }
   std::stringstream ss;
   ss << file_node;
-  std::string contents = ss.str();
+  return ss.str();
+}
+
+void fastcat::Manager::WritePosFileToDisk(const std::string& contents)
+{
+  // ALL disk I/O for the position file happens here, on the background writer
+  // thread only. Never call this from the RT Process() thread.
+  std::string prev_pos_file =
+      actuator_position_directory_ + "/fastcat_saved_positions_prev.yaml";
+  std::string pos_file =
+      actuator_position_directory_ + "/fastcat_saved_positions.yaml";
+  // Temp file lives in the SAME directory as pos_file so the final rename is a
+  // same-filesystem atomic replace.
+  std::string tmp_pos_file =
+      actuator_position_directory_ + "/fastcat_saved_positions.yaml.tmp";
 
   // Write the new positions to a temp file, flush it all the way to disk, and
   // only then atomically rename it over the canonical file. This guarantees
@@ -1377,6 +1399,127 @@ void fastcat::Manager::SaveActuatorPosFile()
   }
 
   MSG("Successfully wrote Pos File: %s", pos_file.c_str());
+}
+
+void fastcat::Manager::StartPosWriter()
+{
+  if (pos_writer_running_) {
+    return;
+  }
+  {
+    std::lock_guard<std::mutex> lock(pos_writer_mutex_);
+    pos_writer_stop_ = false;
+  }
+  pos_writer_running_ = true;
+  pos_writer_thread_  = std::thread(&Manager::PosWriterLoop, this);
+}
+
+void fastcat::Manager::StopPosWriter()
+{
+  if (!pos_writer_running_) {
+    return;
+  }
+  {
+    std::lock_guard<std::mutex> lock(pos_writer_mutex_);
+    pos_writer_stop_ = true;
+  }
+  pos_writer_cv_.notify_one();
+  if (pos_writer_thread_.joinable()) {
+    pos_writer_thread_.join();
+  }
+  pos_writer_running_ = false;
+}
+
+void fastcat::Manager::PosWriterLoop()
+{
+  umask(000);  // set once for this thread; all writes below inherit it
+  std::unique_lock<std::mutex> lock(pos_writer_mutex_);
+  while (true) {
+    pos_writer_cv_.wait(lock, [this]() {
+      return pos_writer_stop_ || pos_pending_write_ || pos_pending_invalidate_;
+    });
+
+    // Snapshot the pending request and clear it while holding the lock.
+    bool        do_write      = pos_pending_write_;
+    bool        do_invalidate = pos_pending_invalidate_;
+    std::string contents      = std::move(pos_pending_contents_);
+    uint64_t    handling_seq  = pos_request_seq_;
+    pos_pending_write_        = false;
+    pos_pending_invalidate_   = false;
+    pos_pending_contents_.clear();
+
+    if (do_write || do_invalidate) {
+      // Release the mailbox lock during disk I/O so the RT thread can post new
+      // requests without ever blocking on the disk.
+      lock.unlock();
+      // Invalidate wins if both were somehow set (matches "in motion => no
+      // file"): a later invalidate must not be overridden by a stale write.
+      if (do_invalidate) {
+        InvalidateActuatorPosFile();
+      } else {
+        WritePosFileToDisk(contents);
+      }
+      lock.lock();
+      pos_processed_seq_ = handling_seq;
+      pos_writer_done_cv_.notify_all();
+    }
+
+    if (pos_writer_stop_ && !pos_pending_write_ && !pos_pending_invalidate_) {
+      break;
+    }
+  }
+}
+
+void fastcat::Manager::PostPosWriteRequest(std::string contents, bool wait)
+{
+  // Fallback: if the writer thread is not running, do the write inline. This
+  // only happens off the RT loop (e.g. teardown before StartPosWriter), so
+  // blocking here is acceptable and avoids waiting forever on a request nobody
+  // would drain.
+  if (!pos_writer_running_) {
+    WritePosFileToDisk(contents);
+    return;
+  }
+
+  uint64_t seq;
+  {
+    std::lock_guard<std::mutex> lock(pos_writer_mutex_);
+    pos_pending_contents_   = std::move(contents);
+    pos_pending_write_      = true;
+    pos_pending_invalidate_ = false;  // a fresh write supersedes a pending inval
+    seq                     = ++pos_request_seq_;
+  }
+  pos_writer_cv_.notify_one();
+
+  if (wait) {
+    std::unique_lock<std::mutex> lock(pos_writer_mutex_);
+    pos_writer_done_cv_.wait(lock,
+                             [this, seq]() { return pos_processed_seq_ >= seq; });
+  }
+}
+
+void fastcat::Manager::PostPosInvalidateRequest(bool wait)
+{
+  if (!pos_writer_running_) {
+    InvalidateActuatorPosFile();
+    return;
+  }
+
+  uint64_t seq;
+  {
+    std::lock_guard<std::mutex> lock(pos_writer_mutex_);
+    pos_pending_invalidate_ = true;
+    pos_pending_write_      = false;  // an invalidate supersedes a pending write
+    pos_pending_contents_.clear();
+    seq                     = ++pos_request_seq_;
+  }
+  pos_writer_cv_.notify_one();
+
+  if (wait) {
+    std::unique_lock<std::mutex> lock(pos_writer_mutex_);
+    pos_writer_done_cv_.wait(lock,
+                             [this, seq]() { return pos_processed_seq_ >= seq; });
+  }
 }
 
 void fastcat::Manager::InvalidateActuatorPosFile()
@@ -1448,13 +1591,16 @@ void fastcat::Manager::UpdatePositionFileOnBrakeState()
 
   if (all_engaged && !prev_all_brakes_engaged_) {
     // Rising edge: motion just stopped and all brakes engaged -> persist.
+    // Serialize the snapshot here (cheap, under the RT lock) and hand the disk
+    // write to the background writer so the RT loop never blocks on I/O.
     MSG("All actuator brakes engaged; saving actuator positions");
     GetActuatorPositions();
-    SaveActuatorPosFile();
+    PostPosWriteRequest(BuildActuatorPosYaml(), /*wait=*/false);
   } else if (!all_engaged && prev_all_brakes_engaged_) {
     // Falling edge: motion just started -> invalidate the saved file so a stale
     // position can never be loaded if we are interrupted before the next stop.
-    InvalidateActuatorPosFile();
+    // Also deferred to the writer thread (it does the stat/remove).
+    PostPosInvalidateRequest(/*wait=*/false);
   }
 
   prev_all_brakes_engaged_ = all_engaged;
