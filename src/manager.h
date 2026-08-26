@@ -270,6 +270,9 @@ class Manager
   // writer thread; touches no shared device state, takes no RT lock.
   void WritePosFileToDisk(const std::string& contents);
   void InvalidateActuatorPosFile();
+  // fsync the position directory so the last rename/unlink is durable across a
+  // power loss. Runs ONLY on the background writer thread.
+  void SyncPosFileDirectory();
   // Background position-file writer: keeps all disk I/O (fsync, rename, backup
   // copy) off the RT Process() thread so a save cannot cause a cycle slip.
   void StartPosWriter();
@@ -291,11 +294,11 @@ class Manager
   // ignored (their positions are not persisted). Returns false if there are no
   // relevant actuators.
   bool AllBrakesEngaged();
-  // Called at the end of each Process() cycle (under parameter_mutex_). On the
-  // rising edge of AllBrakesEngaged() it saves current positions; on the
-  // falling edge (motion starting) it invalidates the saved file so a stale
-  // in-motion position can never be loaded.
-  void UpdatePositionFileOnBrakeState();
+  // Called at the end of each Process() cycle (under parameter_mutex_). Once
+  // AllBrakesEngaged() has held for pos_save_settle_sec_ it saves the current
+  // positions; on the falling edge (motion starting) it immediately invalidates
+  // the saved file so a stale in-motion position can never be loaded.
+  void UpdatePositionFileOnBrakeState(double monotonic_time);
   bool CheckDeviceNameIsUnique(std::string name);
   struct JsdBusInitParams {
     std::string ifname;
@@ -324,10 +327,25 @@ class Manager
 
   std::mutex parameter_mutex_;
 
-  // Rising/falling-edge tracking for the brake-triggered position save. Starts
-  // true so that if the bus comes up already stopped (all brakes engaged) we do
-  // not immediately re-save; the first save happens after a motion->stop cycle.
+  // Falling-edge tracking for the invalidate-on-motion path. Starts true so a
+  // bus that comes up already stopped is not treated as a transition.
   bool prev_all_brakes_engaged_ = true;
+
+  // Set whenever the motors are powered (brakes not all engaged), cleared once a
+  // save completes. Gating the save on this, rather than on an edge, guarantees
+  // exactly one save per motion->stop cycle and means a bus that comes up already
+  // stopped does not re-save the positions it just loaded.
+  bool saw_motion_since_last_save_ = false;
+
+  // monotonic_time at which the brakes most recently became fully engaged, or
+  // -1.0 when they are not. Used to enforce the pos_save_settle_sec_ debounce.
+  double brakes_engaged_since_ = -1.0;
+
+  // How long all brakes must stay continuously engaged before positions are
+  // considered settled and saved. Guards against persisting a mid-travel
+  // position when drive power is cut at speed (STO/e-stop/fault) and the joint
+  // coasts to rest against its brake. YAML: actuator_position_save_settle_sec.
+  double pos_save_settle_sec_ = 0.5;
 
   // True only for topologies that actually persist actuator positions, i.e.
   // those with at least one non-absolute-encoder GOLD/PLATINUM actuator. Set by

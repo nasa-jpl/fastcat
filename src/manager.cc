@@ -189,6 +189,19 @@ bool fastcat::Manager::CreateConfigFromYaml(const YAML::Node& node,
     return false;
   }
 
+  // Optional: how long all brakes must stay continuously engaged before the
+  // positions are considered settled and worth saving. Defaults to a value that
+  // comfortably covers a joint coasting to rest against its brake after an
+  // uncontrolled power cut (STO/e-stop/fault). Set to 0 to save on the first
+  // brakes-engaged cycle, as fastcat did before the debounce was added.
+  ParseOptVal(fastcat_node, "actuator_position_save_settle_sec",
+              pos_save_settle_sec_);
+  if (pos_save_settle_sec_ < 0.0) {
+    ERROR("actuator_position_save_settle_sec must be >= 0, got %lf",
+          pos_save_settle_sec_);
+    return false;
+  }
+
   // Configure Buses
   YAML::Node buses_node;
   if (!ParseList(node, "buses", buses_node)) {
@@ -424,7 +437,7 @@ bool fastcat::Manager::Process(double external_time)
 
   // Persist actuator positions when the arm settles (all brakes engaged) and
   // invalidate the saved file when motion resumes. Runs under parameter_mutex_.
-  UpdatePositionFileOnBrakeState();
+  UpdatePositionFileOnBrakeState(monotonic_time);
 
   return !faulted_;
 }
@@ -1448,6 +1461,14 @@ void fastcat::Manager::WritePosFileToDisk(const std::string& contents)
     return;
   }
 
+  // fsync the CONTAINING DIRECTORY, not just the file. fsync on the temp file
+  // above only makes its *contents* durable; the rename is a directory-metadata
+  // operation, so without this a power loss can leave the directory entry still
+  // pointing at the old file (or at neither) even though the new data is safely
+  // on the platter. Both fsyncs are required for the atomic-replace guarantee to
+  // survive an actual power cut.
+  SyncPosFileDirectory();
+
   MSG("Successfully wrote Pos File: %s", pos_file.c_str());
 }
 
@@ -1606,9 +1627,31 @@ void fastcat::Manager::InvalidateActuatorPosFile()
     WARNING("Could not invalidate (remove) pos file %s: %s", pos_file.c_str(),
             strerror(errno));
   } else {
+    // The unlink is a directory-metadata operation, so it needs the same
+    // directory fsync as the rename in WritePosFileToDisk(). Without it a power
+    // cut can resurrect the file we just invalidated, which is precisely the
+    // stale-position load this function exists to prevent.
+    SyncPosFileDirectory();
     MSG("Invalidated saved position file (motion started): %s",
         pos_file.c_str());
   }
+}
+
+void fastcat::Manager::SyncPosFileDirectory()
+{
+  // Flush the position directory's entries to durable storage, making the most
+  // recent rename/unlink survive a power loss. Runs on the writer thread only.
+  int dir_fd = open(actuator_position_directory_.c_str(), O_RDONLY);
+  if (dir_fd < 0) {
+    WARNING("Could not open %s to fsync directory: %s",
+            actuator_position_directory_.c_str(), strerror(errno));
+    return;
+  }
+  if (0 != fsync(dir_fd)) {
+    WARNING("fsync failed on directory %s: %s",
+            actuator_position_directory_.c_str(), strerror(errno));
+  }
+  close(dir_fd);
 }
 
 bool fastcat::Manager::AllBrakesEngaged()
@@ -1647,7 +1690,7 @@ bool fastcat::Manager::AllBrakesEngaged()
   return found_actuator;
 }
 
-void fastcat::Manager::UpdatePositionFileOnBrakeState()
+void fastcat::Manager::UpdatePositionFileOnBrakeState(double monotonic_time)
 {
   // Called at the end of Process() while parameter_mutex_ is held.
 
@@ -1661,17 +1704,46 @@ void fastcat::Manager::UpdatePositionFileOnBrakeState()
 
   bool all_engaged = AllBrakesEngaged();
 
-  if (all_engaged && !prev_all_brakes_engaged_) {
-    // Rising edge: motion just stopped and all brakes engaged -> persist.
+  // Track how long the brakes have been continuously engaged. motor_on drops to
+  // zero the instant drive power is removed, which on a controlled halt happens
+  // only after the drive has decelerated and set the brake -- but on an STO,
+  // e-stop or fault the power is cut while the joint is still moving, and the
+  // joint then coasts to a stop against the brake. Saving on that first
+  // brakes-engaged cycle would persist a mid-travel position, and since the edge
+  // has already been consumed it would never be corrected. Requiring the brakes
+  // to stay engaged for pos_save_settle_sec_ lets the joint come to rest first.
+  if (!all_engaged) {
+    brakes_engaged_since_ = -1.0;
+    // Motors are powered, so the arm may move: the on-disk file is stale and the
+    // next settled stop must produce a fresh save.
+    saw_motion_since_last_save_ = true;
+  } else if (brakes_engaged_since_ < 0.0 ||
+             monotonic_time < brakes_engaged_since_) {
+    // Newly engaged, or time ran backwards (an application supplying its own
+    // external_time may reset it) -- restart the settling window.
+    brakes_engaged_since_ = monotonic_time;
+  }
+
+  bool settled =
+      all_engaged &&
+      (monotonic_time - brakes_engaged_since_) >= pos_save_settle_sec_;
+
+  // saw_motion_since_last_save_ (rather than an edge on `settled`) is what makes
+  // this fire exactly once per motion->stop cycle. It also means a bus that comes
+  // up already stopped does not re-save positions it just loaded.
+  if (settled && saw_motion_since_last_save_) {
+    // Motion has stopped and the arm has had time to settle -> persist.
     // Serialize the snapshot here (cheap, under the RT lock) and hand the disk
     // write to the background writer so the RT loop never blocks on I/O.
-    MSG("All actuator brakes engaged; saving actuator positions");
+    MSG("All actuator brakes engaged and settled; saving actuator positions");
     GetActuatorPositions();
     PostPosWriteRequest(BuildActuatorPosYaml(), /*wait=*/false);
+    saw_motion_since_last_save_ = false;
   } else if (!all_engaged && prev_all_brakes_engaged_) {
     // Falling edge: motion just started -> invalidate the saved file so a stale
     // position can never be loaded if we are interrupted before the next stop.
-    // Also deferred to the writer thread (it does the stat/remove).
+    // Deferred to the writer thread (it does the stat/remove). Note this is NOT
+    // debounced: invalidation must happen as early as possible.
     PostPosInvalidateRequest(/*wait=*/false);
   }
 
