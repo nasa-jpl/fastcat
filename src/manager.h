@@ -46,10 +46,20 @@ class Manager
 
   /** @brief Capture current actuator positions and write them to file.
    *
-   * Acquires the same internal mutex used by Process(), so this is safe to
-   * call while the process loop is still running (e.g. from a signal / shutdown
-   * callback). The write itself is crash-safe (atomic rename). Intended for
-   * callers that want to persist positions without tearing down the bus.
+   * Intended for callers that want to persist positions without tearing down
+   * the bus. The write itself is crash-safe (atomic rename), and the positions
+   * are snapshotted under the same internal mutex used by Process(), so this is
+   * safe to call from any thread while the process loop is still running. The
+   * snapshot is taken under that mutex but the disk write is not, so the RT loop
+   * is not blocked on I/O.
+   *
+   * Must NOT be called from a signal handler: it takes a mutex and allocates,
+   * neither of which is async-signal-safe, and if the signal is delivered on the
+   * thread already inside Process() it will self-deadlock on that mutex. Set a
+   * flag in the handler and call this from your normal control flow instead.
+   *
+   * No-op for topologies that do not persist positions (no actuators, or only
+   * actuators with absolute encoders).
    * @return void
    */
   void SaveActuatorPositions();
@@ -267,9 +277,15 @@ class Manager
   void PosWriterLoop();
   // Post a write (contents) or an invalidate request to the writer thread. If
   // `wait` is true, block until the writer has processed it (used on shutdown
-  // to guarantee durability before exit).
-  void PostPosWriteRequest(std::string contents, bool wait);
-  void PostPosInvalidateRequest(bool wait);
+  // to guarantee durability before exit). Both return the request sequence
+  // number, which can be handed to WaitForPosWriter() later to defer the block
+  // until after a caller-held lock is released; 0 means the request was already
+  // serviced inline because the writer thread is not running.
+  uint64_t PostPosWriteRequest(std::string contents, bool wait);
+  uint64_t PostPosInvalidateRequest(bool wait);
+  // Block until the writer has drained request `seq`. Never call while holding
+  // parameter_mutex_: the wait is fsync-bound and Process() contends on it.
+  void WaitForPosWriter(uint64_t seq);
   // True iff every GOLD/PLATINUM actuator has its brake engaged (motor_on == 0,
   // i.e. unpowered and mechanically held). Actuators with absolute encoders are
   // ignored (their positions are not persisted). Returns false if there are no
@@ -312,6 +328,15 @@ class Manager
   // true so that if the bus comes up already stopped (all brakes engaged) we do
   // not immediately re-save; the first save happens after a motion->stop cycle.
   bool prev_all_brakes_engaged_ = true;
+
+  // True only for topologies that actually persist actuator positions, i.e.
+  // those with at least one non-absolute-encoder GOLD/PLATINUM actuator. Set by
+  // LoadActuatorPosFile(), which bypasses all position-file handling otherwise.
+  // Every save/invalidate path must check this: AllBrakesEngaged() reports false
+  // when it finds no relevant actuator, which would otherwise be read as "in
+  // motion" and delete a position file this topology does not own (it may be
+  // shared with another topology that does use incremental encoders).
+  bool pos_file_enabled_ = false;
 
   // ---- Background position-file writer ----
   // A single dedicated thread performs all disk I/O for the position file so
