@@ -1124,6 +1124,11 @@ bool fastcat::Manager::PopSdoResponseQueue(SdoResponse& res)
   return true;
 }
 
+std::string fastcat::Manager::PosFilePath() const
+{
+  return actuator_position_directory_ + "/fastcat_saved_positions.yaml";
+}
+
 bool fastcat::Manager::LoadActuatorPosFile()
 {
   // Look for the existence of at least one actuator in the topology
@@ -1175,23 +1180,30 @@ bool fastcat::Manager::LoadActuatorPosFile()
     ERROR("actuator_position_directory is empty, check the YAML parameter");
     return false;
   }
-  std::string pos_file =
-      actuator_position_directory_ + "/fastcat_saved_positions.yaml";
+  std::string pos_file = PosFilePath();
 
   struct stat st;
   if (0 != stat(pos_file.c_str(), &st)) {
     if (actuator_fault_on_missing_pos_file_) {
-      ERROR("Failed to open pos file: %s", strerror(errno));
+      ERROR("Failed to open pos file: %s (%s)", pos_file.c_str(),
+            strerror(errno));
       return false;
     } else {
-      WARNING("Continuing without pos file: %s", strerror(errno));
+      WARNING("Continuing without pos file: %s (%s)", pos_file.c_str(),
+              strerror(errno));
       return true;
     }
   }
 
   MSG_DEBUG("Opening Pos File: %s", pos_file.c_str());
 
-  YAML::Node node = YAML::LoadFile(pos_file);
+  YAML::Node node;
+  try {
+    node = YAML::LoadFile(pos_file);
+  } catch (const YAML::Exception& e) {
+    ERROR("Malformed pos file %s: %s", pos_file.c_str(), e.what());
+    return false;
+  }
   if (!node) {
     ERROR("Could not parse pos file YAML: %s", pos_file.c_str());
     return false;
@@ -1199,6 +1211,17 @@ bool fastcat::Manager::LoadActuatorPosFile()
 
   YAML::Node actuators_node;
   if (!ParseNode(node, "actuators", actuators_node)) {
+    ERROR("Malformed pos file %s: missing the \'actuators\' node",
+          pos_file.c_str());
+    return false;
+  }
+
+  // A bare 'actuators:' with nothing under it parses cleanly but yields zero
+  // entries. Caught here so the operator is told which file is at fault, rather
+  // than seeing a per-actuator "Missing startup position" error later on.
+  if (!actuators_node.IsSequence() || actuators_node.size() == 0) {
+    ERROR("Malformed pos file %s: \'actuators\' has no entries",
+          pos_file.c_str());
     return false;
   }
 
@@ -1206,11 +1229,15 @@ bool fastcat::Manager::LoadActuatorPosFile()
        ++act_node) {
     std::string name;
     if (!ParseVal(*act_node, "actuator_name", name)) {
+      ERROR("Malformed pos file %s: entry is missing \'actuator_name\'",
+            pos_file.c_str());
       return false;
     }
 
     ActuatorPosData act_pos_data;
     if (!ParseVal(*act_node, "position", act_pos_data.position)) {
+      ERROR("Malformed pos file %s: entry for %s is missing \'position\'",
+            pos_file.c_str(), name.c_str());
       return false;
     }
 
@@ -1236,8 +1263,8 @@ bool fastcat::Manager::ValidateActuatorPosFile()
     auto find_pair = device_map_.find(saved_pos_entry->first);
 
     if (find_pair == device_map_.end()) {
-      WARNING("Unused saved position entry found for: %s",
-              saved_pos_entry->first.c_str());
+      WARNING("Unused saved position entry found for %s in pos file %s",
+              saved_pos_entry->first.c_str(), PosFilePath().c_str());
     }
   }
 
@@ -1266,15 +1293,16 @@ bool fastcat::Manager::ValidateActuatorPosFile()
     if (find_pos_data == actuator_pos_map_.end()) {
       if (!actuator_fault_on_missing_pos_file_) {
         WARNING(
-            "Missing Startup position for %s, setting starting position to "
-            "zero",
-            dev_name.c_str());
+            "Missing startup position for %s in pos file %s, setting starting "
+            "position to zero",
+            dev_name.c_str(), PosFilePath().c_str());
 
         ActuatorPosData apd         = {0};
         actuator_pos_map_[dev_name] = apd;
 
       } else {
-        ERROR("Missing startup position for %s", dev_name.c_str());
+        ERROR("Missing startup position for %s in pos file %s", dev_name.c_str(),
+              PosFilePath().c_str());
         return false;
       }
     }
@@ -1374,8 +1402,7 @@ void fastcat::Manager::WritePosFileToDisk(const std::string& contents)
   // thread only. Never call this from the RT Process() thread.
   std::string prev_pos_file =
       actuator_position_directory_ + "/fastcat_saved_positions_prev.yaml";
-  std::string pos_file =
-      actuator_position_directory_ + "/fastcat_saved_positions.yaml";
+  std::string pos_file = PosFilePath();
   // Temp file lives in the SAME directory as pos_file so the final rename is a
   // same-filesystem atomic replace.
   std::string tmp_pos_file =
@@ -1614,8 +1641,7 @@ void fastcat::Manager::InvalidateActuatorPosFile()
   // actuator_fault_on_missing_pos_file_ == true the next startup will fault
   // rather than silently trust an out-of-date file, which is the desired
   // "no positions is better than wrong positions" behavior.
-  std::string pos_file =
-      actuator_position_directory_ + "/fastcat_saved_positions.yaml";
+  std::string pos_file = PosFilePath();
 
   struct stat st;
   if (0 != stat(pos_file.c_str(), &st)) {

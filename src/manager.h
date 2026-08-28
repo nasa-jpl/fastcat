@@ -260,6 +260,9 @@ class Manager
 
   bool LoadActuatorPosFile();
   bool ValidateActuatorPosFile();
+  // Full path of the saved positions file, so every message about it can name
+  // the file the operator has to go look at.
+  std::string PosFilePath() const;
   bool SetActuatorPositions();
   void GetActuatorPositions();
   // Serialize actuator_pos_map_ to a YAML string. Cheap, pure CPU; called on
