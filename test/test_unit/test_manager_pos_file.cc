@@ -17,6 +17,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <sstream>
@@ -288,6 +289,52 @@ class PosFileTest : public ::testing::Test
     return node["actuators"][0]["actuator_name"].as<std::string>();
   }
 
+  // Poll the position file until it holds `expected` (within `tol`), checking
+  // every observation along the way for completeness.
+  //
+  // Existence is not a usable signal for "this cycle's save has landed": a fresh
+  // write supersedes a pending invalidate in the writer mailbox, so the document
+  // the previous cycle wrote can stay on disk continuously across a move. Waiting
+  // on existence and then reading therefore races, and reads the stale position.
+  // Waiting on the content is what the caller actually means.
+  //
+  // Empty reads are skipped rather than failed: the file is legitimately absent
+  // during the invalidate window, and stat-then-read cannot distinguish absent
+  // from truncated without a race of its own. Truncation is still caught -- a
+  // partial document either fails to parse or is missing its fields below.
+  bool WaitForSavedPosition(double expected, double tol)
+  {
+    const double deadline = jsd_time_get_time_sec() + kWriterTimeoutSec;
+    while (jsd_time_get_time_sec() < deadline) {
+      const std::string contents = ReadFile(pos_file_);
+      if (!contents.empty()) {
+        YAML::Node node;
+        try {
+          node = YAML::Load(contents);
+        } catch (const YAML::Exception& e) {
+          ADD_FAILURE() << "observed an unparseable position file: " << e.what()
+                        << "\ncontents:\n"
+                        << contents;
+          return false;
+        }
+        if (!node["actuators"] || node["actuators"].size() != 1 ||
+            !node["actuators"][0]["actuator_name"] ||
+            !node["actuators"][0]["position"]) {
+          ADD_FAILURE() << "observed an incomplete position file:\n" << contents;
+          return false;
+        }
+        EXPECT_EQ("act_1",
+                  node["actuators"][0]["actuator_name"].as<std::string>());
+        if (std::fabs(node["actuators"][0]["position"].as<double>() - expected) <=
+            tol) {
+          return true;
+        }
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+    return false;
+  }
+
   std::unique_ptr<Manager> manager_;
   std::string              pos_dir_;
   std::string              pos_file_;
@@ -436,10 +483,12 @@ TEST_F(PosFileTest, SavesOncePerMotionCycle)
   ASSERT_TRUE(PumpUntilMotorOn(1.0));
   ASSERT_TRUE(PumpUntilBrakesEngaged(10.0));
   PumpFor(2.0 * kSettleSec);
-  ASSERT_TRUE(WaitForFileState(pos_file_, /*should_exist=*/true));
+  // Wait for the new position rather than mere existence: the seeded file is
+  // still on disk until the writer services this cycle's request, so a snapshot
+  // taken on existence alone can capture the seed and then differ from the real
+  // save below.
+  ASSERT_TRUE(WaitForSavedPosition(kTargetPosEu, 1e-2));
 
-  struct stat first;
-  ASSERT_EQ(0, stat(pos_file_.c_str(), &first));
   const std::string first_contents = ReadFile(pos_file_);
 
   // Idle for many more settling windows.
@@ -525,18 +574,14 @@ TEST_F(PosFileTest, PositionFileIsAlwaysCompleteAndParseable)
     CommandMoveTo(target);
     ASSERT_TRUE(PumpUntilMotorOn(1.0));
     ASSERT_TRUE(PumpUntilBrakesEngaged(10.0));
-    ASSERT_TRUE(WaitForFileState(pos_file_, /*should_exist=*/true));
 
-    // Whenever the file exists it must be a complete, parseable document with a
-    // usable position -- never truncated or empty.
-    const std::string contents = ReadFile(pos_file_);
-    ASSERT_FALSE(contents.empty());
-    YAML::Node node;
-    ASSERT_NO_THROW(node = YAML::Load(contents));
-    ASSERT_TRUE(node["actuators"]);
-    ASSERT_EQ(1u, node["actuators"].size());
-    EXPECT_EQ("act_1", node["actuators"][0]["actuator_name"].as<std::string>());
-    EXPECT_NEAR(target, node["actuators"][0]["position"].as<double>(), 1e-2);
+    // Whenever the file is present it must be a complete, parseable document
+    // with a usable position -- never truncated. WaitForSavedPosition() checks
+    // that of every observation it makes while waiting for this cycle's save.
+    ASSERT_TRUE(WaitForSavedPosition(target, 1e-2))
+        << "cycle " << cycle << ": save of " << target
+        << " never landed; file holds:\n"
+        << ReadFile(pos_file_);
 
     EXPECT_FALSE(FileExists(tmp_pos_file_))
         << "temp file must not survive a completed write";
