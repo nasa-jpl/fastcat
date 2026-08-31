@@ -3,13 +3,16 @@
 
 // Include c then c++ libraries
 #include <errno.h>
+#include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <typeindex>
 #include <typeinfo>
 
@@ -75,6 +78,14 @@
 #include "jsd/jsd_sdo_pub.h"
 #include "jsd/jsd_time.h"
 
+namespace
+{
+// Permissions applied to the saved-position files. Previously achieved with a
+// process-wide umask(000); applied per-file now so the host application's umask
+// is left alone.
+constexpr mode_t kPosFileMode = 0666;
+}  // namespace
+
 fastcat::Manager::Manager()
 {
   cmd_queue_          = std::make_shared<ThreadSafeQueue<DeviceCmd>>();
@@ -83,6 +94,10 @@ fastcat::Manager::Manager()
 
 fastcat::Manager::~Manager()
 {
+  // Stop the background position writer (drains any final queued request) before
+  // tearing down the bus.
+  StopPosWriter();
+
   for (auto it = jsd_map_.begin(); it != jsd_map_.end(); ++it) {
     if (it->second != NULL) {
       jsd_free(it->second);
@@ -93,8 +108,57 @@ fastcat::Manager::~Manager()
 
 void fastcat::Manager::Shutdown()
 {
-  GetActuatorPositions();
-  SaveActuatorPosFile();
+  SaveActuatorPositions();
+}
+
+void fastcat::Manager::SaveActuatorPositions()
+{
+  // Topologies that do not persist positions (no actuators, or only
+  // absolute-encoder actuators) bypass the position file entirely -- see
+  // LoadActuatorPosFile(). Without this guard AllBrakesEngaged() would report
+  // false (it finds no relevant actuator) and we would *delete* a position file
+  // that this topology never owned in the first place.
+  if (!pos_file_enabled_) {
+    return;
+  }
+
+  // Snapshot the positions AND post the request to the writer while holding
+  // parameter_mutex_, which serializes against Process(). Posting under the same
+  // lock that UpdatePositionFileOnBrakeState() runs under is what keeps request
+  // ordering consistent with the brake edges: if the lock were released before
+  // posting, the RT loop could observe motion starting and post its invalidate
+  // first, and our later write would supersede it -- leaving a file full of
+  // pre-motion positions while the arm is actually moving.
+  //
+  // Posting is cheap (it only touches the writer's mailbox mutex, never the
+  // disk). Only the wait is deferred until after parameter_mutex_ is released,
+  // because Process() contends on that mutex and holding it across an
+  // fsync-bound wait would stall the RT loop for the full duration of the
+  // disk write.
+  uint64_t seq = 0;
+  {
+    std::lock_guard<std::mutex> lock(parameter_mutex_);
+
+    // Only persist positions when the arm is safely stopped (all brakes
+    // engaged). If this save is requested while the arm is in motion (e.g. a
+    // shutdown that interrupts a move), writing would capture in-motion
+    // positions. Instead, leave the file invalidated so a stale/wrong position
+    // can never be loaded -- it is safer to have no saved positions than
+    // incorrect ones.
+    if (AllBrakesEngaged()) {
+      GetActuatorPositions();
+      seq = PostPosWriteRequest(BuildActuatorPosYaml(), /*wait=*/false);
+    } else {
+      WARNING(
+          "SaveActuatorPositions requested while not all brakes are engaged; "
+          "skipping save and leaving position file invalidated");
+      seq = PostPosInvalidateRequest(/*wait=*/false);
+    }
+  }
+
+  // Wait for the writer to drain our request so the file state is durable before
+  // a caller on the shutdown path exits the process.
+  WaitForPosWriter(seq);
 }
 
 bool fastcat::Manager::CreateConfigFromYaml(const YAML::Node& node,
@@ -122,6 +186,19 @@ bool fastcat::Manager::CreateConfigFromYaml(const YAML::Node& node,
 
   if (!ParseVal(fastcat_node, "actuator_fault_on_missing_pos_file",
                 actuator_fault_on_missing_pos_file_)) {
+    return false;
+  }
+
+  // Optional: how long all brakes must stay continuously engaged before the
+  // positions are considered settled and worth saving. Defaults to a value that
+  // comfortably covers a joint coasting to rest against its brake after an
+  // uncontrolled power cut (STO/e-stop/fault). Set to 0 to save on the first
+  // brakes-engaged cycle, as fastcat did before the debounce was added.
+  ParseOptVal(fastcat_node, "actuator_position_save_settle_sec",
+              pos_save_settle_sec_);
+  if (pos_save_settle_sec_ < 0.0) {
+    ERROR("actuator_position_save_settle_sec must be >= 0, got %lf",
+          pos_save_settle_sec_);
     return false;
   }
 
@@ -248,6 +325,11 @@ bool fastcat::Manager::InitHardware()
   // attempt to start in nominal, post-reset state.
   this->ExecuteAllDeviceResets();
 
+  // Start the background position-file writer now that the bus is up. All
+  // position saves/invalidations are handed to this thread so disk I/O never
+  // runs on the RT Process() thread.
+  StartPosWriter();
+
   return true;
 }
 
@@ -352,6 +434,10 @@ bool fastcat::Manager::Process(double external_time)
       sdo_response_queue_->push(entry);
     }
   }
+
+  // Persist actuator positions when the arm settles (all brakes engaged) and
+  // invalidate the saved file when motion resumes. Runs under parameter_mutex_.
+  UpdatePositionFileOnBrakeState(monotonic_time);
 
   return !faulted_;
 }
@@ -1038,6 +1124,11 @@ bool fastcat::Manager::PopSdoResponseQueue(SdoResponse& res)
   return true;
 }
 
+std::string fastcat::Manager::PosFilePath() const
+{
+  return actuator_position_directory_ + "/fastcat_saved_positions.yaml";
+}
+
 bool fastcat::Manager::LoadActuatorPosFile()
 {
   // Look for the existence of at least one actuator in the topology
@@ -1075,6 +1166,10 @@ bool fastcat::Manager::LoadActuatorPosFile()
     return true;
   }
 
+  // Past the bypass checks: this topology owns the position file, so the
+  // brake-edge save and the invalidate-on-motion paths are live from here on.
+  pos_file_enabled_ = true;
+
   if (!actuator_fault_on_missing_pos_file_) {
     WARNING("YAML parameter \'actuator_fault_on_missing_pos_file\' is FALSE");
     WARNING("\tThis setting is intended for demo and testing and should");
@@ -1085,23 +1180,30 @@ bool fastcat::Manager::LoadActuatorPosFile()
     ERROR("actuator_position_directory is empty, check the YAML parameter");
     return false;
   }
-  std::string pos_file =
-      actuator_position_directory_ + "/fastcat_saved_positions.yaml";
+  std::string pos_file = PosFilePath();
 
   struct stat st;
   if (0 != stat(pos_file.c_str(), &st)) {
     if (actuator_fault_on_missing_pos_file_) {
-      ERROR("Failed to open pos file: %s", strerror(errno));
+      ERROR("Failed to open pos file: %s (%s)", pos_file.c_str(),
+            strerror(errno));
       return false;
     } else {
-      WARNING("Continuing without pos file: %s", strerror(errno));
+      WARNING("Continuing without pos file: %s (%s)", pos_file.c_str(),
+              strerror(errno));
       return true;
     }
   }
 
   MSG_DEBUG("Opening Pos File: %s", pos_file.c_str());
 
-  YAML::Node node = YAML::LoadFile(pos_file);
+  YAML::Node node;
+  try {
+    node = YAML::LoadFile(pos_file);
+  } catch (const YAML::Exception& e) {
+    ERROR("Malformed pos file %s: %s", pos_file.c_str(), e.what());
+    return false;
+  }
   if (!node) {
     ERROR("Could not parse pos file YAML: %s", pos_file.c_str());
     return false;
@@ -1109,6 +1211,17 @@ bool fastcat::Manager::LoadActuatorPosFile()
 
   YAML::Node actuators_node;
   if (!ParseNode(node, "actuators", actuators_node)) {
+    ERROR("Malformed pos file %s: missing the \'actuators\' node",
+          pos_file.c_str());
+    return false;
+  }
+
+  // A bare 'actuators:' with nothing under it parses cleanly but yields zero
+  // entries. Caught here so the operator is told which file is at fault, rather
+  // than seeing a per-actuator "Missing startup position" error later on.
+  if (!actuators_node.IsSequence() || actuators_node.size() == 0) {
+    ERROR("Malformed pos file %s: \'actuators\' has no entries",
+          pos_file.c_str());
     return false;
   }
 
@@ -1116,11 +1229,15 @@ bool fastcat::Manager::LoadActuatorPosFile()
        ++act_node) {
     std::string name;
     if (!ParseVal(*act_node, "actuator_name", name)) {
+      ERROR("Malformed pos file %s: entry is missing \'actuator_name\'",
+            pos_file.c_str());
       return false;
     }
 
     ActuatorPosData act_pos_data;
     if (!ParseVal(*act_node, "position", act_pos_data.position)) {
+      ERROR("Malformed pos file %s: entry for %s is missing \'position\'",
+            pos_file.c_str(), name.c_str());
       return false;
     }
 
@@ -1146,8 +1263,8 @@ bool fastcat::Manager::ValidateActuatorPosFile()
     auto find_pair = device_map_.find(saved_pos_entry->first);
 
     if (find_pair == device_map_.end()) {
-      WARNING("Unused saved position entry found for: %s",
-              saved_pos_entry->first.c_str());
+      WARNING("Unused saved position entry found for %s in pos file %s",
+              saved_pos_entry->first.c_str(), PosFilePath().c_str());
     }
   }
 
@@ -1176,15 +1293,16 @@ bool fastcat::Manager::ValidateActuatorPosFile()
     if (find_pos_data == actuator_pos_map_.end()) {
       if (!actuator_fault_on_missing_pos_file_) {
         WARNING(
-            "Missing Startup position for %s, setting starting position to "
-            "zero",
-            dev_name.c_str());
+            "Missing startup position for %s in pos file %s, setting starting "
+            "position to zero",
+            dev_name.c_str(), PosFilePath().c_str());
 
         ActuatorPosData apd         = {0};
         actuator_pos_map_[dev_name] = apd;
 
       } else {
-        ERROR("Missing startup position for %s", dev_name.c_str());
+        ERROR("Missing startup position for %s in pos file %s", dev_name.c_str(),
+              PosFilePath().c_str());
         return false;
       }
     }
@@ -1259,19 +1377,12 @@ void fastcat::Manager::GetActuatorPositions()
   }
 }
 
-void fastcat::Manager::SaveActuatorPosFile()
+std::string fastcat::Manager::BuildActuatorPosYaml()
 {
-  std::string prev_pos_file =
-      actuator_position_directory_ + "/fastcat_saved_positions_prev.yaml";
-  std::string pos_file =
-      actuator_position_directory_ + "/fastcat_saved_positions.yaml";
-
-  MSG("Renaming %s -> %s", pos_file.c_str(), prev_pos_file.c_str());
-
-  if (0 != rename(pos_file.c_str(), prev_pos_file.c_str())) {
-    WARNING("Could not move: %s, file may not exist", pos_file.c_str());
-  }
-
+  // Pure serialization of the current actuator_pos_map_. Runs on the RT thread
+  // under parameter_mutex_ (cheap: no syscalls), so the returned string is a
+  // consistent snapshot that the background writer can persist without any
+  // access to shared device state.
   YAML::Node file_node;
   for (auto pos_pair = actuator_pos_map_.begin();
        pos_pair != actuator_pos_map_.end(); ++pos_pair) {
@@ -1280,12 +1391,389 @@ void fastcat::Manager::SaveActuatorPosFile()
     act_node["position"]      = pos_pair->second.position;
     file_node["actuators"].push_back(act_node);
   }
+  std::stringstream ss;
+  ss << file_node;
+  return ss.str();
+}
 
-  umask(000);
-  std::ofstream file(pos_file, std::ios::out);
-  file << file_node;
-  file.close();
+void fastcat::Manager::WritePosFileToDisk(const std::string& contents)
+{
+  // ALL disk I/O for the position file happens here, on the background writer
+  // thread only. Never call this from the RT Process() thread.
+  std::string prev_pos_file =
+      actuator_position_directory_ + "/fastcat_saved_positions_prev.yaml";
+  std::string pos_file = PosFilePath();
+  // Temp file lives in the SAME directory as pos_file so the final rename is a
+  // same-filesystem atomic replace.
+  std::string tmp_pos_file =
+      actuator_position_directory_ + "/fastcat_saved_positions.yaml.tmp";
+
+  // Write the new positions to a temp file, flush it all the way to disk, and
+  // only then atomically rename it over the canonical file. This guarantees
+  // that fastcat_saved_positions.yaml is never partially written: at any
+  // instant a reader (or a crash) sees either the complete old file or the
+  // complete new one, never a truncated/empty file. This is the crash-safe
+  // replacement for the previous rename-then-write scheme, which could leave
+  // no canonical file at all if killed between the rename and the write.
+  //
+  // Permissions are applied per-file with chmod() below rather than by clearing
+  // the process umask: umask is process-wide (NOT per-thread), so setting it
+  // here would silently make every file the host application creates from now
+  // on world-writable.
+  {
+    std::ofstream file(tmp_pos_file, std::ios::out | std::ios::trunc);
+    if (!file) {
+      ERROR("Could not open temp pos file for writing: %s (%s); leaving %s "
+            "untouched",
+            tmp_pos_file.c_str(), strerror(errno), pos_file.c_str());
+      return;
+    }
+    file << contents;
+    file.flush();
+    if (!file) {
+      ERROR("Failed while writing temp pos file: %s; leaving %s untouched",
+            tmp_pos_file.c_str(), pos_file.c_str());
+      file.close();
+      remove(tmp_pos_file.c_str());
+      return;
+    }
+    file.close();
+  }
+
+  // Make the position file group/world writable so it is not owned exclusively
+  // by whichever user happened to run this process first. Done on the temp file
+  // before the rename: rename() preserves the inode, so the canonical file lands
+  // with these permissions already in place and is never briefly unwritable.
+  if (0 != chmod(tmp_pos_file.c_str(), kPosFileMode)) {
+    WARNING("Could not chmod %s: %s", tmp_pos_file.c_str(), strerror(errno));
+  }
+
+  // fsync the temp file's contents to durable storage before the rename.
+  int fd = open(tmp_pos_file.c_str(), O_RDONLY);
+  if (fd >= 0) {
+    if (0 != fsync(fd)) {
+      WARNING("fsync failed on %s: %s", tmp_pos_file.c_str(), strerror(errno));
+    }
+    close(fd);
+  } else {
+    WARNING("Could not reopen %s to fsync: %s", tmp_pos_file.c_str(),
+            strerror(errno));
+  }
+
+  // Keep a backup of the last-known-good canonical file WITHOUT removing it.
+  // A plain copy (not rename) means the canonical file always continues to
+  // exist right up until the atomic replace below.
+  struct stat st;
+  if (0 == stat(pos_file.c_str(), &st)) {
+    std::ifstream src(pos_file, std::ios::binary);
+    std::ofstream dst(prev_pos_file, std::ios::binary | std::ios::trunc);
+    if (src && dst) {
+      dst << src.rdbuf();
+      dst.close();
+      if (0 != chmod(prev_pos_file.c_str(), kPosFileMode)) {
+        WARNING("Could not chmod %s: %s", prev_pos_file.c_str(),
+                strerror(errno));
+      }
+    } else {
+      WARNING("Could not back up %s -> %s", pos_file.c_str(),
+              prev_pos_file.c_str());
+    }
+  }
+
+  // Atomic replace: this is the only operation that touches the canonical file.
+  if (0 != rename(tmp_pos_file.c_str(), pos_file.c_str())) {
+    ERROR("Atomic rename %s -> %s failed: %s; canonical file left unchanged",
+          tmp_pos_file.c_str(), pos_file.c_str(), strerror(errno));
+    remove(tmp_pos_file.c_str());
+    return;
+  }
+
+  // fsync the CONTAINING DIRECTORY, not just the file. fsync on the temp file
+  // above only makes its *contents* durable; the rename is a directory-metadata
+  // operation, so without this a power loss can leave the directory entry still
+  // pointing at the old file (or at neither) even though the new data is safely
+  // on the platter. Both fsyncs are required for the atomic-replace guarantee to
+  // survive an actual power cut.
+  SyncPosFileDirectory();
+
   MSG("Successfully wrote Pos File: %s", pos_file.c_str());
+}
+
+void fastcat::Manager::StartPosWriter()
+{
+  if (pos_writer_running_) {
+    return;
+  }
+  {
+    std::lock_guard<std::mutex> lock(pos_writer_mutex_);
+    pos_writer_stop_ = false;
+  }
+  pos_writer_thread_  = std::thread(&Manager::PosWriterLoop, this);
+  pos_writer_running_ = true;
+}
+
+void fastcat::Manager::StopPosWriter()
+{
+  if (!pos_writer_running_) {
+    return;
+  }
+  {
+    std::lock_guard<std::mutex> lock(pos_writer_mutex_);
+    pos_writer_stop_ = true;
+  }
+  pos_writer_cv_.notify_one();
+  if (pos_writer_thread_.joinable()) {
+    pos_writer_thread_.join();
+  }
+  pos_writer_running_ = false;
+}
+
+void fastcat::Manager::PosWriterLoop()
+{
+  // NOTE: deliberately does not touch umask -- umask is process-wide, not
+  // per-thread, so clearing it here would leak world-writable defaults into
+  // every file the host application creates. WritePosFileToDisk() chmods the
+  // files it creates instead.
+  std::unique_lock<std::mutex> lock(pos_writer_mutex_);
+  while (true) {
+    pos_writer_cv_.wait(lock, [this]() {
+      return pos_writer_stop_ || pos_pending_write_ || pos_pending_invalidate_;
+    });
+
+    // Snapshot the pending request and clear it while holding the lock.
+    bool        do_write      = pos_pending_write_;
+    bool        do_invalidate = pos_pending_invalidate_;
+    std::string contents      = std::move(pos_pending_contents_);
+    uint64_t    handling_seq  = pos_request_seq_;
+    pos_pending_write_        = false;
+    pos_pending_invalidate_   = false;
+    pos_pending_contents_.clear();
+
+    if (do_write || do_invalidate) {
+      // Release the mailbox lock during disk I/O so the RT thread can post new
+      // requests without ever blocking on the disk.
+      lock.unlock();
+      // Invalidate wins if both were somehow set (matches "in motion => no
+      // file"): a later invalidate must not be overridden by a stale write.
+      if (do_invalidate) {
+        InvalidateActuatorPosFile();
+      } else {
+        WritePosFileToDisk(contents);
+      }
+      lock.lock();
+      pos_processed_seq_ = handling_seq;
+      pos_writer_done_cv_.notify_all();
+    }
+
+    if (pos_writer_stop_ && !pos_pending_write_ && !pos_pending_invalidate_) {
+      break;
+    }
+  }
+}
+
+uint64_t fastcat::Manager::PostPosWriteRequest(std::string contents, bool wait)
+{
+  // Fallback: if the writer thread is not running, do the write inline. This
+  // only happens off the RT loop (e.g. teardown before StartPosWriter), so
+  // blocking here is acceptable and avoids waiting forever on a request nobody
+  // would drain.
+  if (!pos_writer_running_) {
+    WritePosFileToDisk(contents);
+    return 0;
+  }
+
+  uint64_t seq;
+  {
+    std::lock_guard<std::mutex> lock(pos_writer_mutex_);
+    pos_pending_contents_   = std::move(contents);
+    pos_pending_write_      = true;
+    pos_pending_invalidate_ = false;  // a fresh write supersedes a pending inval
+    seq                     = ++pos_request_seq_;
+  }
+  pos_writer_cv_.notify_one();
+
+  if (wait) {
+    WaitForPosWriter(seq);
+  }
+  return seq;
+}
+
+uint64_t fastcat::Manager::PostPosInvalidateRequest(bool wait)
+{
+  if (!pos_writer_running_) {
+    InvalidateActuatorPosFile();
+    return 0;
+  }
+
+  uint64_t seq;
+  {
+    std::lock_guard<std::mutex> lock(pos_writer_mutex_);
+    pos_pending_invalidate_ = true;
+    pos_pending_write_      = false;  // an invalidate supersedes a pending write
+    pos_pending_contents_.clear();
+    seq                     = ++pos_request_seq_;
+  }
+  pos_writer_cv_.notify_one();
+
+  if (wait) {
+    WaitForPosWriter(seq);
+  }
+  return seq;
+}
+
+void fastcat::Manager::WaitForPosWriter(uint64_t seq)
+{
+  // seq == 0 means the request was already serviced inline (writer not running),
+  // so there is nothing to wait for.
+  if (seq == 0 || !pos_writer_running_) {
+    return;
+  }
+  std::unique_lock<std::mutex> lock(pos_writer_mutex_);
+  pos_writer_done_cv_.wait(
+      lock, [this, seq]() { return pos_processed_seq_ >= seq; });
+}
+
+void fastcat::Manager::InvalidateActuatorPosFile()
+{
+  // Remove the canonical position file so that a subsequent startup does not
+  // load stale positions. The _prev.yaml backup (from the last successful save)
+  // is intentionally left in place for debugging. With
+  // actuator_fault_on_missing_pos_file_ == true the next startup will fault
+  // rather than silently trust an out-of-date file, which is the desired
+  // "no positions is better than wrong positions" behavior.
+  std::string pos_file = PosFilePath();
+
+  struct stat st;
+  if (0 != stat(pos_file.c_str(), &st)) {
+    // Already absent; nothing to do.
+    return;
+  }
+
+  if (0 != remove(pos_file.c_str())) {
+    WARNING("Could not invalidate (remove) pos file %s: %s", pos_file.c_str(),
+            strerror(errno));
+  } else {
+    // The unlink is a directory-metadata operation, so it needs the same
+    // directory fsync as the rename in WritePosFileToDisk(). Without it a power
+    // cut can resurrect the file we just invalidated, which is precisely the
+    // stale-position load this function exists to prevent.
+    SyncPosFileDirectory();
+    MSG("Invalidated saved position file (motion started): %s",
+        pos_file.c_str());
+  }
+}
+
+void fastcat::Manager::SyncPosFileDirectory()
+{
+  // Flush the position directory's entries to durable storage, making the most
+  // recent rename/unlink survive a power loss. Runs on the writer thread only.
+  int dir_fd = open(actuator_position_directory_.c_str(), O_RDONLY);
+  if (dir_fd < 0) {
+    WARNING("Could not open %s to fsync directory: %s",
+            actuator_position_directory_.c_str(), strerror(errno));
+    return;
+  }
+  if (0 != fsync(dir_fd)) {
+    WARNING("fsync failed on directory %s: %s",
+            actuator_position_directory_.c_str(), strerror(errno));
+  }
+  close(dir_fd);
+}
+
+bool fastcat::Manager::AllBrakesEngaged()
+{
+  bool found_actuator = false;
+  for (auto device = jsd_device_list_.begin(); device != jsd_device_list_.end();
+       ++device) {
+    std::shared_ptr<DeviceState> dev_state = (*device)->GetState();
+
+    if (dev_state->type != GOLD_ACTUATOR_STATE &&
+        dev_state->type != PLATINUM_ACTUATOR_STATE) {
+      continue;
+    }
+
+    std::shared_ptr<Actuator> actuator =
+        std::dynamic_pointer_cast<Actuator>(*device);
+
+    // Absolute-encoder actuators are not persisted, so their motion does not
+    // affect whether we should save the (incremental-encoder) positions.
+    if (actuator->HasAbsoluteEncoder()) {
+      continue;
+    }
+
+    found_actuator = true;
+
+    // motor_on == 0 means the motor is unpowered and the (spring-applied) brake
+    // is engaged. Any powered/moving actuator means brakes are not all engaged.
+    uint8_t motor_on = (dev_state->type == GOLD_ACTUATOR_STATE)
+                           ? dev_state->gold_actuator_state.motor_on
+                           : dev_state->platinum_actuator_state.motor_on;
+    if (motor_on != 0) {
+      return false;
+    }
+  }
+
+  return found_actuator;
+}
+
+void fastcat::Manager::UpdatePositionFileOnBrakeState(double monotonic_time)
+{
+  // Called at the end of Process() while parameter_mutex_ is held.
+
+  // Topologies that bypass the position file (no actuators, or only
+  // absolute-encoder actuators) must not touch it. AllBrakesEngaged() returns
+  // false for them, which would otherwise look like a falling edge and delete a
+  // file this topology does not own.
+  if (!pos_file_enabled_) {
+    return;
+  }
+
+  bool all_engaged = AllBrakesEngaged();
+
+  // Track how long the brakes have been continuously engaged. motor_on drops to
+  // zero the instant drive power is removed, which on a controlled halt happens
+  // only after the drive has decelerated and set the brake -- but on an STO,
+  // e-stop or fault the power is cut while the joint is still moving, and the
+  // joint then coasts to a stop against the brake. Saving on that first
+  // brakes-engaged cycle would persist a mid-travel position, and since the edge
+  // has already been consumed it would never be corrected. Requiring the brakes
+  // to stay engaged for pos_save_settle_sec_ lets the joint come to rest first.
+  if (!all_engaged) {
+    brakes_engaged_since_ = -1.0;
+    // Motors are powered, so the arm may move: the on-disk file is stale and the
+    // next settled stop must produce a fresh save.
+    saw_motion_since_last_save_ = true;
+  } else if (brakes_engaged_since_ < 0.0 ||
+             monotonic_time < brakes_engaged_since_) {
+    // Newly engaged, or time ran backwards (an application supplying its own
+    // external_time may reset it) -- restart the settling window.
+    brakes_engaged_since_ = monotonic_time;
+  }
+
+  bool settled =
+      all_engaged &&
+      (monotonic_time - brakes_engaged_since_) >= pos_save_settle_sec_;
+
+  // saw_motion_since_last_save_ (rather than an edge on `settled`) is what makes
+  // this fire exactly once per motion->stop cycle. It also means a bus that comes
+  // up already stopped does not re-save positions it just loaded.
+  if (settled && saw_motion_since_last_save_) {
+    // Motion has stopped and the arm has had time to settle -> persist.
+    // Serialize the snapshot here (cheap, under the RT lock) and hand the disk
+    // write to the background writer so the RT loop never blocks on I/O.
+    MSG("All actuator brakes engaged and settled; saving actuator positions");
+    GetActuatorPositions();
+    PostPosWriteRequest(BuildActuatorPosYaml(), /*wait=*/false);
+    saw_motion_since_last_save_ = false;
+  } else if (!all_engaged && prev_all_brakes_engaged_) {
+    // Falling edge: motion just started -> invalidate the saved file so a stale
+    // position can never be loaded if we are interrupted before the next stop.
+    // Deferred to the writer thread (it does the stat/remove). Note this is NOT
+    // debounced: invalidation must happen as early as possible.
+    PostPosInvalidateRequest(/*wait=*/false);
+  }
+
+  prev_all_brakes_engaged_ = all_engaged;
 }
 
 bool fastcat::Manager::CheckDeviceNameIsUnique(std::string name)

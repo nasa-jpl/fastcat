@@ -8,6 +8,7 @@ set(TEST_SOURCES
     test_function.cc
     test_jsd_device_base.cc
     test_linear_interpolation.cc
+    test_manager_pos_file.cc
     test_schmitt_trigger.cc
     test_signal_generator.cc
     test_transform_utils.cc

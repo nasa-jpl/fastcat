@@ -55,6 +55,7 @@ For every `JSD Device` there is an `Offline Device` to emulate the behavior of t
 | `zero_latency_required`              | Controls Manager reaction if circular `Signal` dependencies exist | bool   | True              |
 | `actuator_position_directory`        | Parent directory of actuator saved position file             | string | /tmp/             |
 | `actuator_fault_on_missing_pos_file` | If true, Fastcat will fail during initialization if a saved pos file does not exist | bool   | True              |
+| `actuator_position_save_settle_sec`  | *Optional.* How long all brakes must stay engaged before saved positions are considered settled | double | 0.5               |
 
 #### target_loop_rate_hz
 
@@ -68,9 +69,31 @@ During initialization, devices will be reordered by the manager to ensure that t
 
 To work seamlessly with actuators, the manager may need to cache the last known position of actuators if they are using any non-absolute position sensor (e.g. incremental encoder, Hall-effect sensor) The Manager will look inside the `actuator_position_directory` for a pre-existing `fastcat_saved_positions.yaml` file to restore position from this file. 
 
+The manager maintains this file over the life of the application:
+
+* Whenever the motors are powered (any actuator reporting `motor_on`), the file is **deleted**. An actuator that is powered may move, so a position captured before the move is no longer trustworthy, and no file at all is safer than a wrong one.
+* Once every actuator's brake is engaged again, and has stayed engaged for `actuator_position_save_settle_sec`, the current positions are written back out.
+* `Manager::Shutdown()` writes the positions synchronously if the brakes are engaged. If it is called mid-motion the file is left deleted instead — an application that is killed or crashes during a move will therefore find no position file on the next startup.
+
+Positions are written with an atomic replace (write to a temp file, `fsync`, `rename`), so a reader or a crash never observes a partially written file. The disk I/O runs on a dedicated background thread and never blocks the `Process()` loop. The previous contents are copied to `fastcat_saved_positions_prev.yaml` when a save overwrites an existing file; note that because the file is deleted at the start of every motion, this backup is only produced by a save that was not preceded by motion.
+
+Topologies with no actuators, or whose actuators all use absolute encoders, bypass this file entirely — they neither read, write, nor delete it, so it is safe for such a topology to share an `actuator_position_directory` with one that does use it.
+
 #### actuator_fault_on_missing_pos_file
 
-The `fastcat_saved_positions.yaml` may not exist for any number of reasons. If this file does not exist, this parameter controls how the manager reacts. if True, then the manager will fault and not initialize. if False, the assumed startup position for all actuators is `0` and when a new `fastcat_saved_positions.yaml` fill will be created when the manager is shutdown by the application.
+The `fastcat_saved_positions.yaml` may not exist for any number of reasons — a first-ever run, or an application that was killed mid-motion (see above). If this file does not exist, this parameter controls how the manager reacts. If True, then the manager will fault and not initialize. If False, the assumed startup position for all actuators is `0` and a new `fastcat_saved_positions.yaml` will be created the next time the actuators come to rest.
+
+Setting this False is intended for demos and testing. Running actuators in production with an assumed startup position of `0` will drive them to the wrong absolute positions.
+
+#### actuator_position_save_settle_sec
+
+Optional; defaults to `0.5`. Omitting it is fine and is the recommended configuration.
+
+Saved positions are captured once all actuators report their brakes engaged (`motor_on == 0`). On a controlled halt the drive decelerates and sets the brake *before* removing power, so the position is already at rest when this is observed. But on an STO, e-stop, or fault, power is cut while the joint is still moving and the joint then coasts to a stop against its brake — capturing on that first brakes-engaged cycle would persist a mid-travel position, and because saving is edge-triggered it would never be corrected.
+
+This parameter is how long the brakes must stay *continuously* engaged before the positions are treated as settled and written. It should comfortably exceed the worst-case time for a joint to come to rest against its brake after an uncontrolled power cut. Any actuator powering back up resets the window.
+
+Set it to `0` to save on the first brakes-engaged cycle, which is how Fastcat behaved before this parameter existed. Negative values are rejected during configuration.
 
 #### Examples
 
@@ -81,6 +104,7 @@ fastcat:
 	zero_latency_required:              True  # Always
 	actuator_position_directory:        /cal/ # or any other global location on your filesystem
 	actuator_fault_on_missing_pos_file: True  # Online - True, Offline - False
+	actuator_position_save_settle_sec:  0.5   # Optional; omit to accept the 0.5 default
 ```
 
 ``` yaml
@@ -90,6 +114,7 @@ fastcat:
 	zero_latency_required:              True  # Always
 	actuator_position_directory:        /tmp/ # Recommended this is different from the Online path
 	actuator_fault_on_missing_pos_file: False # Let Fastcat Create this for us!
+	actuator_position_save_settle_sec:  0     # Offline devices stop instantly; no need to wait
 ```
 
 ---

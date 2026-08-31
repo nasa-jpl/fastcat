@@ -4,9 +4,14 @@
 // Include related header (for cc files)
 
 // Include c then c++ libraries
+#include <cstdint>
+#include <atomic>
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -39,6 +44,26 @@ class Manager
    * @return void
    */
   void Shutdown();
+
+  /** @brief Capture current actuator positions and write them to file.
+   *
+   * Intended for callers that want to persist positions without tearing down
+   * the bus. The write itself is crash-safe (atomic rename), and the positions
+   * are snapshotted under the same internal mutex used by Process(), so this is
+   * safe to call from any thread while the process loop is still running. The
+   * snapshot is taken under that mutex but the disk write is not, so the RT loop
+   * is not blocked on I/O.
+   *
+   * Must NOT be called from a signal handler: it takes a mutex and allocates,
+   * neither of which is async-signal-safe, and if the signal is delivered on the
+   * thread already inside Process() it will self-deadlock on that mutex. Set a
+   * flag in the handler and call this from your normal control flow instead.
+   *
+   * No-op for topologies that do not persist positions (no actuators, or only
+   * actuators with absolute encoders).
+   * @return void
+   */
+  void SaveActuatorPositions();
 
   /** @brief Method that accepts a fastcat topology yaml and intializes bus
    *
@@ -236,9 +261,48 @@ class Manager
 
   bool LoadActuatorPosFile();
   bool ValidateActuatorPosFile();
+  // Full path of the saved positions file, so every message about it can name
+  // the file the operator has to go look at.
+  std::string PosFilePath() const;
   bool SetActuatorPositions();
   void GetActuatorPositions();
-  void SaveActuatorPosFile();
+  // Serialize actuator_pos_map_ to a YAML string. Cheap, pure CPU; called on
+  // the RT thread under parameter_mutex_ so it sees a consistent snapshot.
+  std::string BuildActuatorPosYaml();
+  // Perform the actual disk write (temp file + fsync + _prev backup + atomic
+  // rename) for the already-serialized `contents`. Runs ONLY on the background
+  // writer thread; touches no shared device state, takes no RT lock.
+  void WritePosFileToDisk(const std::string& contents);
+  void InvalidateActuatorPosFile();
+  // fsync the position directory so the last rename/unlink is durable across a
+  // power loss. Runs ONLY on the background writer thread.
+  void SyncPosFileDirectory();
+  // Background position-file writer: keeps all disk I/O (fsync, rename, backup
+  // copy) off the RT Process() thread so a save cannot cause a cycle slip.
+  void StartPosWriter();
+  void StopPosWriter();
+  void PosWriterLoop();
+  // Post a write (contents) or an invalidate request to the writer thread. If
+  // `wait` is true, block until the writer has processed it (used on shutdown
+  // to guarantee durability before exit). Both return the request sequence
+  // number, which can be handed to WaitForPosWriter() later to defer the block
+  // until after a caller-held lock is released; 0 means the request was already
+  // serviced inline because the writer thread is not running.
+  uint64_t PostPosWriteRequest(std::string contents, bool wait);
+  uint64_t PostPosInvalidateRequest(bool wait);
+  // Block until the writer has drained request `seq`. Never call while holding
+  // parameter_mutex_: the wait is fsync-bound and Process() contends on it.
+  void WaitForPosWriter(uint64_t seq);
+  // True iff every GOLD/PLATINUM actuator has its brake engaged (motor_on == 0,
+  // i.e. unpowered and mechanically held). Actuators with absolute encoders are
+  // ignored (their positions are not persisted). Returns false if there are no
+  // relevant actuators.
+  bool AllBrakesEngaged();
+  // Called at the end of each Process() cycle (under parameter_mutex_). Once
+  // AllBrakesEngaged() has held for pos_save_settle_sec_ it saves the current
+  // positions; on the falling edge (motion starting) it immediately invalidates
+  // the saved file so a stale in-motion position can never be loaded.
+  void UpdatePositionFileOnBrakeState(double monotonic_time);
   bool CheckDeviceNameIsUnique(std::string name);
   struct JsdBusInitParams {
     std::string ifname;
@@ -266,6 +330,57 @@ class Manager
   std::vector<JsdBusInitParams> pending_jsd_inits_;
 
   std::mutex parameter_mutex_;
+
+  // Falling-edge tracking for the invalidate-on-motion path. Starts true so a
+  // bus that comes up already stopped is not treated as a transition.
+  bool prev_all_brakes_engaged_ = true;
+
+  // Set whenever the motors are powered (brakes not all engaged), cleared once a
+  // save completes. Gating the save on this, rather than on an edge, guarantees
+  // exactly one save per motion->stop cycle and means a bus that comes up already
+  // stopped does not re-save the positions it just loaded.
+  bool saw_motion_since_last_save_ = false;
+
+  // monotonic_time at which the brakes most recently became fully engaged, or
+  // -1.0 when they are not. Used to enforce the pos_save_settle_sec_ debounce.
+  double brakes_engaged_since_ = -1.0;
+
+  // How long all brakes must stay continuously engaged before positions are
+  // considered settled and saved. Guards against persisting a mid-travel
+  // position when drive power is cut at speed (STO/e-stop/fault) and the joint
+  // coasts to rest against its brake. YAML: actuator_position_save_settle_sec.
+  double pos_save_settle_sec_ = 0.5;
+
+  // True only for topologies that actually persist actuator positions, i.e.
+  // those with at least one non-absolute-encoder GOLD/PLATINUM actuator. Set by
+  // LoadActuatorPosFile(), which bypasses all position-file handling otherwise.
+  // Every save/invalidate path must check this: AllBrakesEngaged() reports false
+  // when it finds no relevant actuator, which would otherwise be read as "in
+  // motion" and delete a position file this topology does not own (it may be
+  // shared with another topology that does use incremental encoders).
+  bool pos_file_enabled_ = false;
+
+  // ---- Background position-file writer ----
+  // A single dedicated thread performs all disk I/O for the position file so
+  // that no fsync/rename/backup-copy ever runs on the RT Process() thread. The
+  // RT thread only serializes the (tiny) YAML string under parameter_mutex_ and
+  // hands it off via the single-slot coalescing mailbox below.
+  std::thread             pos_writer_thread_;
+  std::mutex              pos_writer_mutex_;
+  std::condition_variable pos_writer_cv_;        // RT -> writer: new request
+  std::condition_variable pos_writer_done_cv_;   // writer -> RT: request drained
+  std::string             pos_pending_contents_;  // payload for a pending write
+  bool                    pos_pending_write_      = false;
+  bool                    pos_pending_invalidate_ = false;
+  bool                    pos_writer_stop_        = false;  // ask writer to exit
+  // Monotonic counters to let a waiter (shutdown) know its request was handled.
+  uint64_t                pos_request_seq_        = 0;  // incremented on each post
+  uint64_t                pos_processed_seq_      = 0;  // writer sets = seq handled
+  // Whether pos_writer_thread_ exists and will drain the mailbox. Atomic because
+  // it is written by StartPosWriter()/StopPosWriter() on the application thread
+  // but read by the RT Process() thread (via PostPos*Request) to decide between
+  // handing off to the writer and writing inline.
+  std::atomic<bool>       pos_writer_running_{false};
 
 };
 }  // namespace fastcat
