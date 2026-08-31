@@ -1508,8 +1508,8 @@ void fastcat::Manager::StartPosWriter()
     std::lock_guard<std::mutex> lock(pos_writer_mutex_);
     pos_writer_stop_ = false;
   }
-  pos_writer_running_ = true;
   pos_writer_thread_  = std::thread(&Manager::PosWriterLoop, this);
+  pos_writer_running_ = true;
 }
 
 void fastcat::Manager::StopPosWriter()

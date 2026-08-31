@@ -5,6 +5,7 @@
 
 // Include c then c++ libraries
 #include <cstdint>
+#include <atomic>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -375,7 +376,11 @@ class Manager
   // Monotonic counters to let a waiter (shutdown) know its request was handled.
   uint64_t                pos_request_seq_        = 0;  // incremented on each post
   uint64_t                pos_processed_seq_      = 0;  // writer sets = seq handled
-  bool                    pos_writer_running_     = false;
+  // Whether pos_writer_thread_ exists and will drain the mailbox. Atomic because
+  // it is written by StartPosWriter()/StopPosWriter() on the application thread
+  // but read by the RT Process() thread (via PostPos*Request) to decide between
+  // handing off to the writer and writing inline.
+  std::atomic<bool>       pos_writer_running_{false};
 
 };
 }  // namespace fastcat

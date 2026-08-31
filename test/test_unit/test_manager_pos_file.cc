@@ -562,6 +562,16 @@ TEST_F(PosFileTest, NoActuatorTopologyLeavesPositionFileUntouched)
   EXPECT_EQ(original, ReadFile(pos_file_));
 }
 
+// A negative settling window is meaningless and must be rejected at
+// configuration time rather than silently accepted.
+TEST_F(PosFileTest, NegativeSettleSecIsRejected)
+{
+  SeedPosFile(kStartPosEu);
+  manager_        = std::make_unique<Manager>();
+  YAML::Node node = YAML::Load(ActuatorTopologyYaml(pos_dir_, -1.0));
+  EXPECT_FALSE(manager_->ConfigFromYaml(node, jsd_time_get_time_sec()));
+}
+
 // The canonical file is replaced by an atomic rename, so a reader never observes
 // a partial write: every observation is either the old or the new full document.
 TEST_F(PosFileTest, PositionFileIsAlwaysCompleteAndParseable)
