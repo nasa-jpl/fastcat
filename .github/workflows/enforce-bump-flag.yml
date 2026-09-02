@@ -11,15 +11,41 @@ jobs:
   check-pr-description:
     name: Check for bump flag
     runs-on: ubuntu-latest
-    steps:
-      - name: Verify bump flag in description
+steps:
+      - name: Verify exactly one bump level in description
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          if echo "$PR_BODY" | grep -iqE 'bump:(major|minor|patch)'; then
-            echo "✅ Version bump flag found."
+          MAJOR=0
+          MINOR=0
+          PATCH=0
+
+          # Check for Major variants
+          if echo "$PR_BODY" | grep -iqE '(bump version major|bump major version|#major)'; then
+            MAJOR=1
+          fi
+
+          # Check for Minor variants
+          if echo "$PR_BODY" | grep -iqE '(bump version minor|bump minor version|#minor)'; then
+            MINOR=1
+          fi
+
+          # Check for Patch variants
+          if echo "$PR_BODY" | grep -iqE '(bump version patch|bump patch version|#patch)'; then
+            PATCH=1
+          fi
+
+          # Calculate total unique levels found
+          TOTAL=$((MAJOR + MINOR + PATCH))
+
+          if [ "$TOTAL" -eq 1 ]; then
+            echo "✅ Exactly one version bump level found."
             exit 0
+          elif [ "$TOTAL" -eq 0 ]; then
+            echo "❌ Error: PR description must contain a version bump flag."
+            echo "Expected one of: #major, bump version minor, bump patch version, etc."
+            exit 1
           else
-            echo "❌ Error: PR description must contain bump:major, bump:minor, or bump:patch."
+            echo "❌ Error: Conflicting version bump levels found. Please specify ONLY major, minor, OR patch."
             exit 1
           fi
