@@ -13,6 +13,22 @@ them land in `build/bin/`:
 dependency. The two `elmo_*_profile` binaries are native fastcat utilities
 under `utils/`.
 
+## Source layout
+
+| Path | Contents |
+|---|---|
+| `utils/profile_utils.{h,cpp}` | Logic shared by both profile tools: argument parsing, profile duration math, Elmo state-machine helpers, and the reset / control-loop / graceful-halt sequences |
+| `utils/elmo_vel_profile.cpp` | `main()` for the velocity tool — CSV schema and the `ACTUATOR_PROF_VEL_CMD` it issues |
+| `utils/elmo_pos_profile.cpp` | `main()` for the position tool — CSV schema and the `ACTUATOR_PROF_POS_CMD` it issues |
+| `utils/test_profile_utils.cc` | GTest unit tests for the hardware-independent parts of `profile_utils` |
+
+The unit tests are registered with CTest alongside the main test suite and need
+no hardware:
+
+```
+ctest -R test_profile_utils --output-on-failure
+```
+
 ## Capabilities
 
 All three utilities open raw EtherCAT sockets, which requires `CAP_NET_ADMIN`
