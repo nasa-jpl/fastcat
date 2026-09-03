@@ -11,7 +11,7 @@ jobs:
   check-pr-description:
     name: Check for bump flag
     runs-on: ubuntu-latest
-steps:
+    steps:
       - name: Verify exactly one bump level in description
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
